@@ -466,7 +466,7 @@ function eauservice_shop_outro() {
 	<section class="es-cta-band">
 		<h2>Un événement à équiper sur la Côte d'Azur&nbsp;?</h2>
 		<p>Recevez un devis personnalisé sous 24h pour votre salon, congrès ou événement professionnel.</p>
-		<a class="es-cta-btn" href="https://formulaire.events-cafe.com/formulaire.html">Demander un devis gratuit</a>
+		<a class="es-cta-btn" href="#es-devis">Demander un devis gratuit</a>
 	</section>
 	<?php
 }
@@ -482,7 +482,7 @@ add_action( 'wp_head', 'eauservice_local_business_schema' );
 function eauservice_local_business_schema() {
 	// ---- À PERSONNALISER ----------------------------------------------
 	$nom        = 'EauService';
-	$telephone  = '+33 7 61 46 57 20';                  // numéro de contact principal
+	$telephone  = '+33 6 63 24 08 43';                  // numéro de contact principal
 	$rue        = '2 chemin des Frères Garberro, Galerie Marchande';
 	$code_postal= '06600';
 	$ville      = 'Antibes';
@@ -561,10 +561,10 @@ add_action( 'woocommerce_thankyou', 'eauservice_thankyou_contact', 5 );
 function eauservice_thankyou_contact( $order_id ) {
 	if ( ! $order_id ) { return; }
 	// ---- À PERSONNALISER ----------------------------------------------
-	$tel       = '+33761465720';                 // numéro au format international (sans espaces) pour le lien
-	$tel_affit = '07 61 46 57 20';               // numéro affiché
+	$tel       = '+33663240843';                 // numéro au format international (sans espaces) pour le lien
+	$tel_affit = '06 63 24 08 43';               // numéro affiché
 	$email     = 'contact@eau-service-events.fr';
-	$devis_url = 'https://formulaire.events-cafe.com/formulaire.html';
+	$devis_url = '#es-devis';                        // ancre vers section devis
 	// -------------------------------------------------------------------
 	?>
 	<div class="es-thankyou-banner">
@@ -594,7 +594,7 @@ add_action( 'woocommerce_email_after_order_table', 'eauservice_email_contact_blo
 function eauservice_email_contact_block( $order, $sent_to_admin, $plain_text, $email ) {
 	if ( $sent_to_admin || $plain_text ) { return; }
 	// ---- À PERSONNALISER ----------------------------------------------
-	$tel_affit = '07 61 46 57 20';
+	$tel_affit = '06 63 24 08 43';
 	$email_pro = 'contact@eau-service-events.fr';
 	// -------------------------------------------------------------------
 	echo '<div style="margin:24px 0;padding:20px 24px;background:#EAF2FB;border-radius:12px;border-left:4px solid #1E6FD9;">';
@@ -874,6 +874,6 @@ function eauservice_note_livraison() {
 	echo '<p style="font-size:13px;line-height:1.6;color:#34465a;margin:0 0 16px;padding:13px 15px;background:#e7f7fe;border:1px solid #c7ebfa;border-radius:13px;">'
 		. '💧 Frais de livraison calculés selon la distance depuis Antibes. '
 		. 'Zone éloignée, besoin particulier ou code promo ? '
-		. '<a href="https://api.whatsapp.com/send?phone=33761465720" target="_blank" rel="noopener" style="color:#1b86bc;font-weight:700;">Contactez-nous</a> '
+		. '<a href="https://api.whatsapp.com/send?phone=33663240843" target="_blank" rel="noopener" style="color:#1b86bc;font-weight:700;">Contactez-nous</a> '
 		. 'avant de valider, on s\'arrange.</p>';
 }

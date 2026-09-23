@@ -436,7 +436,7 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
       <span data-fr="☕ Location de matériel événementiel : machines à café, fontaines à eau, frigos" data-en="☕ Event equipment rental: coffee machines, water fountains, fridges">☕ Location de matériel événementiel : machines à café, fontaines à eau, frigos</span>
       <span data-fr="✅ Packs clés en main pour vos événements" data-en="✅ Turnkey packs for your events">✅ Packs clés en main pour vos événements</span>
       <span data-fr="🛍️ Boutique en ligne ouverte 24h/24" data-en="🛍️ Online shop open 24/7">🛍️ Boutique en ligne ouverte 24h/24</span>
-      <span data-fr="📞 07 61 46 57 20 — Devis gratuit en 24h" data-en="📞 07 61 46 57 20 — Free quote within 24h">📞 07 61 46 57 20 — Devis gratuit en 24h</span>
+      <span data-fr="📞 06 63 24 08 43 — Devis gratuit en 24h" data-en="📞 06 63 24 08 43 — Free quote within 24h">📞 06 63 24 08 43 — Devis gratuit en 24h</span>
       <span data-fr="💬 Réponse immédiate sur WhatsApp" data-en="💬 Instant reply on WhatsApp">💬 Réponse immédiate sur WhatsApp</span>
     </div>
     <div class="marquee-group" aria-hidden="true">
@@ -445,7 +445,7 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
       <span data-fr="☕ Location de matériel événementiel : machines à café, fontaines à eau, frigos" data-en="☕ Event equipment rental: coffee machines, water fountains, fridges">☕ Location de matériel événementiel : machines à café, fontaines à eau, frigos</span>
       <span data-fr="✅ Packs clés en main pour vos événements" data-en="✅ Turnkey packs for your events">✅ Packs clés en main pour vos événements</span>
       <span data-fr="🛍️ Boutique en ligne ouverte 24h/24" data-en="🛍️ Online shop open 24/7">🛍️ Boutique en ligne ouverte 24h/24</span>
-      <span data-fr="📞 07 61 46 57 20 — Devis gratuit en 24h" data-en="📞 07 61 46 57 20 — Free quote within 24h">📞 07 61 46 57 20 — Devis gratuit en 24h</span>
+      <span data-fr="📞 06 63 24 08 43 — Devis gratuit en 24h" data-en="📞 06 63 24 08 43 — Free quote within 24h">📞 06 63 24 08 43 — Devis gratuit en 24h</span>
       <span data-fr="💬 Réponse immédiate sur WhatsApp" data-en="💬 Instant reply on WhatsApp">💬 Réponse immédiate sur WhatsApp</span>
     </div>
   </div>
@@ -490,9 +490,9 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
   <a href="#contact" onclick="closeMenu()" data-fr="Contact" data-en="Contact">Contact</a>
   <a href="/boutique/" data-fr="Boutique" data-en="Shop">Boutique</a>
   <a href="/panier/" data-fr="Panier" data-en="Cart">Panier</a>
-  <a href="https://formulaire.events-cafe.com/formulaire.html" class="mm-cta" data-fr="Formulaire de commande" data-en="Order form">Formulaire de commande</a>
+  <a href="#es-devis" onclick="closeMenu()" class="mm-cta" data-fr="Demander un devis" data-en="Request a quote">Demander un devis</a>
   <a href="#es-devis" onclick="closeMenu()" class="mm-cta" style="background:transparent;border:1.5px solid rgba(111,224,255,.6);color:#0a2942" data-fr="Devis gratuit" data-en="Free quote">Devis gratuit</a>
-  <a href="https://api.whatsapp.com/send?phone=33761465720" target="_blank" rel="noopener" class="mm-wa" data-fr="WhatsApp" data-en="WhatsApp">WhatsApp</a>
+  <a href="https://api.whatsapp.com/send?phone=33663240843" target="_blank" rel="noopener" class="mm-wa" data-fr="WhatsApp" data-en="WhatsApp">WhatsApp</a>
   <div class="mm-lang">
     <button onclick="setLang('fr');closeMenu()">Français</button>
     <button onclick="setLang('en');closeMenu()">English</button>
@@ -535,7 +535,7 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
   </div>
   <div class="cta-main-btns sr" style="margin-bottom:0">
     <a href="/boutique/" class="cta-big" data-fr="🛍️ Accéder à la boutique en ligne" data-en="🛍️ Go to the online shop">🛍️ Accéder à la boutique en ligne</a>
-    <a href="https://formulaire.events-cafe.com/formulaire.html" class="cta-big" style="padding:18px 32px;background:#fff;color:#0a2942;border:1.5px solid #bfe6f6;box-shadow:0 10px 30px -18px rgba(10,41,66,.4)" data-fr="Formulaire de commande" data-en="Order form">Formulaire de commande</a>
+    <a href="#es-devis" class="cta-big" style="padding:18px 32px;background:#fff;color:#0a2942;border:1.5px solid #bfe6f6;box-shadow:0 10px 30px -18px rgba(10,41,66,.4)" data-fr="Demander un devis" data-en="Request a quote">Demander un devis</a>
   </div>
 </section></div>
 
@@ -799,11 +799,11 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
     <p class="cta-main-sub" data-fr="Commandez en ligne ou demandez un devis. Réponse sous 24h." data-en="Order online or request a quote. We reply within 24h.">Commandez en ligne ou demandez un devis. Réponse sous 24h.</p>
     <div class="cta-main-btns">
       <a href="/boutique/" class="cta-big" data-fr="🛍️ Commander sur la boutique" data-en="🛍️ Order from the shop">🛍️ Commander sur la boutique</a>
-      <a href="https://formulaire.events-cafe.com/formulaire.html" class="cta-big" style="background:rgba(255,255,255,.10);border:1.5px solid rgba(111,224,255,.45);box-shadow:none;color:#eaf3fb" data-fr="Formulaire de commande →" data-en="Order form →">Formulaire de commande →</a>
-      <a href="https://api.whatsapp.com/send?phone=33761465720" class="cta-wa" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;display:inline-block;vertical-align:middle"><path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9"></path><path d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1"></path></svg> <span data-fr="WhatsApp — Réponse immédiate" data-en="WhatsApp — Instant reply">WhatsApp — Réponse immédiate</span></a>
+      <a href="#es-devis" class="cta-big" style="background:rgba(255,255,255,.10);border:1.5px solid rgba(111,224,255,.45);box-shadow:none;color:#eaf3fb" data-fr="Demander un devis →" data-en="Request a quote →">Demander un devis →</a>
+      <a href="https://api.whatsapp.com/send?phone=33663240843" class="cta-wa" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;display:inline-block;vertical-align:middle"><path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9"></path><path d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1"></path></svg> <span data-fr="WhatsApp — Réponse immédiate" data-en="WhatsApp — Instant reply">WhatsApp — Réponse immédiate</span></a>
     </div>
     <div class="cta-direct">
-      <a href="tel:+33761465720" class="cta-direct-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;display:inline-block;vertical-align:middle"><path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2"></path></svg><span>07 61 46 57 20</span></a>
+      <a href="tel:+33663240843" class="cta-direct-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;display:inline-block;vertical-align:middle"><path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2"></path></svg><span>06 63 24 08 43</span></a>
       <a href="mailto:contact@events-cafe.com" class="cta-direct-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;display:inline-block;vertical-align:middle"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"></path><path d="M3 7l9 6l9 -6"></path></svg><span>contact@events-cafe.com</span></a>
     </div>
   </div>
@@ -880,7 +880,7 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
     </div>
     <div><div class="foot-ct" data-fr="Nos équipements" data-en="Our equipment">Nos équipements</div><ul class="foot-links"><li><a href="#packs" data-fr="Packs" data-en="Packs">Packs</a></li><li><a href="#produits" data-fr="Machines à café" data-en="Coffee machines">Machines à café</a></li><li><a href="#produits" data-fr="Fontaines à eau" data-en="Water fountains">Fontaines à eau</a></li><li><a href="#produits" data-fr="Réfrigération" data-en="Refrigeration">Réfrigération</a></li></ul></div>
     <div><div class="foot-ct" data-fr="Société" data-en="Company">Société</div><ul class="foot-links"><li><a href="#forces" data-fr="Nos forces" data-en="Our strengths">Nos forces</a></li><li><a href="#contact">Contact</a></li><li><a href="/boutique/" data-fr="Boutique" data-en="Shop">Boutique</a></li></ul></div>
-    <div><div class="foot-ct" data-fr="Contact" data-en="Contact">Contact</div><ul class="foot-links"><li><a href="tel:+33761465720">07 61 46 57 20</a></li><li><a href="mailto:contact@events-cafe.com">contact@events-cafe.com</a></li><li><span data-fr="Monaco · Nice · Cannes · Marseille" data-en="Monaco · Nice · Cannes · Marseille">Monaco · Nice · Cannes · Marseille</span></li></ul></div>
+    <div><div class="foot-ct" data-fr="Contact" data-en="Contact">Contact</div><ul class="foot-links"><li><a href="tel:+33663240843">06 63 24 08 43</a></li><li><a href="mailto:contact@events-cafe.com">contact@events-cafe.com</a></li><li><span data-fr="Monaco · Nice · Cannes · Marseille" data-en="Monaco · Nice · Cannes · Marseille">Monaco · Nice · Cannes · Marseille</span></li></ul></div>
   </div>
   <div class="foot-bottom" data-fr="© 2025 EauService by Events Café — Tous droits réservés" data-en="© 2025 EauService by Events Café — All rights reserved">© 2025 EauService by Events Café — Tous droits réservés</div>
 </footer>
