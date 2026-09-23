@@ -731,6 +731,41 @@ function eauservice_services_schema() {
 }
 
 /* ===========================================================================
+ * 9d) DONNÉES STRUCTURÉES — BREADCRUMB (navigation pour l'IA)
+ *     Fil d'Ariane pour aider les IA à comprendre la structure du site
+ *     Améliore la navigation et le référencement des pages internes
+ * =========================================================================== */
+add_action( 'wp_head', 'eauservice_breadcrumb_schema', 10 );
+function eauservice_breadcrumb_schema() {
+	if ( is_front_page() ) { return; }
+	
+	$items = array(
+		array('@type' => 'ListItem', 'position' => 1, 'name' => 'Accueil', 'item' => home_url('/'))
+	);
+	
+	if ( function_exists('is_shop') && is_shop() ) {
+		$items[] = array('@type' => 'ListItem', 'position' => 2, 'name' => 'Boutique', 'item' => get_permalink( wc_get_page_id('shop') ));
+	} elseif ( function_exists('is_product') && is_product() ) {
+		global $post;
+		$items[] = array('@type' => 'ListItem', 'position' => 2, 'name' => 'Boutique', 'item' => get_permalink( wc_get_page_id('shop') ));
+		$items[] = array('@type' => 'ListItem', 'position' => 3, 'name' => get_the_title(), 'item' => get_permalink());
+	} elseif ( function_exists('is_cart') && is_cart() ) {
+		$items[] = array('@type' => 'ListItem', 'position' => 2, 'name' => 'Panier', 'item' => get_permalink( wc_get_page_id('cart') ));
+	} elseif ( function_exists('is_checkout') && is_checkout() ) {
+		$items[] = array('@type' => 'ListItem', 'position' => 2, 'name' => 'Commande', 'item' => get_permalink( wc_get_page_id('checkout') ));
+	}
+	
+	if ( count($items) > 1 ) {
+		$data = array(
+			'@context' => 'https://schema.org',
+			'@type' => 'BreadcrumbList',
+			'itemListElement' => $items
+		);
+		echo "\n<script type=\"application/ld+json\">" . wp_json_encode( $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . "</script>\n";
+	}
+}
+
+/* ===========================================================================
  * 10) DONNÉES STRUCTURÉES — FAQ (sur la page Boutique)
  *     Reprend les questions de la boutique au format Schema FAQ.
  *     Google peut alors afficher ces questions directement dans les résultats.
