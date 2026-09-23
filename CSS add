@@ -1,0 +1,1263 @@
+/* ===================================================================== */
+/*  EAUSERVICE — FEUILLE DE STYLE BOUTIQUE  v2 (theme clair + aqua)     */
+/*  >>> REMPLACE TOUT le contenu de "CSS additionnel" par ce fichier <<< */
+/*  --------------------------------------------------------------------  */
+/*  Nouveautés v15 :                                                      */
+/*   • Images fondues dans les cartes (fond blanc pur, plus de "cadre")   */
+/*   • Cartes plus compactes, boutons toujours alignés en bas             */
+/*   • Select "Tri par défaut" plus visible                               */
+/*   • Badge "EN RUPTURE DE STOCK" stylé                                  */
+/*   • Fiche produit (clic "Lire la suite") améliorée                     */
+/*   • Panier : images alignées                                           */
+/* ===================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap");
+
+:root{
+  --es-blue:#1b9fd1; --es-blue2:#2eb6e6; --es-azure:#35c6f0;
+  --es-ink:#0a2942; --es-slate:#5b6b7d; --es-mist:#8ba6c2;
+  --es-line:#e7edf3; --es-line2:#dde5ec; --es-soft:#f4f7fb;
+  --es-ease:cubic-bezier(.4,0,.2,1);
+}
+
+/* =========================  EN-TÊTE & PIED (navy)  =================== */
+.site-header,#masthead,.ast-primary-header-bar,.main-header-bar,
+.ast-main-header-wrap .main-header-bar,.ast-above-header,.ast-below-header{
+  background:#061726 !important; border:none !important; box-shadow:0 1px 0 rgba(255,255,255,.06) !important;
+}
+.site-title,.ast-site-title-wrap .site-title,.ast-site-identity .site-title,
+.site-header .site-title,.ast-logo-title-inline .site-title{ display:none !important; }
+.site-description,.ast-site-identity .site-description{ color:#8ba6c2 !important; }
+.main-header-menu .menu-link,.ast-builder-menu .menu-link,.main-header-menu a,
+#ast-hf-menu-1 .menu-link,.ast-masthead-custom-menu-items a{
+  color:#c3d4e6 !important; font-weight:600 !important; font-family:'Manrope',system-ui,sans-serif !important;
+}
+.main-header-menu .menu-link:hover,.ast-builder-menu .menu-link:hover,
+.main-header-menu .current-menu-item>.menu-link{ color:#35c6f0 !important; }
+.main-header-menu .sub-menu,.ast-builder-menu .sub-menu{ background:#0a2942 !important; border:1px solid rgba(255,255,255,.08) !important; }
+.ast-header-woo-cart .ast-cart-menu-wrap,.ast-site-header-cart a,.ast-header-account-wrap a{ color:#c3d4e6 !important; }
+.ast-mobile-menu-buttons-minimal,.main-header-menu-toggle{ color:#fff !important; }
+.site-footer,#colophon,.ast-small-footer,.footer-sml-layout,.ast-footer-overlay,footer.site-footer{
+  background:#061726 !important; color:#8ba6c2 !important; border:none !important;
+}
+.site-footer a,#colophon a,.ast-small-footer a{ color:#c3d4e6 !important; }
+.site-footer a:hover,#colophon a:hover{ color:#35c6f0 !important; }
+
+/* ============  FOND DE PAGE BOUTIQUE (plus profond + texturé)  ====== */
+/* Condition "page boutique/panier/commande" — JAMAIS l'accueil/le blog. */
+body:is(
+  :has(#content .woocommerce), :has(#primary .woocommerce),
+  :has(.site-content .woocommerce), :has(.entry-content .woocommerce),
+  .woocommerce-cart, .woocommerce-checkout, .woocommerce-account,
+  .post-type-archive-product, .single-product, .tax-product_cat
+){
+  background:
+    radial-gradient(900px 620px at 10% -8%, rgba(46,182,230,.30), transparent 46%),
+    radial-gradient(820px 660px at 102% 0%, rgba(53,198,240,.32), transparent 50%),
+    radial-gradient(1100px 900px at 50% 122%, rgba(10,41,66,.26), transparent 62%),
+    linear-gradient(180deg,#eef3f8 0%, #f1f5fa 380px, #f4f7fb 100%) !important;
+  background-attachment:fixed !important;
+  color:#0a2942 !important;
+  font-family:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif !important;
+}
+/* trame de points discrète, fondue en haut */
+body:is(
+  :has(#content .woocommerce), :has(#primary .woocommerce),
+  :has(.site-content .woocommerce), :has(.entry-content .woocommerce),
+  .woocommerce-cart, .woocommerce-checkout, .woocommerce-account,
+  .post-type-archive-product, .single-product, .tax-product_cat
+)::before{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:radial-gradient(rgba(10,41,66,.10) 1px, transparent 1.6px);
+  background-size:26px 26px;
+  -webkit-mask-image:radial-gradient(150% 120% at 50% -12%, #000 42%, transparent 100%);
+  mask-image:radial-gradient(150% 120% at 50% -12%, #000 42%, transparent 100%);
+}
+/* léger vignettage en bas pour la profondeur */
+body:is(
+  :has(#content .woocommerce), :has(#primary .woocommerce),
+  :has(.site-content .woocommerce), :has(.entry-content .woocommerce),
+  .woocommerce-cart, .woocommerce-checkout, .woocommerce-account,
+  .post-type-archive-product, .single-product, .tax-product_cat
+)::after{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:radial-gradient(120% 80% at 50% 122%, rgba(10,22,40,.12), transparent 60%);
+}
+
+/* On rend transparente la boîte blanche d'Astra, ET on remet le contenu */
+/* au-dessus de la texture (z-index:1).                                  */
+body:is(
+  :has(#content .woocommerce), :has(.site-content .woocommerce),
+  .woocommerce-cart, .woocommerce-checkout, .woocommerce-account,
+  .post-type-archive-product, .single-product, .tax-product_cat
+) :is(#page,#content,#main,.site-content,#primary,.content-area,.ast-container,
+      .entry-content,.ast-article-single,.ast-article-post,.ast-separate-container){
+  background:transparent !important; background-color:transparent !important;
+  box-shadow:none !important; border:none !important;
+  position:relative !important; z-index:1 !important;
+}
+
+/* Texte foncé UNIQUEMENT dans le contenu boutique (jamais l'accueil). */
+:is(#content,#primary,.entry-content,.site-content) .woocommerce p,
+:is(#content,#primary,.entry-content,.site-content) .woocommerce li,
+:is(#content,#primary,.entry-content,.site-content) .woocommerce td{ color:#5b6b7d !important; }
+:is(#content,#primary,.entry-content,.site-content) .woocommerce h1,
+:is(#content,#primary,.entry-content,.site-content) .woocommerce h2,
+:is(#content,#primary,.entry-content,.site-content) .woocommerce h3,
+.woocommerce .product_title{ color:#0a2942 !important; font-weight:900 !important; letter-spacing:-.6px; }
+.woocommerce a{ color:#1b9fd1; text-decoration:none !important; }
+.woocommerce a:hover{ color:#45cdf2; }
+
+/* ====================  BANNIÈRE DE TITRE  ========================== */
+/* .woocommerce-products-header = spécifique Woo (sans risque). Le titre */
+/* d'archive Astra est limité aux pages produits (jamais le blog).       */
+.woocommerce-products-header,
+body.post-type-archive-product .ast-archive-description,
+body.tax-product_cat .ast-archive-description,
+body.woocommerce-cart .entry-header,
+body.woocommerce-checkout .entry-header{
+  background:linear-gradient(135deg,#061726 0%,#0a2942 64%,#1b9fd1 138%) !important;
+  border-radius:20px !important; padding:30px 44px !important; margin:0 0 30px !important;
+  position:relative !important; overflow:hidden !important; z-index:1;
+  box-shadow:0 20px 50px rgba(10,22,40,.26) !important; border:1px solid rgba(255,255,255,.06) !important; text-align:left !important;
+}
+.woocommerce-products-header::before,
+body.post-type-archive-product .ast-archive-description::before,
+body.tax-product_cat .ast-archive-description::before,
+body.woocommerce-cart .entry-header::before,
+body.woocommerce-checkout .entry-header::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(520px 360px at 92% -18%, rgba(53,198,240,.38), transparent 60%),
+    radial-gradient(440px 340px at -4% 130%, rgba(46,182,230,.30), transparent 60%);
+}
+.woocommerce-products-header__title,
+body.post-type-archive-product .ast-archive-description .ast-archive-title,
+body.tax-product_cat .ast-archive-description .ast-archive-title,
+body.woocommerce-cart .entry-header .entry-title,
+body.woocommerce-checkout .entry-header .entry-title{
+  color:#fff !important; position:relative; z-index:1; margin:0 !important;
+  font-size:clamp(26px,3vw,40px) !important; font-weight:900 !important; letter-spacing:-1.2px; text-shadow:0 2px 30px rgba(0,0,0,.25);
+}
+.woocommerce-products-header__title::before,
+body.post-type-archive-product .ast-archive-title::before,
+body.tax-product_cat .ast-archive-title::before{
+  content:'BOUTIQUE — LOCATION ÉVÉNEMENTIELLE'; display:block; font-size:11px; font-weight:800; letter-spacing:4px; color:#35c6f0; margin-bottom:10px; text-shadow:none;
+}
+body.woocommerce-cart .entry-header .entry-title::before{ content:'PANIER'; display:block; font-size:11px; font-weight:800; letter-spacing:4px; color:#35c6f0; margin-bottom:14px; text-shadow:none; }
+body.woocommerce-checkout .entry-header .entry-title::before{ content:'FINALISER LA COMMANDE'; display:block; font-size:11px; font-weight:800; letter-spacing:4px; color:#35c6f0; margin-bottom:14px; text-shadow:none; }
+.woocommerce-products-header__title::after,
+body.post-type-archive-product .ast-archive-title::after,
+body.tax-product_cat .ast-archive-title::after,
+body.woocommerce-cart .entry-header .entry-title::after,
+body.woocommerce-checkout .entry-header .entry-title::after{
+  content:''; display:block; width:60px; height:4px; margin-top:12px; background:linear-gradient(90deg,#35c6f0,#1b9fd1); border-radius:3px; box-shadow:0 4px 14px rgba(53,198,240,.5);
+}
+.woocommerce-products-header .term-description,
+body.post-type-archive-product .ast-archive-description-meta,
+body.tax-product_cat .ast-archive-description-meta{ color:#c3d4e6 !important; position:relative; z-index:1; max-width:660px; line-height:1.7; }
+
+/* bande de réassurance optionnelle (bloc HTML) */
+.es-trust{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; position:relative; z-index:1;
+  background:linear-gradient(180deg,#fff,#FAFCFF); border:1px solid #E3EDFB; border-radius:16px; padding:18px 22px; margin:0 0 30px; box-shadow:0 8px 22px rgba(10,22,40,.06); }
+.es-trust span{ color:#5b6b7d; font-weight:600; font-size:14px; display:flex; align-items:center; gap:8px; }
+.es-trust span::before{ content:'✓'; display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg,#1b9fd1,#2eb6e6); color:#fff; font-size:11px; font-weight:900; box-shadow:0 4px 10px rgba(46,182,230,.3); }
+.es-trust b{ color:#0a2942; }
+
+/* ====================  BARRE TRI / RÉSULTATS  ====================== */
+/* Barre alignée : nombre de résultats à GAUCHE, menu de tri à DROITE.   */
+/* (avant le select se retrouvait centré au milieu de la page)           */
+.woocommerce .woocommerce-result-count{
+  color:#5b6b7d !important; font-weight:600; font-size:14px;
+  float:left !important; margin:0 !important; line-height:50px !important;
+}
+.woocommerce .woocommerce-ordering{
+  float:right !important; margin:0 !important; overflow:visible !important; display:block !important; text-align:right !important; clear:none !important;
+}
+/* on remet une marge sous toute la barre + on nettoie les flottants */
+.woocommerce-products-header + .woocommerce-result-count,
+.woocommerce .woocommerce-result-count,
+.woocommerce .woocommerce-ordering{ margin-bottom:18px !important; }
+.woocommerce ul.products{ clear:both !important; }
+.woocommerce .woocommerce-ordering select,.woocommerce-page select.orderby{
+  width:auto !important; min-width:260px !important; max-width:100% !important;
+  height:auto !important; min-height:50px !important; line-height:1.2 !important; box-sizing:border-box !important;
+  white-space:nowrap !important; text-overflow:ellipsis !important; vertical-align:middle !important;
+  background:#fff !important; border:1.5px solid #dde5ec !important; color:#0a2942 !important; border-radius:12px !important; padding:0 48px 0 18px !important; font-weight:600 !important; font-size:14px !important; font-family:inherit !important;
+  box-shadow:0 4px 14px rgba(10,22,40,.06) !important; appearance:none; -webkit-appearance:none; -moz-appearance:none; cursor:pointer;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231E6FD9' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") !important;
+  background-repeat:no-repeat !important; background-position:right 16px center !important; transition:border-color .2s, box-shadow .2s;
+}
+.woocommerce .woocommerce-ordering select:focus,.woocommerce-page select.orderby:focus{ outline:none !important; border-color:#1b9fd1 !important; box-shadow:0 0 0 4px rgba(46,182,230,.12) !important; }
+.woocommerce .woocommerce-breadcrumb{ color:#5b6b7d !important; margin-bottom:18px; font-size:13px; position:relative; z-index:1; }
+.woocommerce .woocommerce-breadcrumb a{ color:#1b9fd1; font-weight:600; }
+
+/* ====================  GRILLE : ORDRE + TAILLES  =================== */
+.woocommerce ul.products,.woocommerce-page ul.products{ display:flex !important; flex-wrap:wrap; gap:30px; margin:0 0 44px !important; padding:0 !important; align-items:stretch; position:relative; z-index:1; }
+/* Cartes plus GRANDES : 3 par ligne sur grand écran pour mieux voir les   */
+/* produits. Regroupement par catégorie conservé via "order".             */
+.woocommerce ul.products li.product{
+  margin:0 !important; float:none !important; display:flex; flex-direction:column;
+  flex:0 0 calc(33.333% - 20px) !important; max-width:calc(33.333% - 20px) !important; width:auto !important;
+}
+.woocommerce ul.products li.product[class*="product_cat-pack"]{ order:1; }
+.woocommerce ul.products li.product[class*="product_cat-machine"],
+.woocommerce ul.products li.product[class*="product_cat-fontaine"],
+.woocommerce ul.products li.product[class*="product_cat-refrig"],
+.woocommerce ul.products li.product[class*="product_cat-mobilier"]{ order:2; }
+.woocommerce ul.products li.product[class*="product_cat-suppl"]{ order:3; }
+@media(max-width:1100px){ .woocommerce ul.products li.product{ flex:0 0 calc(50% - 15px) !important; max-width:calc(50% - 15px) !important; } }
+@media(max-width:600px){ .woocommerce ul.products li.product{ flex:0 0 100% !important; max-width:100% !important; } }
+
+/* ====================  CARTE PRODUIT (premium)  ==================== */
+.woocommerce ul.products li.product{
+  position:relative !important; background:linear-gradient(180deg,#FFFFFF 0%,#FBFDFF 100%) !important; border:1.5px solid #dde5ec !important; border-radius:22px !important;
+  padding:0 0 18px !important; overflow:hidden !important; text-align:center; box-shadow:0 16px 38px rgba(10,41,66,.13) !important;
+  transition:transform .4s var(--es-ease), box-shadow .4s var(--es-ease), border-color .4s !important;
+}
+.woocommerce ul.products li.product:hover{ transform:translateY(-10px) !important; box-shadow:0 34px 64px rgba(46,182,230,.26) !important; border-color:#9FC2F0 !important; }
+.woocommerce ul.products li.product::before{
+  content:''; position:absolute; left:0; right:0; top:0; height:4px; background:linear-gradient(90deg,#1b9fd1,#35c6f0,#1b9fd1); background-size:200% 100%;
+  opacity:0; transition:opacity .3s ease; z-index:3; animation:esShine 3s linear infinite;
+}
+.woocommerce ul.products li.product:hover::before{ opacity:1; }
+@keyframes esShine{ to{ background-position:200% 0; } }
+.woocommerce ul.products li.product a{ display:block; }
+/* Zone image avec un joli petit CADRE : panneau légèrement teinté, coins  */
+/* arrondis et fine bordure -> l'image ne flotte plus sur du blanc plat.   */
+.woocommerce ul.products li.product a img{
+  display:block !important; width:calc(100% - 32px) !important; height:240px !important; object-fit:contain !important; object-position:center !important;
+  background:linear-gradient(160deg,#EEF5FF 0%,#FFFFFF 70%) !important;
+  border:1px solid #E1EBFA !important; border-radius:18px !important; padding:22px !important; margin:16px 16px 14px !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 6px 16px rgba(10,22,40,.06) !important; transition:transform .5s var(--es-ease), box-shadow .3s !important;
+}
+.woocommerce ul.products li.product:hover a img{ transform:scale(1.05); box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 12px 28px rgba(46,182,230,.16) !important; }
+/* TITRE : couleur foncée forte, 2 lignes MAX (hauteur exacte = jamais     */
+/* coupé en plein milieu), même hauteur pour toutes les cartes.            */
+.woocommerce ul.products li.product .woocommerce-loop-product__title,
+.woocommerce ul.products li.product h2.woocommerce-loop-product__title,
+.woocommerce ul.products li.product .ast-woo-shop-archive-title,
+.woocommerce ul.products li.product .ast-woo-product-title{
+  color:#0a2942 !important; font-size:16.5px !important; font-weight:800 !important; line-height:1.4 !important;
+  padding:4px 20px 6px !important; margin:0 !important; letter-spacing:-.3px; text-align:center;
+  display:-webkit-box !important; -webkit-line-clamp:2 !important; -webkit-box-orient:vertical !important; overflow:hidden !important;
+  height:2.8em !important; min-height:2.8em !important; max-height:2.8em !important;
+  overflow-wrap:break-word; word-break:normal; hyphens:none; text-overflow:ellipsis;
+}
+/* PRIX : mis en valeur dans une petite zone teintée centrée */
+.woocommerce ul.products li.product .price{
+  color:#1558B0 !important; font-weight:900 !important; font-size:23px !important; padding:4px 0 !important; margin:2px 20px 0 !important; letter-spacing:-.6px;
+  display:block; text-align:center;
+}
+.woocommerce ul.products li.product .price del{ color:#8ba6c2 !important; font-weight:600; font-size:15px; margin-right:6px; }
+.woocommerce ul.products li.product .price ins{ color:#0a2942 !important; text-decoration:none; }
+.woocommerce ul.products li.product .button{
+  display:block !important; width:calc(100% - 36px); margin:14px 18px 0 !important; margin-top:auto !important; background:linear-gradient(135deg,#1b9fd1,#2eb6e6) !important; color:#fff !important; border:none !important; border-radius:12px !important;
+  padding:14px 14px !important; font-weight:800 !important; font-size:14.5px !important; letter-spacing:.2px; box-shadow:0 10px 22px rgba(46,182,230,.24) !important; transition:filter .2s, transform .2s, box-shadow .2s !important;
+}
+.woocommerce ul.products li.product .button:hover{ filter:brightness(1.07); transform:translateY(-2px); box-shadow:0 16px 32px rgba(46,182,230,.34) !important; }
+
+/* ====================  ACTIONS CARTE : PANIER + LIRE LA SUITE  ====== */
+/* Conteneur ajouté par eauservice-functions.php : gros bouton "Ajouter   */
+/* au panier" + petit bouton "Lire la suite" alignés côte à côte.        */
+/* "Ajouter au panier" = gros bouton pleine largeur. "Lire la suite" =    */
+/* petit lien DISCRET en bas à droite de la carte.                        */
+.woocommerce ul.products li.product .es-loop-actions{
+  display:block !important; width:calc(100% - 36px); margin:14px 18px 2px !important; margin-top:auto !important; text-align:right;
+}
+.woocommerce ul.products li.product .es-loop-actions .button{
+  display:flex !important; align-items:center !important; justify-content:center !important;
+  width:100% !important; height:46px !important; min-height:0 !important; line-height:1 !important;
+  margin:0 !important; padding:0 16px !important; border-radius:12px !important; font-size:14px !important; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;
+}
+.woocommerce ul.products li.product .es-loop-readmore{
+  display:inline-block; margin:8px 2px 0 !important; padding:7px 16px !important;
+  background:#e7f7fe !important; border:1.5px solid #C9DDF7 !important; box-shadow:0 2px 6px rgba(46,182,230,.10) !important; border-radius:30px !important;
+  color:#1558B0 !important; font-size:12.5px !important; font-weight:800 !important; text-decoration:none !important; letter-spacing:.2px;
+  transition:background .2s, color .2s, transform .2s;
+}
+.woocommerce ul.products li.product .es-loop-readmore:hover{ background:#1b9fd1 !important; color:#fff !important; border-color:#1b9fd1 !important; transform:translateY(-2px); }
+
+/* CALIBRAGE : quand "Lire la suite" est SEUL (produit sans prix), on évite
+   le gros bouton pleine largeur disproportionné -> bouton secondaire,
+   largeur auto, centré et de taille normale. */
+.woocommerce ul.products li.product a.button.product_type_simple:not(.add_to_cart_button),
+.woocommerce ul.products li.product a.button.product_type_grouped:not(.add_to_cart_button),
+.woocommerce ul.products li.product .es-loop-actions a.button:only-child{
+  display:inline-block !important; width:auto !important; max-width:calc(100% - 36px);
+  margin:14px auto 0 !important; margin-top:auto !important;
+  padding:12px 24px !important; font-size:13.5px !important;
+  background:#e7f7fe !important; color:#1b9fd1 !important; border:1.5px solid #dde5ec !important; box-shadow:none !important;
+}
+.woocommerce ul.products li.product a.button.product_type_simple:not(.add_to_cart_button):hover,
+.woocommerce ul.products li.product .es-loop-actions a.button:only-child:hover{
+  background:#DCE9FB !important; color:#1558B0 !important; transform:translateY(-2px); filter:none;
+}
+
+/* Bouton "Retour à la boutique" sur la fiche produit */
+.woocommerce div.product .es-back-to-shop{
+  display:inline-flex; align-items:center; gap:6px; margin:0 0 18px; padding:10px 18px; border-radius:11px;
+  background:#e7f7fe !important; color:#1b9fd1 !important; font-weight:700 !important; font-size:14px; border:1.5px solid #dde5ec !important;
+  transition:background .2s, transform .2s;
+}
+.woocommerce div.product .es-back-to-shop:hover{ background:#DCE9FB !important; transform:translateX(-3px); }
+.woocommerce span.onsale{
+  background:linear-gradient(135deg,#22C55E,#16a34a) !important; color:#fff !important; border-radius:30px !important; font-weight:800 !important; font-size:11px !important; padding:6px 14px !important; line-height:1 !important;
+  min-height:auto !important; min-width:auto !important; top:16px !important; left:16px !important; right:auto !important; box-shadow:0 8px 18px rgba(34,197,94,.34); z-index:4; letter-spacing:.3px;
+}
+.woocommerce ul.products li.product.featured{ border-color:#1b9fd1 !important; box-shadow:0 24px 50px rgba(46,182,230,.22) !important; }
+.woocommerce ul.products li.product.featured::after{
+  content:'★ POPULAIRE'; position:absolute; top:16px; right:16px; z-index:4; background:linear-gradient(135deg,#1b9fd1,#2eb6e6); color:#fff; font-size:10px; font-weight:800; letter-spacing:.5px; padding:6px 12px; border-radius:30px; box-shadow:0 8px 18px rgba(46,182,230,.4);
+}
+@keyframes esRise{ from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:none;} }
+.woocommerce ul.products li.product{ animation:esRise .55s var(--es-ease) both; }
+.woocommerce ul.products li.product:nth-child(2){animation-delay:.05s}
+.woocommerce ul.products li.product:nth-child(3){animation-delay:.10s}
+.woocommerce ul.products li.product:nth-child(4){animation-delay:.15s}
+.woocommerce ul.products li.product:nth-child(5){animation-delay:.20s}
+.woocommerce ul.products li.product:nth-child(n+6){animation-delay:.25s}
+
+/* catégorie au-dessus du titre ("Packs", "Machines", etc.) */
+.woocommerce ul.products li.product .ast-woo-product-category,
+.woocommerce ul.products li.product .posted_in,
+.woocommerce ul.products li.product .ast-woo-shop-product-categories{
+  display:inline-block; font-size:11px !important; font-weight:800 !important; letter-spacing:.8px !important; text-transform:uppercase !important;
+  color:#1b9fd1 !important; background:#e7f7fe !important; border-radius:30px; padding:4px 12px !important; margin:0 18px 8px !important;
+}
+
+/* ====================  TUILES DE CATÉGORIES  ====================== */
+/* (Packs, Machine à café, Fontaine à eau, Réfrigération, Supplément…)   */
+/* Carte bien marquée + titre lisible et accentué pour qu'on repère vite */
+/* chaque famille de produits.                                           */
+.woocommerce ul.products li.product-category{
+  background:linear-gradient(180deg,#FFFFFF,#F4F8FF) !important; border:1px solid #DCE9FB !important;
+}
+.woocommerce ul.products li.product-category .woocommerce-loop-category__title,
+.woocommerce ul.products li.product-category h2,
+.woocommerce ul.products li.product-category h3,
+.woocommerce-loop-category__title{
+  color:#0a2942 !important; font-size:19px !important; font-weight:900 !important; letter-spacing:-.3px !important;
+  padding:10px 14px 16px !important; text-shadow:none !important; text-align:center; text-transform:uppercase;
+}
+.woocommerce ul.products li.product-category .woocommerce-loop-category__title .count{
+  display:inline-block; background:#1b9fd1 !important; color:#fff !important; border-radius:30px;
+  font-size:11px; font-weight:800; padding:3px 10px; margin-left:8px; vertical-align:middle; box-shadow:0 4px 10px rgba(46,182,230,.3);
+}
+.woocommerce ul.products li.product-category a img{
+  height:170px !important; object-fit:contain !important; padding:18px !important; background:#fff !important; margin-bottom:8px !important;
+}
+.woocommerce ul.products li.product-category:hover{ border-color:#1b9fd1 !important; }
+
+/* Liste / widget "Catégories de produits" (menu latéral) : liens lisibles */
+.woocommerce .product-categories a,
+.widget_product_categories a,
+.wc-block-product-categories a{ color:#1b9fd1 !important; font-weight:600 !important; }
+.woocommerce .product-categories li,
+.widget_product_categories li{ color:#5b6b7d !important; }
+
+/* "EN RUPTURE DE STOCK" - badge propre au lieu du texte brut */
+.woocommerce ul.products li.product .stock.out-of-stock,
+.woocommerce ul.products li.product p.stock.out-of-stock{
+  display:inline-block !important; background:linear-gradient(135deg,#EF4444,#DC2626) !important; color:#fff !important;
+  font-size:10px !important; font-weight:800 !important; letter-spacing:.5px; text-transform:uppercase;
+  padding:5px 14px !important; border-radius:30px; margin:6px 18px 0; box-shadow:0 6px 14px rgba(239,68,68,.3);
+}
+
+/* ====================  BOUTONS GÉNÉRIQUES  ======================== */
+.woocommerce a.button,.woocommerce button.button,.woocommerce input.button,
+.woocommerce #respond input#submit,.woocommerce a.button.alt,.woocommerce button.button.alt,
+.woocommerce input.button.alt,.woocommerce .single_add_to_cart_button,
+.woocommerce-cart .wc-proceed-to-checkout a.checkout-button,.woocommerce #place_order{
+  background:linear-gradient(135deg,#1b9fd1,#2eb6e6) !important; color:#fff !important; border:none !important; border-radius:12px !important; font-family:inherit !important; font-weight:700 !important; padding:14px 28px !important; font-size:14px !important; text-transform:none !important; letter-spacing:.2px;
+  box-shadow:0 10px 24px rgba(46,182,230,.24) !important; transition:all .22s var(--es-ease) !important; cursor:pointer;
+}
+.woocommerce a.button:hover,.woocommerce button.button:hover,.woocommerce input.button:hover,
+.woocommerce a.button.alt:hover,.woocommerce button.button.alt:hover,.woocommerce .single_add_to_cart_button:hover,
+.woocommerce-cart .wc-proceed-to-checkout a.checkout-button:hover,.woocommerce #place_order:hover{
+  filter:brightness(1.07); transform:translateY(-2px); box-shadow:0 16px 34px rgba(46,182,230,.34) !important;
+}
+.woocommerce button[name="update_cart"],.woocommerce .button.wc-backward{ background:#e7f7fe !important; color:#1b9fd1 !important; border:1px solid #dde5ec !important; box-shadow:none !important; }
+.woocommerce button[name="update_cart"]:hover,.woocommerce .button.wc-backward:hover{ background:#DCE9FB !important; transform:translateY(-1px); filter:none; }
+
+/* ====================  FICHE PRODUIT  ============================= */
+.woocommerce div.product{ position:relative; z-index:1; }
+
+/* galerie photo - fond blanc propre */
+.woocommerce div.product .woocommerce-product-gallery{
+  background:#fff; border:1px solid #e7edf3; border-radius:22px; padding:30px; box-shadow:0 16px 40px rgba(10,22,40,.10); overflow:hidden;
+}
+.woocommerce div.product .woocommerce-product-gallery img{ border-radius:14px; }
+.woocommerce div.product .woocommerce-product-gallery .flex-control-thumbs li img{
+  border-radius:10px; border:2px solid transparent; transition:border-color .2s; cursor:pointer;
+}
+.woocommerce div.product .woocommerce-product-gallery .flex-control-thumbs li img.flex-active,
+.woocommerce div.product .woocommerce-product-gallery .flex-control-thumbs li img:hover{
+  border-color:#1b9fd1;
+}
+
+/* résumé produit (à droite de la galerie) */
+.woocommerce div.product .summary.entry-summary{
+  background:#fff; border:1px solid #e7edf3; border-radius:22px; padding:34px 30px; box-shadow:0 16px 40px rgba(10,22,40,.10);
+}
+.woocommerce div.product .product_title{
+  font-size:clamp(24px,3vw,36px) !important; font-weight:900 !important; color:#0a2942 !important; letter-spacing:-.8px; margin-bottom:12px !important; line-height:1.2;
+}
+.woocommerce div.product p.price,.woocommerce div.product span.price{
+  color:#1b9fd1 !important; font-weight:900 !important; font-size:32px !important; letter-spacing:-1px; margin-bottom:16px !important;
+  display:inline-block; background:linear-gradient(135deg,rgba(46,182,230,.08),rgba(53,198,240,.08)); padding:8px 18px; border-radius:12px;
+}
+.woocommerce div.product p.price del,.woocommerce div.product span.price del{ color:#8ba6c2 !important; font-size:18px; }
+.woocommerce div.product .woocommerce-product-details__short-description{
+  color:#5b6b7d !important; line-height:1.8; font-size:15px; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid #f4f7fb;
+}
+.woocommerce div.product .product_meta{
+  font-size:13px; color:#8ba6c2; margin-top:20px; padding-top:18px; border-top:1px solid #f4f7fb;
+}
+.woocommerce div.product .product_meta > span{ display:block; margin-bottom:6px; }
+.woocommerce div.product .product_meta a{ color:#1b9fd1; font-weight:600; }
+
+/* onglets (Description, Avis…) */
+.woocommerce div.product .woocommerce-tabs{
+  background:#fff; border:1px solid #e7edf3; border-radius:22px; padding:0; box-shadow:0 14px 34px rgba(10,22,40,.08); overflow:hidden; margin-top:30px;
+}
+.woocommerce div.product .woocommerce-tabs ul.tabs{ border:none; padding:0 !important; margin:0 !important; display:flex !important; background:linear-gradient(180deg,#F5F8FD,#EDF3FC); }
+.woocommerce div.product .woocommerce-tabs ul.tabs::before{ display:none !important; }
+.woocommerce div.product .woocommerce-tabs ul.tabs li{
+  background:transparent !important; border:none !important; border-radius:0 !important; margin:0 !important; flex:1; text-align:center;
+  border-bottom:3px solid transparent !important; transition:all .2s;
+}
+.woocommerce div.product .woocommerce-tabs ul.tabs li.active{ background:#fff !important; border-bottom-color:#1b9fd1 !important; }
+.woocommerce div.product .woocommerce-tabs ul.tabs li a{ color:#5b6b7d !important; font-weight:700; padding:16px 20px !important; display:block; }
+.woocommerce div.product .woocommerce-tabs ul.tabs li.active a{ color:#0a2942 !important; }
+.woocommerce div.product .woocommerce-tabs .panel{ padding:28px 30px !important; color:#5b6b7d !important; line-height:1.8; }
+
+/* quantité */
+.woocommerce .quantity input.qty{ background:#fff !important; border:1.5px solid #dde5ec !important; color:#0a2942 !important; border-radius:11px !important; padding:12px !important; font-weight:700; transition:border-color .2s, box-shadow .2s; }
+.woocommerce .quantity input.qty:focus{ outline:none; border-color:#1b9fd1 !important; box-shadow:0 0 0 4px rgba(46,182,230,.12) !important; }
+.woocommerce div.product form.cart .variations select{ background:#fff !important; border:1.5px solid #dde5ec !important; color:#0a2942 !important; border-radius:11px !important; padding:12px 14px !important; }
+.woocommerce div.product .single_add_to_cart_button{ padding:16px 36px !important; font-size:16px !important; font-weight:800 !important; }
+
+/* produits associés / ventes croisées */
+.woocommerce div.product .related.products > h2,
+.woocommerce div.product .upsells.products > h2,
+.woocommerce-cart .cross-sells > h2{
+  font-size:22px !important; font-weight:900 !important; color:#0a2942 !important; letter-spacing:-.4px; margin-bottom:20px; position:relative; padding-left:18px;
+}
+.woocommerce div.product .related.products > h2::before,
+.woocommerce div.product .upsells.products > h2::before,
+.woocommerce-cart .cross-sells > h2::before{
+  content:''; position:absolute; left:0; top:2px; bottom:2px; width:5px; border-radius:3px; background:linear-gradient(180deg,#1b9fd1,#35c6f0);
+}
+
+/* stock badge sur fiche produit */
+.woocommerce div.product p.stock{ font-size:13px; font-weight:700; padding:6px 16px; border-radius:30px; display:inline-block; }
+.woocommerce div.product p.stock.in-stock{ color:#22C55E; background:rgba(34,197,94,.08); }
+.woocommerce div.product p.stock.out-of-stock{ color:#EF4444; background:rgba(239,68,68,.08); }
+
+/* ====================  PANIER  =================================== */
+.woocommerce table.shop_table{ background:#fff !important; border:1px solid #e7edf3 !important; border-radius:18px !important; overflow:hidden !important; box-shadow:0 16px 38px rgba(10,22,40,.10) !important; border-collapse:separate !important; border-spacing:0; position:relative; z-index:1; }
+.woocommerce table.shop_table thead th{ background:linear-gradient(180deg,#EDF3FD,#E4EEFB) !important; color:#0a2942 !important; font-weight:800 !important; letter-spacing:.3px; padding:16px 14px !important; border:none !important; }
+.woocommerce table.shop_table td{ background:#fff !important; border-top:1px solid #f4f7fb !important; color:#0a2942 !important; padding:18px 14px !important; }
+.woocommerce-cart table.cart tbody tr{ transition:background .2s; }
+.woocommerce-cart table.cart tbody tr:hover td{ background:#F7FAFF !important; }
+.woocommerce-cart table.cart img{ border-radius:12px; background:#fff; border:1px solid #f4f7fb; padding:6px; width:72px !important; height:72px !important; object-fit:contain !important; vertical-align:middle; }
+.woocommerce-cart table.cart td.product-name a{ font-weight:700; color:#0a2942 !important; }
+.woocommerce-cart table.cart td.product-name a:hover{ color:#1b9fd1 !important; }
+.woocommerce a.remove{ color:#1b9fd1 !important; border:1px solid #e7edf3; border-radius:50%; background:#fff !important; font-weight:700; width:24px; height:24px; line-height:22px; transition:all .2s; }
+.woocommerce a.remove:hover{ background:#ef4444 !important; color:#fff !important; border-color:#ef4444; }
+.woocommerce-cart .cart-collaterals .cart_totals{ background:linear-gradient(180deg,#FFFFFF,#FBFDFF) !important; border:1px solid #e7edf3 !important; border-radius:18px !important; padding:8px 24px 24px !important; box-shadow:0 18px 44px rgba(10,22,40,.12) !important; position:relative; overflow:hidden; z-index:1; }
+.woocommerce-cart .cart-collaterals .cart_totals::before{ content:''; position:absolute; left:0; right:0; top:0; height:5px; background:linear-gradient(90deg,#1b9fd1,#35c6f0); }
+.woocommerce-cart .cart_totals h2{ color:#0a2942 !important; font-weight:900 !important; margin-top:18px; }
+.woocommerce-cart .cart_totals table.shop_table{ box-shadow:none !important; border:none !important; }
+.woocommerce-cart .cart_totals table.shop_table th,.woocommerce-cart .cart_totals table.shop_table td{ background:transparent !important; border-top:1px solid #f4f7fb !important; }
+.woocommerce-cart .cart_totals .order-total .amount{ color:#1b9fd1 !important; font-weight:900 !important; font-size:24px; }
+.woocommerce-cart .wc-proceed-to-checkout a.checkout-button{ width:100%; text-align:center; padding:16px !important; font-size:16px !important; font-weight:800 !important; }
+.woocommerce-cart .coupon input.input-text{ border-radius:11px !important; }
+
+/* ====================  COMMANDE (CHECKOUT)  ====================== */
+.woocommerce-checkout .woocommerce-billing-fields,.woocommerce-checkout .woocommerce-shipping-fields,
+.woocommerce-checkout .woocommerce-additional-fields,.woocommerce-checkout #order_review,.woocommerce form.checkout_coupon{
+  background:linear-gradient(180deg,#FFFFFF,#FBFDFF) !important; border:1px solid #e7edf3 !important; border-radius:18px !important; padding:28px 30px !important; margin-bottom:24px; box-shadow:0 16px 38px rgba(10,22,40,.10) !important; position:relative; z-index:1;
+}
+.woocommerce-checkout h3{ position:relative; padding-left:18px !important; color:#0a2942 !important; font-weight:900 !important; }
+.woocommerce-checkout h3::before{ content:''; position:absolute; left:0; top:2px; bottom:2px; width:5px; border-radius:3px; background:linear-gradient(180deg,#1b9fd1,#35c6f0); }
+.woocommerce-checkout label,.woocommerce-cart label{ color:#0a2942 !important; font-weight:600; }
+.woocommerce form .form-row input.input-text,.woocommerce form .form-row textarea,.woocommerce .input-text,
+.woocommerce-checkout select,.woocommerce-checkout .select2-container .select2-selection,.woocommerce-cart .coupon input.input-text{
+  background:#fff !important; border:1.5px solid #dde5ec !important; color:#0a2942 !important; border-radius:11px !important; padding:14px 15px !important; transition:border-color .2s, box-shadow .2s;
+}
+.woocommerce-checkout .select2-container .select2-selection{ height:auto !important; padding:8px 12px !important; }
+.woocommerce form .form-row input.input-text:focus,.woocommerce form .form-row textarea:focus,.woocommerce-checkout select:focus{ border-color:#1b9fd1 !important; box-shadow:0 0 0 4px rgba(46,182,230,.12) !important; outline:none !important; }
+.woocommerce form .form-row input::placeholder{ color:#8ba6c2 !important; }
+.woocommerce-checkout #order_review{ overflow:hidden; }
+.woocommerce-checkout #order_review::before{ content:''; position:absolute; left:0; right:0; top:0; height:5px; background:linear-gradient(90deg,#1b9fd1,#35c6f0); }
+.woocommerce-checkout #order_review table.shop_table{ box-shadow:none !important; border:none !important; }
+.woocommerce-checkout #order_review table.shop_table th,.woocommerce-checkout #order_review table.shop_table td{ background:transparent !important; border-top:1px solid #f4f7fb !important; }
+.woocommerce-checkout #payment{ background:#F7FAFF !important; border-radius:14px; border:1px solid #f4f7fb; }
+.woocommerce-checkout #payment ul.payment_methods{ border-bottom:1px solid #f4f7fb; }
+.woocommerce-checkout #order_review .order-total .amount{ color:#1b9fd1 !important; font-weight:900 !important; font-size:24px; }
+.woocommerce-checkout #place_order{ width:100%; padding:18px 28px !important; font-size:16px !important; font-weight:800 !important; box-shadow:0 16px 38px rgba(46,182,230,.36) !important; }
+@media(min-width:993px){ .woocommerce-cart .cart-collaterals .cart_totals,.woocommerce-checkout #order_review{ position:sticky; top:24px; } }
+
+/* ====================  MESSAGES / PAGINATION  ==================== */
+.woocommerce-message,.woocommerce-info,.woocommerce-error{ background:#fff !important; border-radius:14px !important; color:#0a2942 !important; border-top:3px solid #1b9fd1 !important; box-shadow:0 10px 26px rgba(10,22,40,.10); padding:16px 18px 16px 50px !important; position:relative; z-index:1; }
+.woocommerce-message::before{ color:#22C55E !important; }
+.woocommerce-info::before{ color:#1b9fd1 !important; }
+.woocommerce-error::before{ color:#ef4444 !important; }
+.woocommerce nav.woocommerce-pagination ul{ border:none !important; gap:8px; display:flex; justify-content:center; margin-top:8px; position:relative; z-index:1; }
+.woocommerce nav.woocommerce-pagination ul li{ border:none !important; margin:0 !important; }
+.woocommerce nav.woocommerce-pagination ul li a,.woocommerce nav.woocommerce-pagination ul li span{
+  background:#fff !important; color:#0a2942 !important; border:1px solid #e7edf3 !important; border-radius:11px !important; min-width:42px; height:42px; line-height:40px; padding:0 12px !important; font-weight:700; box-shadow:0 4px 12px rgba(10,22,40,.06) !important; outline:none !important; transition:all .2s;
+}
+.woocommerce nav.woocommerce-pagination ul li a:hover{ border-color:#bfe6f6 !important; color:#1b9fd1 !important; transform:translateY(-1px); }
+.woocommerce nav.woocommerce-pagination ul li span.current{ background:linear-gradient(135deg,#1b9fd1,#2eb6e6) !important; color:#fff !important; border-color:transparent !important; box-shadow:0 8px 18px rgba(46,182,230,.3) !important; }
+
+/* ====================  PASTILLE PANIER  ========================== */
+.es-cart-badge,.ast-cart-menu-wrap .count,.ast-site-header-cart .count{ background:linear-gradient(135deg,#1b9fd1,#2eb6e6) !important; color:#fff !important; border:none !important; border-radius:10px !important; font-size:10px !important; font-weight:800 !important; min-width:18px; height:18px; line-height:18px; text-align:center; padding:0 6px !important; box-shadow:0 4px 12px rgba(46,182,230,.4); }
+
+/* ====================  ACCESSIBILITÉ  ============================ */
+@media(prefers-reduced-motion:reduce){
+  .woocommerce ul.products li.product{ animation:none; }
+  .woocommerce ul.products li.product:hover a img{ transform:none; }
+  .woocommerce ul.products li.product::before{ animation:none; }
+}
+
+
+/* ===================================================================== */
+/*  v16 — VITRINE PREMIUM : panier & commande mis en valeur              */
+/*  (ajouts en fin de fichier : ils complètent/affinent sans rien casser) */
+/* ===================================================================== */
+
+/* 1) On retire le bloc "ventes croisées" du panier (mousseur de lait bug) */
+.woocommerce-cart .cross-sells{ display:none !important; }
+
+/* ---------------------------------------------------------------------- */
+/*  PANIER — cadres premium                                               */
+/* ---------------------------------------------------------------------- */
+.woocommerce-cart table.shop_table.cart{
+  border:1px solid #D4E4FA !important; border-radius:22px !important;
+  background:linear-gradient(180deg,#FFFFFF 0%,#F6FAFF 100%) !important;
+  box-shadow:0 24px 54px rgba(10,41,66,.15) !important;
+}
+.woocommerce-cart table.cart thead th{
+  background:linear-gradient(180deg,#0a2942,#0a2942) !important; color:#eaf3fb !important;
+  text-transform:uppercase; font-size:12px !important; letter-spacing:.7px !important; padding:18px 14px !important;
+}
+.woocommerce-cart table.cart img{
+  width:82px !important; height:82px !important; border:1px solid #E1EBFA !important;
+  background:linear-gradient(160deg,#EEF5FF,#fff) !important; box-shadow:0 6px 14px rgba(10,22,40,.08) !important; padding:8px !important;
+}
+
+/* Encadré "Total du panier" : carte premium avec bandeau dégradé en tête */
+.woocommerce-cart .cart-collaterals .cart_totals{
+  background:linear-gradient(180deg,#FFFFFF 0%,#F2F8FF 100%) !important;
+  border:1px solid #D0E1F9 !important; border-radius:24px !important;
+  box-shadow:0 26px 58px rgba(10,41,66,.18) !important; padding:0 0 26px !important; overflow:hidden !important;
+}
+.woocommerce-cart .cart-collaterals .cart_totals::before{ height:0 !important; }
+.woocommerce-cart .cart_totals h2{
+  background:linear-gradient(135deg,#0a2942 0%,#1b9fd1 130%) !important; color:#fff !important;
+  margin:0 0 16px !important; padding:20px 26px !important; font-size:18px !important; letter-spacing:.4px; text-transform:uppercase;
+}
+.woocommerce-cart .cart_totals > table,
+.woocommerce-cart .cart_totals .wc-proceed-to-checkout,
+.woocommerce-cart .cart_totals .shipping-calculator-form{ margin:0 26px !important; width:auto !important; }
+.woocommerce-cart .cart_totals .order-total .amount{ font-size:27px !important; }
+.woocommerce-cart .wc-proceed-to-checkout::after{
+  content:'Paiement 100% sécurisé — Location & devis événementiels'; display:block;
+  text-align:center; color:#5b6b7d; font-size:12px; font-weight:600; margin-top:14px;
+}
+
+/* ---------------------------------------------------------------------- */
+/*  COMMANDE (CHECKOUT) — cadres premium                                  */
+/* ---------------------------------------------------------------------- */
+.woocommerce-checkout .woocommerce-billing-fields,
+.woocommerce-checkout .woocommerce-shipping-fields,
+.woocommerce-checkout .woocommerce-additional-fields,
+.woocommerce-checkout #order_review,
+.woocommerce form.checkout_coupon{
+  background:linear-gradient(180deg,#FFFFFF 0%,#F3F8FF 100%) !important;
+  border:1px solid #D0E1F9 !important; border-radius:24px !important;
+  box-shadow:0 24px 54px rgba(10,41,66,.15), inset 0 4px 0 #1b9fd1 !important;
+  padding:30px 30px 28px !important;
+}
+.woocommerce-checkout #order_review_heading{
+  display:inline-block; background:linear-gradient(135deg,#0a2942,#1b9fd1) !important; color:#fff !important;
+  padding:12px 24px !important; border-radius:30px !important; font-size:18px !important; font-weight:900 !important;
+  letter-spacing:.3px; margin:8px 0 16px !important; box-shadow:0 10px 24px rgba(46,182,230,.28);
+}
+.woocommerce-checkout #order_review{ box-shadow:0 24px 54px rgba(10,41,66,.15), inset 0 4px 0 #22C55E !important; }
+.woocommerce-checkout #payment{ background:linear-gradient(180deg,#F4F9FF,#FFFFFF) !important; border:1px solid #E1EBFA !important; border-radius:16px !important; }
+.woocommerce-checkout #payment ul.payment_methods{ border-bottom:1px solid #E1EBFA !important; }
+.woocommerce-checkout #payment div.payment_box{ background:#e7f7fe !important; border-radius:12px; }
+.woocommerce-checkout #payment div.payment_box::before{ border-bottom-color:#e7f7fe !important; }
+
+/* En-têtes de section avec une pastille colorée plutôt qu'un simple trait */
+.woocommerce-checkout h3{ font-size:19px !important; }
+
+/* Messages (panier mis à jour, etc.) un peu plus marqués */
+.woocommerce-message,.woocommerce-info{ box-shadow:0 14px 34px rgba(10,41,66,.12) !important; }
+
+/* ---------------------------------------------------------------------- */
+/*  BOUTON "Continuer mes achats" / retour — plus visible                 */
+/* ---------------------------------------------------------------------- */
+.woocommerce-cart .return-to-shop a.button,.woocommerce .button.wc-backward{
+  background:linear-gradient(135deg,#1b9fd1,#2eb6e6) !important; color:#fff !important; border:none !important;
+  box-shadow:0 10px 24px rgba(46,182,230,.24) !important;
+}
+
+
+/* ===================================================================== */
+/*  v17 — PANIER & COMMANDE "BLOCS" (WooCommerce Blocks récents)         */
+/*  Les pages Panier/Commande modernes utilisent des classes .wc-block-* */
+/*  qui n'avaient AUCUN fond -> elles restaient transparentes (couleur    */
+/*  de l'arrière-plan). On leur donne ici de vrais cadres professionnels. */
+/* ===================================================================== */
+
+/* --- Colonne principale (liste produits panier / formulaire commande) - */
+.wp-block-woocommerce-cart .wc-block-cart__main,
+.wp-block-woocommerce-checkout .wc-block-checkout__main,
+.wc-block-checkout__main,
+.wc-block-cart__main{
+  background:linear-gradient(180deg,#FFFFFF 0%,#F5FAFF 100%) !important;
+  border:1.5px solid #D0E1F9 !important; border-radius:24px !important;
+  box-shadow:0 24px 54px rgba(10,41,66,.15) !important;
+  padding:30px 32px !important; position:relative; z-index:1;
+}
+
+/* --- Colonne latérale : RÉSUMÉ / TOTAL (le bloc qui restait vide) ----- */
+.wc-block-checkout__sidebar,
+.wc-block-cart__sidebar,
+.wc-block-components-sidebar,
+.wp-block-woocommerce-checkout-order-summary-block,
+.wp-block-woocommerce-cart-order-summary-block{
+  background:linear-gradient(180deg,#FFFFFF 0%,#F1F7FF 100%) !important;
+  border:1.5px solid #CFE0F8 !important; border-radius:24px !important;
+  box-shadow:0 26px 58px rgba(10,41,66,.18), inset 0 5px 0 #1b9fd1 !important;
+  padding:26px 26px 28px !important; overflow:hidden !important; position:relative; z-index:1;
+}
+
+/* Titre du récap commande (blocs) -> pastille dégradée bien visible */
+.wc-block-components-checkout-order-summary__title,
+.wc-block-checkout__sidebar .wc-block-components-title,
+.wc-block-cart__sidebar .wc-block-components-title{
+  display:inline-block; background:linear-gradient(135deg,#0a2942,#1b9fd1) !important; color:#fff !important;
+  padding:10px 22px !important; border-radius:30px !important; font-size:16px !important; font-weight:900 !important;
+  margin:0 0 18px !important; box-shadow:0 10px 24px rgba(46,182,230,.28); text-transform:uppercase; letter-spacing:.4px;
+}
+
+/* Totaux : valeur du total bien mise en valeur */
+.wc-block-components-totals-footer-item .wc-block-components-totals-item__value,
+.wc-block-components-totals-item.wc-block-components-totals-footer-item .wc-block-components-totals-item__value{
+  color:#1558B0 !important; font-weight:900 !important; font-size:25px !important;
+}
+.wc-block-components-totals-item__label{ color:#5b6b7d !important; }
+.wc-block-components-totals-wrapper{ border-top-color:#E1EBFA !important; }
+
+/* Vignettes produit dans le récap (blocs) */
+.wc-block-components-order-summary-item__image img,
+.wc-block-cart-item__image img{
+  border-radius:12px !important; border:1px solid #E1EBFA !important; background:linear-gradient(160deg,#EEF5FF,#fff) !important; padding:6px !important;
+}
+
+/* Bloc PAIEMENT (blocs) */
+.wp-block-woocommerce-checkout-payment-block,
+.wc-block-checkout__payment-method{
+  background:linear-gradient(180deg,#F4F9FF,#FFFFFF) !important; border:1px solid #E1EBFA !important; border-radius:16px !important; padding:18px 18px !important; margin-top:8px;
+}
+
+/* Champs de saisie (blocs) cohérents avec le reste */
+.wc-block-components-text-input input,
+.wc-block-components-text-input input.is-active,
+.wc-block-checkout .wc-block-components-text-input input{
+  background:#fff !important; border:1.5px solid #dde5ec !important; border-radius:11px !important; color:#0a2942 !important;
+}
+
+/* Étapes du checkout en blocs : petit cadre interne propre */
+.wc-block-components-checkout-step{ border-bottom:1px solid #f4f7fb !important; }
+.wc-block-components-checkout-step__title{ color:#0a2942 !important; font-weight:800 !important; }
+
+/* Bouton "Passer la commande" (blocs) */
+.wc-block-components-checkout-place-order-button,
+.wp-block-woocommerce-checkout-actions-block button{
+  background:linear-gradient(135deg,#1b9fd1,#2eb6e6) !important; color:#fff !important; border:none !important; border-radius:12px !important;
+  font-weight:800 !important; box-shadow:0 14px 32px rgba(46,182,230,.30) !important;
+}
+
+/* Sécurité : si un wrapper de bloc reste transparent, on garde le contenu
+   lisible au-dessus du fond dégradé de la page. */
+.wp-block-woocommerce-cart,.wp-block-woocommerce-checkout{ position:relative; z-index:1; }
+
+
+/* ===================================================================== */
+/*  v18 — RENFORCEMENT PANIER & COMMANDE "CLASSIQUES"                    */
+/*  Sélecteurs très spécifiques (body.classe + .woocommerce + ...) pour  */
+/*  passer DEVANT tout style du thème. Teinte nettement distincte du fond */
+/*  pour que les encadrés ressortent vraiment.                           */
+/* ===================================================================== */
+
+/* --- Total du panier (page Panier classique) ------------------------- */
+body.woocommerce-cart .woocommerce .cart-collaterals .cart_totals,
+body.woocommerce-cart .cart-collaterals .cart_totals{
+  background:linear-gradient(180deg,#FFFFFF 0%,#E9F2FF 100%) !important;
+  border:1.5px solid #C5D9F6 !important; border-radius:24px !important;
+  box-shadow:0 26px 58px rgba(10,41,66,.20) !important; overflow:hidden !important;
+}
+
+/* --- Tableau du panier ---------------------------------------------- */
+body.woocommerce-cart .woocommerce table.shop_table.cart,
+body.woocommerce-cart table.shop_table.cart{
+  background:linear-gradient(180deg,#FFFFFF 0%,#F4F9FF 100%) !important;
+  border:1.5px solid #C5D9F6 !important; border-radius:22px !important;
+  box-shadow:0 24px 54px rgba(10,41,66,.16) !important;
+}
+
+/* --- Sections de la page Commande (classique) ----------------------- */
+body.woocommerce-checkout .woocommerce .woocommerce-billing-fields,
+body.woocommerce-checkout .woocommerce .woocommerce-shipping-fields,
+body.woocommerce-checkout .woocommerce .woocommerce-additional-fields,
+body.woocommerce-checkout .woocommerce #order_review,
+body.woocommerce-checkout #order_review,
+body.woocommerce-checkout .woocommerce form.checkout_coupon{
+  background:linear-gradient(180deg,#FFFFFF 0%,#E9F2FF 100%) !important;
+  border:1.5px solid #C5D9F6 !important; border-radius:24px !important;
+  box-shadow:0 24px 54px rgba(10,41,66,.18) !important;
+  padding:30px 30px 28px !important; position:relative; z-index:1;
+}
+/* liseré coloré en haut de chaque section (vrai cadre, pas un bloc plat) */
+body.woocommerce-checkout .woocommerce .woocommerce-billing-fields{ box-shadow:0 24px 54px rgba(10,41,66,.18), inset 0 5px 0 #1b9fd1 !important; }
+body.woocommerce-checkout .woocommerce .woocommerce-shipping-fields{ box-shadow:0 24px 54px rgba(10,41,66,.18), inset 0 5px 0 #35c6f0 !important; }
+body.woocommerce-checkout .woocommerce #order_review,
+body.woocommerce-checkout #order_review{ box-shadow:0 24px 54px rgba(10,41,66,.18), inset 0 5px 0 #22C55E !important; }
+
+/* --- Zone de paiement (classique) ----------------------------------- */
+body.woocommerce-checkout #payment,
+body.woocommerce-checkout .woocommerce #payment{
+  background:linear-gradient(180deg,#F2F8FF 0%,#FFFFFF 100%) !important;
+  border:1px solid #dde5ec !important; border-radius:16px !important;
+}
+
+/* --- Titre "Votre commande" en pastille bien visible ---------------- */
+body.woocommerce-checkout #order_review_heading{
+  display:inline-block !important; background:linear-gradient(135deg,#0a2942,#1b9fd1) !important; color:#fff !important;
+  padding:12px 24px !important; border-radius:30px !important; font-weight:900 !important;
+  box-shadow:0 10px 24px rgba(46,182,230,.28) !important; margin:6px 0 16px !important;
+}
+
+
+/* ===================================================================== */
+/*  v19 — SECTION "LIVRAISON ÉVÉNEMENTIELLE" (checkout) — v2 flexbox      */
+/* ===================================================================== */
+body.woocommerce-checkout #eauservice_event_delivery.es-event-section{
+  display:flex !important; flex-wrap:wrap !important; gap:0 3% !important;
+  background:linear-gradient(180deg,#FFFFFF 0%,#eaf3fb 100%) !important;
+  border:1.5px solid #C5D9F6 !important; border-radius:24px !important;
+  box-shadow:0 24px 54px rgba(10,41,66,.16), inset 0 5px 0 #1b9fd1 !important;
+  padding:28px 30px 24px !important; margin:22px 0 26px !important; position:relative; z-index:1;
+}
+body.woocommerce-checkout .es-event-section > *{
+  flex:0 0 100% !important; max-width:100% !important;
+}
+body.woocommerce-checkout .es-event-section h3{
+  display:inline-block; background:linear-gradient(135deg,#0a2942,#1b9fd1) !important; color:#fff !important;
+  padding:11px 22px !important; border-radius:30px !important; font-size:16px !important; font-weight:900 !important;
+  margin:0 0 6px !important; box-shadow:0 10px 24px rgba(46,182,230,.28); letter-spacing:.3px;
+}
+body.woocommerce-checkout .es-event-section .es-event-intro{
+  color:#5b6b7d !important; font-size:13.5px; margin:8px 0 18px !important; line-height:1.6;
+}
+body.woocommerce-checkout .es-event-section .form-row{
+  margin-bottom:14px !important; padding:0 !important;
+}
+body.woocommerce-checkout .es-event-section .form-row-first,
+body.woocommerce-checkout .es-event-section .form-row-last{
+  flex:0 0 48.5% !important; max-width:48.5% !important;
+}
+body.woocommerce-checkout .es-event-section .form-row-wide{
+  flex:0 0 100% !important; max-width:100% !important;
+}
+body.woocommerce-checkout .es-event-section label{ color:#0a2942 !important; font-weight:700 !important; font-size:13.5px; margin-bottom:6px; display:block; }
+body.woocommerce-checkout .es-event-section .required{ color:#1b9fd1; }
+body.woocommerce-checkout .es-event-section input,
+body.woocommerce-checkout .es-event-section textarea{
+  background:#fff !important; border:1.5px solid #dde5ec !important; border-radius:11px !important; color:#0a2942 !important;
+  padding:13px 14px !important; width:100% !important; box-sizing:border-box; transition:border-color .2s, box-shadow .2s;
+}
+body.woocommerce-checkout .es-event-section input:focus,
+body.woocommerce-checkout .es-event-section textarea:focus{ outline:none; border-color:#1b9fd1 !important; box-shadow:0 0 0 4px rgba(46,182,230,.12) !important; }
+body.woocommerce-checkout .es-event-section textarea{ min-height:90px; resize:vertical; }
+
+/* Séparateur "Informations complémentaires" */
+body.woocommerce-checkout .es-event-section .es-event-optional-head{
+  flex:0 0 100% !important; max-width:100% !important;
+  margin:8px 0 14px !important; padding-top:16px !important;
+  border-top:1px dashed #C5D9F6;
+  font-size:12px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;
+  color:#8ba6c2;
+}
+
+/* Sur mobile : toujours 1 colonne */
+@media(max-width:600px){
+  body.woocommerce-checkout .es-event-section .form-row-first,
+  body.woocommerce-checkout .es-event-section .form-row-last{
+    flex:0 0 100% !important; max-width:100% !important;
+  }
+}
+
+/* Masque le bloc natif "adresse différente" par sécurité, même si le
+   filtre PHP échouait pour une raison quelconque (cache, plugin...) */
+body.woocommerce-checkout .woocommerce-shipping-fields{ display:none !important; }
+
+/* "Notes de commande" et "Identification du client", une fois déplacés
+   en bas par le script JS : un peu d'espace au-dessus pour bien les séparer */
+body.woocommerce-checkout #order_comments_field,
+body.woocommerce-checkout .woocommerce-account-fields{
+  margin-top:24px !important;
+}
+
+
+/* ===================================================================== */
+/*  v20 — CORRECTIONS BULLES + PANIER 2 COLONNES                        */
+/* ===================================================================== */
+
+/* --- 1) TEXTE BLANC dans toutes les "bulles" bleu foncé -------------- */
+/*    (titres en pastille : Total panier, Votre commande, Livraison       */
+/*    événementielle). On force le blanc avec un sélecteur fort + on      */
+/*    supprime la barre ::before parasite qui "buggait" la bulle.         */
+body.woocommerce-cart .cart_totals h2,
+body.woocommerce-cart .cart_totals h2 *,
+body.woocommerce-checkout #order_review_heading,
+body.woocommerce-checkout .es-event-section h3,
+body.woocommerce-checkout .es-event-section h3 *{
+  color:#FFFFFF !important; -webkit-text-fill-color:#FFFFFF !important;
+}
+/* on enlève la barre verticale ::before sur les titres devenus pastilles */
+body.woocommerce-cart .cart_totals h2::before,
+body.woocommerce-checkout #order_review_heading::before,
+body.woocommerce-checkout .es-event-section h3::before{
+  display:none !important; content:none !important;
+}
+/* le titre "Total panier" : on lui enlève le padding-left hérité et on    */
+/* le présente comme un beau bandeau plein en haut de la carte.            */
+body.woocommerce-cart .cart_totals h2{
+  padding:18px 26px !important; margin:0 0 16px !important; border-radius:0 !important;
+  background:linear-gradient(135deg,#0a2942 0%,#1b9fd1 130%) !important;
+  text-transform:uppercase; letter-spacing:.4px; font-size:17px !important;
+}
+
+/* --- 2) PANIER : liste à GAUCHE, total à DROITE (2 colonnes) --------- */
+@media(min-width:993px){
+  body.woocommerce-cart .woocommerce{
+    display:flex !important; flex-wrap:wrap; align-items:flex-start; gap:30px;
+  }
+  /* les messages restent pleine largeur en haut */
+  body.woocommerce-cart .woocommerce > .woocommerce-notices-wrapper{
+    flex:0 0 100% !important; width:100% !important;
+  }
+  /* colonne gauche : le tableau des produits */
+  body.woocommerce-cart .woocommerce .woocommerce-cart-form{
+    flex:1 1 60% !important; min-width:0 !important; margin:0 !important;
+  }
+  /* colonne droite : le récap / total */
+  body.woocommerce-cart .woocommerce .cart-collaterals{
+    flex:1 1 33% !important; width:auto !important; float:none !important; margin:0 !important;
+  }
+  body.woocommerce-cart .woocommerce .cart-collaterals .cart_totals{
+    width:100% !important; float:none !important; margin:0 !important;
+  }
+}
+
+/* --- 3) Petites finitions des bulles checkout ----------------------- */
+/*    on s'assure que les pastilles ne se coupent pas / ne débordent pas. */
+body.woocommerce-checkout #order_review_heading,
+body.woocommerce-checkout .es-event-section h3{
+  max-width:100%; line-height:1.25 !important; white-space:normal !important;
+}
+
+
+/* ===================================================================== */
+/*  v21 — TOTAL PANIER TOUJOURS VISIBLE (haut + sticky)                 */
+/* ===================================================================== */
+@media(min-width:993px){
+  /* la colonne de droite se cale EN HAUT (pas en bas) et suit le scroll */
+  body.woocommerce-cart .woocommerce .cart-collaterals{
+    align-self:flex-start !important;
+    position:sticky !important; top:24px !important;
+  }
+  body.woocommerce-cart .woocommerce .cart-collaterals .cart_totals{
+    position:static !important; /* le sticky est porté par la colonne */
+  }
+  /* le tableau produits commence bien en haut lui aussi */
+  body.woocommerce-cart .woocommerce .woocommerce-cart-form{
+    align-self:flex-start !important;
+  }
+}
+
+
+/* ===================================================================== */
+/*  v22 — VITRINE BOUTIQUE : contenus enrichis (hero, réassurance, FAQ)  */
+/*  Ces styles habillent les blocs HTML que vous collez sur la page      */
+/*  Boutique (voir le fichier "boutique-contenu-seo.html").              */
+/* ===================================================================== */
+
+/* --- HERO / intro SEO en haut de la boutique ------------------------ */
+.es-hero{
+  position:relative; z-index:1; overflow:hidden;
+  background:linear-gradient(135deg,#061726 0%,#0a2942 60%,#1b9fd1 135%);
+  border-radius:24px; padding:46px 46px; margin:0 0 30px;
+  box-shadow:0 26px 60px rgba(10,22,40,.28); border:1px solid rgba(255,255,255,.06);
+}
+.es-hero::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(560px 380px at 92% -20%, rgba(53,198,240,.4), transparent 60%),
+    radial-gradient(460px 360px at -6% 130%, rgba(46,182,230,.32), transparent 60%);
+}
+.es-hero > *{ position:relative; z-index:1; }
+.es-hero .es-eyebrow{ display:inline-block; font-size:12px; font-weight:800; letter-spacing:3px; color:#35c6f0; text-transform:uppercase; margin-bottom:14px; }
+.es-hero h1,.es-hero h2{
+  color:#fff !important; font-size:clamp(26px,3.4vw,40px) !important; font-weight:900 !important;
+  letter-spacing:-1px; line-height:1.15; margin:0 0 14px !important;
+}
+.es-hero p{ color:#c3d4e6 !important; font-size:16px; line-height:1.75; max-width:760px; margin:0 0 10px !important; }
+.es-hero .es-hero-tags{ margin-top:18px; display:flex; flex-wrap:wrap; gap:10px; }
+.es-hero .es-hero-tags span{
+  background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18); color:#eaf3fb;
+  font-size:13px; font-weight:600; padding:7px 14px; border-radius:30px; backdrop-filter:blur(4px);
+}
+
+/* --- BANDE DE RÉASSURANCE (4 atouts) -------------------------------- */
+.es-assur{
+  position:relative; z-index:1; display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin:0 0 32px;
+}
+.es-assur .es-assur-item{
+  background:linear-gradient(180deg,#FFFFFF,#F4F9FF); border:1.5px solid #dde5ec; border-radius:18px;
+  padding:22px 20px; text-align:center; box-shadow:0 12px 30px rgba(10,41,66,.10); transition:transform .25s, box-shadow .25s;
+}
+.es-assur .es-assur-item:hover{ transform:translateY(-5px); box-shadow:0 22px 44px rgba(46,182,230,.18); }
+.es-assur .es-assur-ico{
+  width:52px; height:52px; margin:0 auto 12px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,#1b9fd1,#2eb6e6); color:#fff; font-size:24px; box-shadow:0 10px 22px rgba(46,182,230,.32);
+}
+.es-assur .es-assur-t{ font-weight:800; color:#0a2942; font-size:15px; margin-bottom:4px; }
+.es-assur .es-assur-d{ font-size:13px; color:#5b6b7d; line-height:1.5; }
+
+/* --- TITRE DE SECTION (avant la grille produits / la FAQ) ----------- */
+.es-section-head{ position:relative; z-index:1; text-align:center; margin:6px 0 26px; }
+.es-section-head .es-eyebrow{ display:inline-block; font-size:12px; font-weight:800; letter-spacing:3px; color:#1b9fd1; text-transform:uppercase; margin-bottom:8px; }
+.es-section-head h2{ color:#0a2942 !important; font-size:clamp(22px,2.6vw,32px) !important; font-weight:900 !important; letter-spacing:-.6px; margin:0 auto !important; }
+.es-section-head p{ color:#5b6b7d !important; max-width:620px; margin:10px auto 0 !important; line-height:1.7; }
+.es-section-head h2::after{ content:''; display:block; width:64px; height:4px; margin:14px auto 0; border-radius:3px; background:linear-gradient(90deg,#1b9fd1,#35c6f0); }
+
+/* --- FAQ ------------------------------------------------------------ */
+.es-faq{ position:relative; z-index:1; max-width:840px; margin:8px auto 36px; }
+.es-faq details{
+  background:linear-gradient(180deg,#FFFFFF,#F6FAFF); border:1.5px solid #dde5ec; border-radius:16px;
+  padding:0 22px; margin-bottom:14px; box-shadow:0 10px 26px rgba(10,41,66,.08); overflow:hidden; transition:border-color .2s, box-shadow .2s;
+}
+.es-faq details[open]{ border-color:#9FC2F0; box-shadow:0 18px 40px rgba(46,182,230,.16); }
+.es-faq summary{
+  list-style:none; cursor:pointer; padding:18px 36px 18px 0; position:relative;
+  font-weight:800; color:#0a2942; font-size:16px; line-height:1.4;
+}
+.es-faq summary::-webkit-details-marker{ display:none; }
+.es-faq summary::after{
+  content:'+'; position:absolute; right:0; top:50%; transform:translateY(-50%);
+  width:28px; height:28px; border-radius:50%; background:#e7f7fe; color:#1b9fd1; font-weight:900; font-size:18px;
+  display:flex; align-items:center; justify-content:center; transition:transform .25s, background .2s;
+}
+.es-faq details[open] summary::after{ content:'\2212'; background:#1b9fd1; color:#fff; }
+.es-faq .es-faq-a{ color:#5b6b7d; line-height:1.75; font-size:14.5px; padding:0 0 20px; }
+
+/* --- BLOC CTA bas de page (devis) ----------------------------------- */
+.es-cta-band{
+  position:relative; z-index:1; overflow:hidden; text-align:center;
+  background:linear-gradient(135deg,#061726,#0a2942 70%,#1b9fd1 140%);
+  border-radius:24px; padding:42px 30px; margin:6px 0 30px; box-shadow:0 26px 60px rgba(10,22,40,.26);
+}
+.es-cta-band h2{ color:#fff !important; font-size:clamp(22px,2.6vw,30px) !important; font-weight:900 !important; margin:0 0 10px !important; letter-spacing:-.5px; }
+.es-cta-band p{ color:#c3d4e6 !important; margin:0 0 22px !important; }
+.es-cta-band a.es-cta-btn{
+  display:inline-block; background:#fff; color:#0a2942 !important; font-weight:800; font-size:15px;
+  padding:15px 34px; border-radius:12px; text-decoration:none !important; box-shadow:0 14px 30px rgba(0,0,0,.22); transition:transform .2s, box-shadow .2s;
+}
+.es-cta-band a.es-cta-btn:hover{ transform:translateY(-3px); box-shadow:0 20px 40px rgba(0,0,0,.3); }
+
+/* --- Responsive ----------------------------------------------------- */
+@media(max-width:900px){ .es-assur{ grid-template-columns:1fr 1fr; } }
+@media(max-width:560px){
+  .es-assur{ grid-template-columns:1fr; }
+  .es-hero{ padding:32px 24px; }
+}
+
+
+/* ===================================================================== */
+/*  v23 — PAGE DE CONFIRMATION DE COMMANDE (merci / order-received)      */
+/*  Récap propre + bannière de remerciement + encart contact.            */
+/* ===================================================================== */
+
+/* Message PAR DÉFAUT de WooCommerce ("Merci. Votre commande a été reçue.") */
+/* -> agrandi, centré, bien visible (avant : petit, gris, à gauche).        */
+.woocommerce-order > p.woocommerce-notice--success,
+.woocommerce-order p.woocommerce-thankyou-order-received,
+p.woocommerce-thankyou-order-received{
+  text-align:center !important; font-size:20px !important; font-weight:800 !important;
+  color:#0a2942 !important; background:#EAF7EE !important; border:1.5px solid #B6E6C8 !important;
+  border-radius:14px !important; padding:18px 22px !important; margin:0 0 22px !important;
+  box-shadow:0 10px 26px rgba(10,41,66,.08) !important;
+}
+
+/* Bandeau "Merci pour votre commande" (sélecteur direct = toujours appliqué) */
+.es-thankyou-banner{
+  position:relative; z-index:1; text-align:center; color:#fff;
+  background:linear-gradient(135deg,#061726 0%,#0a2942 65%,#1b9fd1 140%);
+  border-radius:24px; padding:44px 30px 38px; margin:0 0 26px;
+  box-shadow:0 26px 60px rgba(10,22,40,.26); overflow:hidden;
+}
+.es-thankyou-banner::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(520px 360px at 90% -20%, rgba(53,198,240,.4), transparent 60%);
+}
+.es-thankyou-banner > *{ position:relative; z-index:1; }
+.es-thankyou-banner .es-ty-check{
+  width:70px; height:70px; margin:0 auto 18px; border-radius:50%;
+  background:linear-gradient(135deg,#22C55E,#16a34a); color:#fff !important; font-size:36px; font-weight:900;
+  display:flex; align-items:center; justify-content:center; box-shadow:0 12px 28px rgba(34,197,94,.45);
+}
+/* TITRE en BLANC (bien visible sur le fond bleu nuit) + grand */
+.es-thankyou-banner h2{
+  color:#FFFFFF !important; -webkit-text-fill-color:#FFFFFF !important;
+  font-size:clamp(26px,3.4vw,36px) !important; font-weight:900 !important; margin:0 0 12px !important; letter-spacing:-.6px;
+}
+/* Sous-texte agrandi et bien lisible */
+.es-thankyou-banner p{
+  color:#DCEAFE !important; max-width:640px; margin:0 auto !important; line-height:1.7; font-size:16.5px !important;
+}
+
+/* Carte d'aide / contact (sélecteur direct) */
+.es-help-card{
+  position:relative; z-index:1; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:18px;
+  background:linear-gradient(180deg,#FFFFFF,#F4F9FF); border:1.5px solid #dde5ec; border-radius:18px;
+  padding:22px 26px; margin:0 0 28px; box-shadow:0 14px 34px rgba(10,41,66,.10);
+}
+.es-help-card .es-help-txt{ display:flex; flex-direction:column; }
+.es-help-card .es-help-txt strong{ color:#0a2942; font-size:16px; }
+.es-help-card .es-help-txt span{ color:#5b6b7d; font-size:14px; margin-top:2px; }
+.es-help-btns{ display:flex; gap:12px; flex-wrap:wrap; }
+.es-help-btn{
+  display:inline-flex; align-items:center; gap:8px; padding:12px 22px; border-radius:12px; font-weight:800; font-size:14px; text-decoration:none !important; transition:transform .2s, box-shadow .2s, filter .2s;
+}
+.es-help-tel{ background:linear-gradient(135deg,#1b9fd1,#2eb6e6); color:#fff !important; box-shadow:0 10px 24px rgba(46,182,230,.28); }
+.es-help-mail{ background:#e7f7fe; color:#1558B0 !important; border:1.5px solid #C9DDF7; }
+.es-help-btn:hover{ transform:translateY(-2px); filter:brightness(1.05); }
+
+/* --- Récapitulatif de commande : cadres propres --------------------- */
+.woocommerce-order .woocommerce-order-overview,
+.woocommerce-order .woocommerce-order-details,
+.woocommerce-order .woocommerce-customer-details{
+  background:linear-gradient(180deg,#FFFFFF,#F6FAFF) !important;
+  border:1.5px solid #dde5ec !important; border-radius:20px !important;
+  box-shadow:0 18px 44px rgba(10,41,66,.12) !important;
+  padding:26px 28px !important; margin:0 0 24px !important; position:relative; z-index:1; list-style:none;
+}
+/* la liste "numéro / date / total / paiement" en ligne, propre */
+.woocommerce-order ul.woocommerce-order-overview{
+  display:flex !important; flex-wrap:wrap; gap:10px 0; margin:0 0 24px !important;
+}
+.woocommerce-order ul.woocommerce-order-overview li{
+  flex:1 1 50%; border:none !important; padding:8px 14px !important; color:#5b6b7d !important; font-size:13px !important; text-transform:none !important;
+}
+.woocommerce-order ul.woocommerce-order-overview li strong{ display:block; color:#0a2942 !important; font-size:17px; font-weight:900; margin-top:4px; }
+
+.woocommerce-order .woocommerce-order-details__title,
+.woocommerce-order .woocommerce-column__title{
+  color:#0a2942 !important; font-weight:900 !important; font-size:19px !important; margin-bottom:16px !important; letter-spacing:-.3px;
+}
+.woocommerce-order table.woocommerce-table--order-details{
+  background:#fff !important; border:1px solid #e7edf3 !important; border-radius:14px !important; overflow:hidden;
+}
+.woocommerce-order table.woocommerce-table--order-details thead th{
+  background:linear-gradient(180deg,#0a2942,#0a2942) !important; color:#eaf3fb !important; text-transform:uppercase; font-size:12px !important; letter-spacing:.5px; padding:14px !important;
+}
+.woocommerce-order table.woocommerce-table--order-details td,
+.woocommerce-order table.woocommerce-table--order-details th{ color:#0a2942 !important; padding:14px !important; border-top:1px solid #f4f7fb !important; }
+.woocommerce-order table.woocommerce-table--order-details tfoot th{ color:#0a2942 !important; font-weight:800 !important; }
+.woocommerce-order table.woocommerce-table--order-details tfoot .amount{ color:#1558B0 !important; font-weight:900 !important; }
+.woocommerce-order .woocommerce-customer-details address{
+  border:1px solid #e7edf3 !important; border-radius:12px; padding:16px 18px; color:#0a2942 !important; font-style:normal; line-height:1.7;
+}
+
+@media(max-width:560px){
+  .woocommerce-order ul.woocommerce-order-overview li{ flex:1 1 100%; }
+  .woocommerce-order .es-help-card{ flex-direction:column; align-items:flex-start; }
+}
+
+
+/* ===================================================================== */
+/*  v24 — FIX MENU PAYS/RÉGION (select2) + finitions checkout            */
+/*  Le menu déroulant Pays était "coupé" : on corrige la hauteur, le      */
+/*  rembourrage et l'alignement du composant select2 de WooCommerce.      */
+/* ===================================================================== */
+.woocommerce-checkout .select2-container .select2-selection--single,
+.woocommerce .select2-container .select2-selection--single{
+  height:50px !important; min-height:50px !important;
+  border:1.5px solid #dde5ec !important; border-radius:11px !important; background:#fff !important;
+  display:flex !important; align-items:center !important;
+}
+.woocommerce-checkout .select2-container--default .select2-selection--single .select2-selection__rendered,
+.woocommerce .select2-container--default .select2-selection--single .select2-selection__rendered{
+  line-height:48px !important; padding:0 30px 0 14px !important; color:#0a2942 !important;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.woocommerce-checkout .select2-container--default .select2-selection--single .select2-selection__arrow,
+.woocommerce .select2-container--default .select2-selection--single .select2-selection__arrow{
+  height:48px !important; right:8px !important;
+}
+/* liste déroulante ouverte */
+.select2-container--open .select2-dropdown{
+  border:1.5px solid #1b9fd1 !important; border-radius:12px !important; box-shadow:0 16px 40px rgba(10,41,66,.18) !important; overflow:hidden;
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected]{
+  background:#1b9fd1 !important;
+}
+.select2-container--default .select2-search--dropdown .select2-search__field{
+  border:1.5px solid #dde5ec !important; border-radius:8px !important; padding:8px !important;
+}
+/* le champ pays "natif" (sans select2) aussi propre */
+.woocommerce-checkout select#billing_country,
+.woocommerce-checkout select#shipping_country{
+  height:50px !important; border:1.5px solid #dde5ec !important; border-radius:11px !important; padding:0 14px !important; background:#fff !important; color:#0a2942 !important;
+}
+
+
+/* ===================================================================== */
+/*  v2 — Typographie Sora pour les titres & prix                         */
+/* ===================================================================== */
+.woocommerce h1,.woocommerce h2,.woocommerce h3,.woocommerce .product_title,
+.woocommerce-products-header__title,.entry-title,
+.woocommerce-cart .cart_totals h2,#order_review_heading,
+.woocommerce .price,.woocommerce-Price-amount,
+.woocommerce ul.products li.product .price{
+  font-family:'Sora',system-ui,sans-serif !important;
+}
+
+
+
+/* ===================================================================== */
+/*  AMÉLIORATIONS PRO v2 — cartes, boutons, prix, badges, animations     */
+/*  (même direction artistique que la page d'accueil v2)                 */
+/* ===================================================================== */
+@keyframes esCardIn{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+
+/* ---- Cartes produit ---- */
+.woocommerce ul.products li.product,
+.woocommerce-page ul.products li.product{
+  background:#fff !important;border:1px solid #e7edf3 !important;border-radius:22px !important;
+  padding:14px 14px 20px !important;overflow:hidden !important;
+  box-shadow:0 14px 36px -26px rgba(10,41,66,.45) !important;
+  transition:transform .35s cubic-bezier(.16,.84,.44,1),box-shadow .35s,border-color .35s !important;
+  animation:esCardIn .6s ease both;
+}
+.woocommerce ul.products li.product:hover{
+  transform:translateY(-8px) !important;border-color:#bfe6f6 !important;
+  box-shadow:0 34px 60px -30px rgba(10,41,66,.5) !important;
+}
+.woocommerce ul.products li.product img{
+  border-radius:16px !important;background:radial-gradient(120% 100% at 50% 12%,#f6fafd,#eef3f8) !important;
+  transition:transform .45s ease !important;
+}
+.woocommerce ul.products li.product:hover img{transform:scale(1.05) !important;}
+.woocommerce ul.products li.product:nth-child(2){animation-delay:.05s}
+.woocommerce ul.products li.product:nth-child(3){animation-delay:.1s}
+.woocommerce ul.products li.product:nth-child(4){animation-delay:.15s}
+.woocommerce ul.products li.product:nth-child(5){animation-delay:.2s}
+.woocommerce ul.products li.product:nth-child(6){animation-delay:.25s}
+.woocommerce ul.products li.product:nth-child(7){animation-delay:.3s}
+.woocommerce ul.products li.product:nth-child(8){animation-delay:.35s}
+
+/* ---- Titres & prix ---- */
+.woocommerce ul.products li.product .woocommerce-loop-product__title,
+.woocommerce ul.products li.product h2,
+.woocommerce ul.products li.product h3{
+  font-family:'Sora',sans-serif !important;font-weight:600 !important;color:#0a2942 !important;font-size:16px !important;
+}
+.woocommerce .price,.woocommerce-Price-amount,
+.woocommerce ul.products li.product .price{
+  font-family:'Sora',sans-serif !important;color:#1b9fd1 !important;font-weight:700 !important;
+}
+.woocommerce ul.products li.product .price del{color:#9aabbc !important;font-weight:500 !important;}
+.woocommerce ul.products li.product .price ins{text-decoration:none !important;}
+
+/* ---- Boutons : dégradé aqua, pilule ---- */
+.woocommerce a.button,.woocommerce ul.products li.product .button,
+.woocommerce .add_to_cart_button,.woocommerce button.button.alt,
+.woocommerce #respond input#submit,.woocommerce input.button.alt,
+.woocommerce .single_add_to_cart_button,
+.woocommerce-cart .wc-proceed-to-checkout a.checkout-button,
+.woocommerce #place_order{
+  background:linear-gradient(135deg,#6fe0ff,#2eb6e6) !important;color:#051726 !important;
+  border:none !important;border-radius:100px !important;font-family:'Sora',sans-serif !important;
+  font-weight:600 !important;letter-spacing:.1px !important;text-transform:none !important;
+  box-shadow:0 12px 28px -12px rgba(46,182,230,.7) !important;transition:filter .2s,transform .2s !important;
+}
+.woocommerce a.button:hover,.woocommerce ul.products li.product .button:hover,
+.woocommerce .add_to_cart_button:hover,.woocommerce button.button.alt:hover,
+.woocommerce .single_add_to_cart_button:hover,.woocommerce #place_order:hover,
+.woocommerce-cart .wc-proceed-to-checkout a.checkout-button:hover{
+  filter:brightness(1.06) !important;transform:translateY(-2px) !important;
+}
+/* Boutons secondaires (outline aqua clair) */
+.woocommerce a.button.wc-backward,.woocommerce button[name="update_cart"],
+.woocommerce a.added_to_cart{
+  background:#e7f7fe !important;color:#0a2942 !important;border:1px solid #c7ebfa !important;
+  box-shadow:none !important;border-radius:100px !important;font-family:'Sora',sans-serif !important;font-weight:600 !important;
+}
+.woocommerce a.button.wc-backward:hover,.woocommerce a.added_to_cart:hover{background:#d4f0fb !important;transform:none !important;filter:none !important;}
+
+/* ---- Badge promo ---- */
+.woocommerce span.onsale{
+  background:linear-gradient(135deg,#0a2942,#16405f) !important;color:#6fe0ff !important;
+  border-radius:100px !important;font-family:'Sora',sans-serif !important;font-weight:700 !important;
+  min-height:auto !important;min-width:auto !important;padding:6px 13px !important;line-height:1 !important;top:14px !important;left:14px !important;
+  box-shadow:0 8px 18px -8px rgba(10,41,66,.5) !important;
+}
+
+/* ---- Champs : focus aqua ---- */
+.woocommerce form .form-row input.input-text:focus,
+.woocommerce form .form-row textarea:focus,
+.woocommerce-checkout select:focus,.woocommerce .quantity input.qty:focus{
+  border-color:#2eb6e6 !important;box-shadow:0 0 0 4px rgba(46,182,230,.14) !important;outline:none !important;
+}
+
+/* ---- Pagination ---- */
+.woocommerce nav.woocommerce-pagination ul li span.current,
+.woocommerce nav.woocommerce-pagination ul li a:hover{
+  background:linear-gradient(135deg,#6fe0ff,#2eb6e6) !important;color:#051726 !important;border-color:transparent !important;
+}
+
+/* ---- Encadrés (panier/totaux/checkout) plus doux ---- */
+.woocommerce-cart .cart-collaterals .cart_totals,
+.woocommerce-checkout #order_review,
+.woocommerce .woocommerce-info,.woocommerce .woocommerce-message{
+  border-radius:18px !important;
+}
+
+@media(prefers-reduced-motion:reduce){
+  .woocommerce ul.products li.product{animation:none !important;}
+}
+
+
+
+/* ===================================================================== */
+/*  TRANSITION D'ENTRÉE "vague d'eau" (même effet que la page d'accueil) */
+/*  Pur CSS, GPU (transform), se joue une fois au chargement — 0 délai.  */
+/* ===================================================================== */
+@keyframes esWaterReveal{0%{transform:translateY(0)}100%{transform:translateY(-112%)}}
+html::before{
+  content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-index:2147483646;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 1180' preserveAspectRatio='none'%3E%3Cpath d='M0,0 H1440 V1030 C1200,1095 960,975 720,1035 C480,1095 240,975 0,1035 Z' fill='%230a2942'/%3E%3Cpath d='M0,1035 C240,975 480,1095 720,1035 C960,975 1200,1095 1440,1030' fill='none' stroke='%236fe0ff' stroke-width='5' opacity='0.85'/%3E%3C/svg%3E");
+  background-size:100% 100%;background-repeat:no-repeat;
+  animation:esWaterReveal .95s cubic-bezier(.76,0,.24,1) .05s forwards;
+}
+@media(prefers-reduced-motion:reduce){html::before{display:none !important}}
