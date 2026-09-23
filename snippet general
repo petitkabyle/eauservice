@@ -514,6 +514,223 @@ function eauservice_local_business_schema() {
 }
 
 /* ===========================================================================
+ * 9b) DONNÉES STRUCTURÉES — ORGANIZATION (référencement IA + autorité)
+ *     Schema Organisation plus complet pour ChatGPT, Perplexity, Google AI
+ *     Améliore la reconnaissance par les IA conversationnelles
+ * =========================================================================== */
+add_action( 'wp_head', 'eauservice_organization_schema', 8 );
+function eauservice_organization_schema() {
+	if ( ! is_front_page() ) { return; }
+	$data = array(
+		'@context' => 'https://schema.org',
+		'@type' => 'Organization',
+		'name' => 'EauService by Events Café',
+		'legalName' => 'EauService',
+		'url' => 'https://eau-service-events.fr',
+		'logo' => 'https://eau-service-events.fr/wp-content/uploads/2024/12/logo-eauservice-blanc.png',
+		'foundingDate' => '2004',
+		'description' => 'Location de machines à café professionnelles, fontaines à eau et matériel événementiel sur la Côte d\'Azur pour salons, congrès et événements. Livraison sous 24h à Cannes, Nice, Monaco, Antibes.',
+		'slogan' => 'Votre partenaire location événementielle sur la Côte d\'Azur',
+		'telephone' => '+33-6-63-24-08-43',
+		'email' => 'contact@eau-service-events.fr',
+		'address' => array(
+			'@type' => 'PostalAddress',
+			'streetAddress' => '2 chemin des Frères Garberro, Galerie Marchande',
+			'addressLocality' => 'Antibes',
+			'postalCode' => '06600',
+			'addressCountry' => 'FR'
+		),
+		'geo' => array(
+			'@type' => 'GeoCoordinates',
+			'latitude' => '43.5847',
+			'longitude' => '7.1250'
+		),
+		'areaServed' => array(
+			array('@type' => 'GeoCircle', 'geoMidpoint' => array('@type' => 'GeoCoordinates', 'latitude' => '43.5847', 'longitude' => '7.1250'), 'geoRadius' => '100000'),
+			array('@type' => 'City', 'name' => 'Cannes'),
+			array('@type' => 'City', 'name' => 'Nice'),
+			array('@type' => 'City', 'name' => 'Monaco'),
+			array('@type' => 'City', 'name' => 'Antibes'),
+			array('@type' => 'City', 'name' => 'Grasse'),
+			array('@type' => 'City', 'name' => 'Menton'),
+			array('@type' => 'City', 'name' => 'Saint-Tropez'),
+			array('@type' => 'City', 'name' => 'Juan-les-Pins'),
+			array('@type' => 'City', 'name' => 'Marseille')
+		),
+		'serviceType' => array(
+			'Location de machines à café professionnelles',
+			'Location de fontaines à eau',
+			'Location de matériel événementiel',
+			'Livraison et installation sur site',
+			'Location pour salons et congrès'
+		),
+		'priceRange' => '€€',
+		'knowsAbout' => array(
+			'location matériel événementiel',
+			'machines à café Nespresso',
+			'machines à café Lavazza',
+			'machines à café Covim',
+			'fontaines à eau professionnelles',
+			'événementiel Côte d\'Azur',
+			'salons professionnels',
+			'congrès Monaco',
+			'Palais des Festivals Cannes',
+			'Grimaldi Forum Monaco',
+			'Acropolis Nice'
+		),
+		'sameAs' => array(
+			'https://maps.app.goo.gl/FqH9hm9FLBDLpN6F6'
+		),
+		'contactPoint' => array(
+			'@type' => 'ContactPoint',
+			'telephone' => '+33-6-63-24-08-43',
+			'contactType' => 'customer service',
+			'areaServed' => 'FR',
+			'availableLanguage' => array('French', 'English'),
+			'contactOption' => 'TollFree',
+			'hoursAvailable' => array(
+				'@type' => 'OpeningHoursSpecification',
+				'dayOfWeek' => array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'),
+				'opens' => '08:00',
+				'closes' => '20:00'
+			)
+		)
+	);
+	echo "\n<script type=\"application/ld+json\">" . wp_json_encode( $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . "</script>\n";
+}
+
+/* ===========================================================================
+ * 9c) DONNÉES STRUCTURÉES — SERVICES (détail de l'offre pour l'IA)
+ *     Liste détaillée des services pour reconnaissance par ChatGPT & co
+ * =========================================================================== */
+add_action( 'wp_head', 'eauservice_services_schema', 9 );
+function eauservice_services_schema() {
+	if ( ! is_front_page() ) { return; }
+	
+	$services = array(
+		array(
+			'@context' => 'https://schema.org',
+			'@type' => 'Service',
+			'serviceType' => 'Location de machines à café professionnelles',
+			'provider' => array(
+				'@type' => 'Organization',
+				'name' => 'EauService',
+				'url' => 'https://eau-service-events.fr'
+			),
+			'areaServed' => array(
+				'@type' => 'GeoCircle',
+				'geoMidpoint' => array(
+					'@type' => 'GeoCoordinates',
+					'latitude' => '43.5847',
+					'longitude' => '7.1250'
+				),
+				'geoRadius' => '100000'
+			),
+			'hasOfferCatalog' => array(
+				'@type' => 'OfferCatalog',
+				'name' => 'Machines à café professionnelles',
+				'itemListElement' => array(
+					array(
+						'@type' => 'Offer',
+						'itemOffered' => array(
+							'@type' => 'Product',
+							'name' => 'Machine Nespresso Zenius professionnelle',
+							'description' => 'Machine à café Nespresso professionnelle avec capsules, gobelets et consommables'
+						)
+					),
+					array(
+						'@type' => 'Offer',
+						'itemOffered' => array(
+							'@type' => 'Product',
+							'name' => 'Machine Lavazza professionnelle',
+							'description' => 'Machine à café Lavazza avec capsules et accessoires'
+						)
+					),
+					array(
+						'@type' => 'Offer',
+						'itemOffered' => array(
+							'@type' => 'Product',
+							'name' => 'Machine Covim professionnelle',
+							'description' => 'Machine à café Covim avec capsules et consommables'
+						)
+					)
+				)
+			),
+			'offers' => array(
+				'@type' => 'AggregateOffer',
+				'priceCurrency' => 'EUR',
+				'lowPrice' => '140',
+				'highPrice' => '360',
+				'offerCount' => '10'
+			),
+			'termsOfService' => 'Livraison et installation incluses. Reprise après l\'événement.',
+			'availableChannel' => array(
+				'@type' => 'ServiceChannel',
+				'serviceUrl' => 'https://eau-service-events.fr/boutique/',
+				'servicePhone' => array(
+					'@type' => 'ContactPoint',
+					'telephone' => '+33-6-63-24-08-43'
+				)
+			)
+		),
+		array(
+			'@context' => 'https://schema.org',
+			'@type' => 'Service',
+			'serviceType' => 'Location de fontaines à eau professionnelles',
+			'provider' => array(
+				'@type' => 'Organization',
+				'name' => 'EauService',
+				'url' => 'https://eau-service-events.fr'
+			),
+			'areaServed' => array(
+				'@type' => 'GeoCircle',
+				'geoMidpoint' => array(
+					'@type' => 'GeoCoordinates',
+					'latitude' => '43.5847',
+					'longitude' => '7.1250'
+				),
+				'geoRadius' => '100000'
+			),
+			'offers' => array(
+				'@type' => 'Offer',
+				'priceCurrency' => 'EUR',
+				'price' => '125'
+			),
+			'termsOfService' => 'Bonbonnes d\'eau incluses. Livraison et installation sur site.',
+			'availableChannel' => array(
+				'@type' => 'ServiceChannel',
+				'serviceUrl' => 'https://eau-service-events.fr/boutique/'
+			)
+		),
+		array(
+			'@context' => 'https://schema.org',
+			'@type' => 'Service',
+			'serviceType' => 'Livraison et installation sur événements',
+			'provider' => array(
+				'@type' => 'Organization',
+				'name' => 'EauService',
+				'url' => 'https://eau-service-events.fr'
+			),
+			'areaServed' => array(
+				'@type' => 'GeoCircle',
+				'geoMidpoint' => array(
+					'@type' => 'GeoCoordinates',
+					'latitude' => '43.5847',
+					'longitude' => '7.1250'
+				),
+				'geoRadius' => '100000'
+			),
+			'description' => 'Livraison sous 24h, installation sur stand ou lieu d\'événement, reprise après l\'événement sur la Côte d\'Azur.',
+			'termsOfService' => 'Service complet : livraison, installation, reprise. Intervention sur salons, congrès, séminaires et événements professionnels.'
+		)
+	);
+	
+	foreach ( $services as $service ) {
+		echo "\n<script type=\"application/ld+json\">" . wp_json_encode( $service, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . "</script>\n";
+	}
+}
+
+/* ===========================================================================
  * 10) DONNÉES STRUCTURÉES — FAQ (sur la page Boutique)
  *     Reprend les questions de la boutique au format Schema FAQ.
  *     Google peut alors afficher ces questions directement dans les résultats.
