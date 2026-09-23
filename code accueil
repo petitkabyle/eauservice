@@ -1,0 +1,1217 @@
+<!-- ============================================================= -->
+<!--  EauService by Events Cafe - PAGE D ACCUEIL (pret a coller)    -->
+<!--  Coller dans un bloc "HTML personnalise". Tout est inclus.     -->
+<!--  CSS scope sous #esroot => aucun conflit avec le theme.        -->
+<!-- ============================================================= -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+/* ===== Overrides WordPress / Astra (ciblent le THEME, non scopes) ===== */
+html,body{background:#f4f7fb !important;overflow-x:hidden !important;margin:0 !important;padding:0 !important;}
+#masthead,#colophon,.site-header,.site-footer,header.site-header,footer.site-footer,.ast-above-header-wrap,.ast-below-header-wrap,.ast-main-header-wrap,.main-header-bar,.ast-primary-header-bar{display:none !important;}
+#secondary,.widget-area,.ast-sidebar-wrapper,.ast-sidebar,aside.sidebar,.sidebar-area,.secondary{display:none !important;}
+.site,#page,#content,.site-content,.ast-container,.ast-container-fluid,#primary,.content-area,.ast-article-single,.ast-article-post,.entry-content,article.page,.ast-row,.wp-block-group,.wp-block-post-content,.ast-separate-container .ast-article-single,.ast-separate-container .ast-article-post{
+  max-width:100% !important;width:100% !important;flex:1 1 100% !important;
+  margin:0 !important;padding:0 !important;float:none !important;
+  background:transparent !important;box-shadow:none !important;border:none !important;border-radius:0 !important;}
+.ast-container{display:block !important;}
+body.ast-separate-container,body{background:#f4f7fb !important;}
+#esroot,.es-fullbleed{width:100% !important;background:#f4f7fb;}
+#esroot a{text-decoration:none !important;}
+#esroot,#esroot *{-webkit-tap-highlight-color:transparent !important;}
+#esroot a:focus,#esroot button:focus,#esroot input:focus,#esroot textarea:focus,#esroot select:focus{outline:none !important;}
+/* Police : Manrope (corps) + Sora (titres) */
+#esroot,#esroot *{font-family:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif !important;word-spacing:normal;}
+#esroot .logo,#esroot h1,#esroot h2,#esroot h3,#esroot .sec-h,#esroot .pack-name,#esroot .kpi-n,#esroot .cta-main-h,#esroot .contact-info h2,#esroot .foot-logo,#esroot .ld-logo{font-family:'Sora',system-ui,sans-serif !important;}
+
+#esroot *{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --night:#f4f7fb;--night2:#eef3f8;--night3:#ffffff;--panel:#ffffff;
+  --blue:#2eb6e6;--blue-l:#6fe0ff;--azure:#6fe0ff;--sky:#bae6fd;
+  --light:#f4f7fb;--light2:#ffffff;--ice:#e3edfb;
+  --txt-d:#0a2942;--txt-g:#5b6b7d;--txt-l:#eaf3fb;--txt-lg:#8ba6c2;
+  --green:#35e0a0;--border:rgba(255,255,255,.10);--border-d:#e7edf3;
+  --a1:#6fe0ff;--a2:#2eb6e6;--a3:#35c6f0;--deep:#1b86bc;--rgb:53,198,240;
+}
+html{scroll-behavior:smooth}#esroot{scroll-behavior:smooth}
+#esroot{font-family:'Manrope',sans-serif;background:#f4f7fb;color:#0a2942;overflow-x:hidden;line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeSpeed}
+
+/* ===== Keyframes ===== */
+@keyframes esmarquee{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-18px) rotate(1deg)}}
+@keyframes esGlow{0%,100%{opacity:.45}50%{opacity:.85}}
+@keyframes esShimmer{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+@keyframes esWaveX{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+@keyframes shopPulse{0%,100%{box-shadow:0 8px 22px -8px rgba(46,182,230,.55)}50%{box-shadow:0 10px 30px -6px rgba(111,224,255,.8)}}
+
+/* LOADER */
+#esroot #loader{position:fixed;inset:0;background:radial-gradient(120% 90% at 82% 0%,#11436b,#0a2942 46%,#061726);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .7s ease}
+#esroot #loader.out{opacity:0;pointer-events:none}
+#esroot .ld-logo{font-size:34px;font-weight:700;letter-spacing:-.5px;opacity:0;transform:translateY(14px);transition:all .6s cubic-bezier(.4,0,.2,1);text-align:center;line-height:1.1;color:#f3f9ff}
+#esroot .ld-logo.in{opacity:1;transform:none}
+#esroot .ld-logo .eau{color:var(--a1)}
+#esroot .ld-logo .by{display:block;font-size:12px;color:var(--txt-lg);font-weight:600;letter-spacing:3px;margin-top:10px;text-transform:uppercase}
+#esroot .ld-bar{width:0;height:2px;background:linear-gradient(90deg,var(--a1),var(--a2));margin-top:24px;border-radius:2px;transition:width 1.5s cubic-bezier(.4,0,.2,1) .3s}
+#esroot .ld-bar.go{width:180px}
+
+/* HEADER */
+#esroot header{position:sticky;top:0;z-index:500;background:rgba(7,23,40,.97);border-bottom:1px solid rgba(255,255,255,.08)}
+/* BANDEAU DEFILANT */
+#esroot .marquee{background:#06223a;border-bottom:1px solid rgba(255,255,255,.08);overflow:hidden;white-space:nowrap;position:relative;z-index:600;contain:content}
+#esroot .marquee-track{display:flex;width:max-content;animation:esmarquee 32s linear infinite;will-change:transform;transform:translateZ(0)}
+#esroot .marquee:hover .marquee-track{animation-play-state:paused}
+#esroot .marquee-group{display:flex;align-items:center;flex-shrink:0}
+#esroot .marquee-group span{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#bcd2e6;white-space:nowrap;padding:9px 28px;letter-spacing:.2px}
+#esroot .marquee-group span b{color:var(--a1);font-weight:800}
+#esroot .marquee-group span:not(:last-child){border-right:1px solid rgba(255,255,255,.08)}
+@media(max-width:768px){#esroot .marquee-group span{font-size:11px;padding:8px 16px}}
+
+#esroot .hdr-top{background:linear-gradient(135deg,var(--a1),var(--a2));padding:8px 40px;display:flex;justify-content:space-between;align-items:center;font-size:12px}
+#esroot .hdr-top p{color:#051726;font-weight:700;letter-spacing:.3px}
+#esroot .hdr-top span{color:rgba(5,23,38,.7)}
+#esroot .hdr{display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:72px}
+#esroot .logo{font-size:22px;font-weight:700;letter-spacing:-.5px;color:#fff;text-decoration:none;line-height:1}
+#esroot .logo .eau{color:var(--a1)}
+#esroot .logo small{display:block;font-size:10px;font-weight:500;letter-spacing:2px;color:var(--txt-lg);margin-top:2px}
+#esroot .nav{display:flex;gap:26px;list-style:none}
+#esroot .nav a{font-size:14px;font-weight:500;color:#c3d4e6;text-decoration:none;transition:color .2s;cursor:pointer}
+#esroot .nav a:hover{color:var(--a1)}
+#esroot .hdr-right{display:flex;gap:10px;align-items:center}
+#esroot .lang{display:flex;gap:0;background:transparent;border:1px solid rgba(255,255,255,.16);border-radius:100px;padding:0;overflow:hidden}
+#esroot .lang button{background:none;border:none;color:#c3d4e6;font-size:12px;font-weight:700;padding:6px 12px;border-radius:0;cursor:pointer;font-family:'Sora',sans-serif !important;transition:all .2s}
+#esroot .lang button.on{background:var(--a1);color:#051726}
+#esroot .cart{position:relative;background:transparent;border:1px solid rgba(255,255,255,.16);color:#eaf3fb;padding:9px 14px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:7px;text-decoration:none;transition:border-color .2s}
+#esroot .cart:hover{border-color:rgba(111,224,255,.5)}
+#esroot .cart .badge{background:linear-gradient(135deg,var(--a1),var(--a2));color:#051726;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px}
+#esroot .btn-form{background:linear-gradient(135deg,var(--a1),var(--a2));color:#051726;border:none;text-decoration:none;padding:11px 20px;border-radius:100px;font-size:13px;font-weight:700;transition:all .2s;white-space:nowrap;box-shadow:0 8px 22px -8px rgba(46,182,230,.6)}
+#esroot .btn-form:hover{filter:brightness(1.08);transform:translateY(-1px)}
+#esroot .hdr-wa{background:#25D366;color:#fff;text-decoration:none;padding:9px 16px;border-radius:100px;font-size:13px;font-weight:700;display:flex;align-items:center;transition:all .2s}#esroot .hdr-wa:hover{background:#1eb858}
+#esroot .btn-shop{background:linear-gradient(135deg,var(--a1),var(--a2));color:#051726;border:none;padding:11px 22px;border-radius:100px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif !important;text-decoration:none;transition:all .2s;box-shadow:0 8px 22px -8px rgba(46,182,230,.6)}
+#esroot .btn-shop:hover{filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 10px 30px -6px rgba(111,224,255,.8)}
+
+/* HERO */
+#esroot .hero{position:relative;min-height:84vh;display:flex;align-items:center;overflow:hidden;background:radial-gradient(120% 90% at 82% 0%,#11436b 0%,#0a2942 46%,#061726 100%);padding-bottom:90px}
+#esroot .hero::before{content:'';position:absolute;top:-140px;right:-60px;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(var(--rgb),.32),transparent 65%);animation:esGlow 6s ease-in-out infinite;pointer-events:none}
+#esroot .hero::after{content:'';position:absolute;left:0;bottom:-1px;width:200%;height:60px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 720 120' preserveAspectRatio='none'%3E%3Cpath d='M0,60 C120,108 240,108 360,60 C480,12 600,12 720,60 L720,120 L0,120 Z' fill='%23f4f7fb'/%3E%3C/svg%3E");background-repeat:repeat-x;background-size:50% 100%;animation:esWaveX 14s linear infinite;pointer-events:none;z-index:4;transform:translateZ(0);will-change:transform}
+#esroot .hero-inner{max-width:1240px;margin:0 auto;padding:70px 40px 40px;position:relative;z-index:2;width:100%;display:grid;grid-template-columns:1.1fr .9fr;gap:60px;align-items:center}
+#esroot .hero-eyebrow{display:inline-flex;align-items:center;gap:9px;padding:8px 16px;border:1px solid rgba(111,224,255,.32);border-radius:100px;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--a1);margin-bottom:22px}
+#esroot .hero h1{font-size:clamp(32px,4.4vw,56px);font-weight:700;letter-spacing:-1.4px;line-height:1.05;color:#f3f9ff;margin-bottom:22px;word-spacing:normal}
+#esroot .hero h1 span{background:linear-gradient(90deg,var(--a1),var(--a3),var(--a1));background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:esShimmer 4s linear infinite}
+#esroot .hero-sub{font-size:16px;color:#a9c1d8;line-height:1.65;max-width:500px;margin-bottom:40px}
+#esroot .hero-btns{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:44px}
+#esroot .bp{background:linear-gradient(135deg,var(--a1),var(--a2));color:#051726;border:none;padding:16px 30px;border-radius:100px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif !important;text-decoration:none;transition:all .2s;box-shadow:0 16px 36px -12px rgba(var(--rgb),.7)}
+#esroot .bp:hover{filter:brightness(1.08);transform:translateY(-2px)}
+#esroot .bo{background:rgba(255,255,255,.05);color:#eaf3fb;border:1px solid rgba(255,255,255,.22);padding:16px 28px;border-radius:100px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif !important;text-decoration:none;transition:all .2s}
+#esroot .bo:hover{border-color:rgba(111,224,255,.5);background:rgba(255,255,255,.10)}
+#esroot .hero-mini{display:flex;gap:28px}
+#esroot .hmini{display:flex;align-items:center;gap:10px}
+#esroot .hmini-ico{width:38px;height:38px;border-radius:11px;background:rgba(111,224,255,.14);display:flex;align-items:center;justify-content:center;color:var(--a1)}#esroot .hmini-ico svg{width:18px;height:18px}
+#esroot .hmini-t{font-size:13px;font-weight:700;color:#fff}
+#esroot .hmini-s{font-size:11px;color:var(--txt-lg)}
+#esroot .hero-visual{position:relative;display:flex;align-items:center;justify-content:center}
+#esroot .hero-visual::before{content:'';position:absolute;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(var(--rgb),.4),transparent 62%);animation:esGlow 5s ease-in-out infinite}
+#esroot .hero-visual img{position:relative;max-width:100%;max-height:460px;object-fit:contain;filter:drop-shadow(0 40px 50px rgba(0,0,0,.55));animation:floaty 7s ease-in-out infinite;will-change:transform;transform:translateZ(0)}
+
+/* SECTION GENERIC */
+#esroot .sec{padding:88px 40px;max-width:1240px;margin:0 auto}
+#esroot .sec-light{background:#fff;color:var(--txt-d)}
+#esroot .sec-light-wrap{background:#fff}
+#esroot .eyebrow{font-size:12.5px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--deep);margin-bottom:14px;display:flex;align-items:center;gap:12px}
+#esroot .eyebrow::before{content:'';width:22px;height:2px;background:var(--a2)}
+#esroot .eyebrow.center{justify-content:center}
+#esroot .sec-h{font-size:clamp(28px,3.4vw,42px);font-weight:700;letter-spacing:-1.2px;margin-bottom:14px;line-height:1.1;color:var(--txt-d)}#esroot .sec-light .sec-h{color:var(--txt-d)}
+#esroot .sec-sub{font-size:16.5px;color:var(--txt-g);max-width:560px;line-height:1.65;margin-bottom:52px}#esroot .sec-light .sec-sub{color:var(--txt-g)}
+#esroot .center-head{text-align:center}#esroot .center-head .eyebrow{justify-content:center}#esroot .center-head .sec-sub{margin:0 auto 52px}
+
+/* FORCES */
+#esroot .forces{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+#esroot .force{background:#fff;border:1px solid var(--border-d);border-radius:20px;padding:34px 30px;transition:all .35s;box-shadow:0 10px 30px -22px rgba(10,41,66,.4)}
+#esroot .force:hover{transform:translateY(-7px);box-shadow:0 26px 46px -26px rgba(10,41,66,.5);border-color:#bfe6f6}
+#esroot .force-ico{width:54px;height:54px;border-radius:15px;background:linear-gradient(135deg,#e7f7fe,#d2effb);display:flex;align-items:center;justify-content:center;color:var(--deep);margin-bottom:20px}#esroot .force-ico svg{width:26px;height:26px}
+#esroot .force h3{font-size:19px;font-weight:600;color:var(--txt-d);margin-bottom:10px;letter-spacing:-.3px}
+#esroot .force p{font-size:14.5px;color:var(--txt-g);line-height:1.65}
+
+/* PACKS */
+#esroot .packs-wrap{background:#f4f7fb}
+#esroot .packs{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+#esroot .pack{background:#fff;border:1px solid var(--border-d);border-radius:24px;overflow:hidden;transition:all .35s cubic-bezier(.4,0,.2,1);position:relative;box-shadow:0 14px 36px -24px rgba(10,41,66,.45)}
+#esroot .pack.featured{border-color:var(--a2);box-shadow:0 0 0 1px var(--a2),0 18px 44px -24px rgba(46,182,230,.5)}
+#esroot .pack-tag{position:absolute;top:16px;right:16px;background:linear-gradient(135deg,#0a2942,#16405f);color:var(--a1);font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:6px 13px;border-radius:100px;z-index:2}
+#esroot .pack:hover{transform:translateY(-8px);box-shadow:0 34px 60px -30px rgba(10,41,66,.5);border-color:var(--a2)}
+#esroot .pack-img{height:260px;background:radial-gradient(120% 100% at 50% 10%,#f2f8fc,#e7eef4);display:flex;align-items:center;justify-content:center;padding:18px;position:relative}
+#esroot .pack-img img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 18px 22px rgba(10,41,66,.18));transition:transform .4s ease}
+#esroot .pack:hover .pack-img img{transform:scale(1.07)}
+#esroot .pack-body{padding:26px}
+#esroot .pack-cat{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--deep);margin-bottom:8px}
+#esroot .pack-name{font-size:21px;font-weight:700;color:var(--txt-d);margin-bottom:10px;letter-spacing:-.3px}
+#esroot .pack-desc{font-size:14px;color:var(--txt-g);line-height:1.6;margin-bottom:18px;min-height:42px}
+#esroot .pack-price{display:flex;align-items:baseline;gap:6px;margin-bottom:20px}
+#esroot .pack-price .amt{font-size:30px;font-weight:700;color:var(--txt-d);letter-spacing:-1px;font-family:'Sora',sans-serif !important}
+#esroot .pack-price .per{font-size:13px;color:var(--txt-g)}
+#esroot .pack-btn{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--a1),var(--a2));color:#051726;font-size:14.5px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif !important;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;text-decoration:none;box-shadow:0 14px 30px -14px rgba(46,182,230,.8)}
+#esroot .pack-btn:hover{filter:brightness(1.06)}
+#esroot .pack-btn.ghost{background:#e7f7fe;border:1px solid #c7ebfa;color:var(--txt-d);box-shadow:none}
+#esroot .pack-btn.ghost:hover{background:#d4f0fb;filter:none}
+
+/* KPIs */
+#esroot .kpis-wrap{background:#f4f7fb}
+#esroot .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center}
+#esroot .kpi-n{font-size:clamp(38px,5vw,58px);font-weight:700;background:linear-gradient(135deg,var(--deep),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-2px;line-height:1;font-family:'Sora',sans-serif !important}
+#esroot .kpi-l{font-size:13px;color:#5b6b7d;margin-top:8px;font-weight:500}
+
+/* PRODUCTS CATEGORIES (light) */
+#esroot .cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:22px}
+#esroot .cat{background:#fff;border:1px solid var(--border-d);border-radius:20px;overflow:hidden;cursor:pointer;transition:all .35s;text-decoration:none;color:inherit;display:block;box-shadow:0 12px 30px -24px rgba(10,41,66,.4)}
+#esroot .cat:hover{transform:translateY(-6px);box-shadow:0 28px 50px -28px rgba(10,41,66,.5);border-color:#bfe6f6}
+#esroot .cat-img{height:220px;background:radial-gradient(120% 100% at 50% 12%,#f3f8fc,#e8eef4);display:flex;align-items:center;justify-content:center;padding:16px}
+#esroot .cat-img img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 16px 18px rgba(10,41,66,.15));transition:transform .4s}
+#esroot .cat:hover .cat-img img{transform:scale(1.07)}
+#esroot .cat-body{padding:24px}
+#esroot .cat-name{font-size:18px;font-weight:700;color:var(--txt-d);margin-bottom:6px}
+#esroot .cat-desc{font-size:13.5px;color:var(--txt-g);line-height:1.6;margin-bottom:14px}
+#esroot .cat-link{font-size:13.5px;font-weight:700;color:var(--deep);display:flex;align-items:center;gap:6px}
+
+
+/* CONTACT */
+#esroot .contact-wrap{background:radial-gradient(120% 100% at 85% 0%,#11436b,#0a2942 48%,#061726)}
+#esroot .contact{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+#esroot .contact-info h2{font-size:clamp(26px,3vw,42px);font-weight:700;color:#f3f9ff;letter-spacing:-1.2px;margin-bottom:16px;line-height:1.1}
+#esroot .contact-info p{font-size:15.5px;color:#a9c1d8;line-height:1.7;margin-bottom:28px}
+#esroot .contact-pts{list-style:none;display:flex;flex-direction:column;gap:16px}
+#esroot .contact-pt{display:flex;align-items:center;gap:14px}
+#esroot .contact-pt-ico{width:44px;height:44px;border-radius:12px;background:rgba(111,224,255,.14);display:flex;align-items:center;justify-content:center;color:var(--a1);flex-shrink:0}#esroot .contact-pt-ico svg{width:20px;height:20px}
+#esroot .contact-pt-l{font-size:11px;color:var(--txt-lg);font-weight:600}
+#esroot .contact-pt-v{font-size:15px;font-weight:700;color:#fff}
+#esroot .contact-form{background:#fff;border:1px solid var(--border-d);border-radius:24px;padding:34px;box-shadow:0 40px 90px -40px rgba(0,0,0,.5)}
+#esroot .cf-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+#esroot .cf-field{margin-bottom:16px}
+#esroot .cf-field label{font-size:13px;font-weight:600;color:#4a6076;margin-bottom:7px;display:block;letter-spacing:.2px}
+#esroot .cf-field input,#esroot .cf-field textarea{width:100%;padding:13px 15px;border:1px solid #dde5ec;border-radius:11px;background:#f8fafc;color:var(--txt-d);font-size:14px;font-family:'Manrope',sans-serif !important;transition:border-color .2s,background .2s}
+#esroot .cf-field input:focus,#esroot .cf-field textarea:focus{outline:none;border-color:var(--a2);background:#fff}
+#esroot .cf-field textarea{resize:vertical;min-height:100px}
+#esroot .cf-submit{width:100%;padding:16px;background:linear-gradient(135deg,var(--a1),var(--a2));color:#051726;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif !important;transition:all .2s;box-shadow:0 16px 34px -14px rgba(46,182,230,.8)}
+#esroot .cf-submit:hover{filter:brightness(1.06);transform:translateY(-1px)}
+#esroot .cf-note{font-size:12px;color:var(--txt-lg);text-align:center;margin-top:14px}
+
+/* FOOTER */
+#esroot footer{background:#061726;padding:64px 40px 30px}
+#esroot .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1.4fr;gap:44px;max-width:1240px;margin:0 auto 44px}
+#esroot .foot-logo{font-size:21px;font-weight:700;color:#fff;margin-bottom:6px}
+#esroot .foot-logo .eau{color:var(--a1)}
+#esroot .foot-logo small{display:block;font-size:10px;color:var(--txt-lg);letter-spacing:2px;margin-top:2px;font-weight:500}
+#esroot .foot-desc{font-size:14px;color:#9fb6cc;line-height:1.7;margin:14px 0 18px}
+#esroot .foot-soc{display:flex;gap:8px}
+#esroot .fsb{width:38px;height:38px;border:1px solid rgba(255,255,255,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#cfe0ef;cursor:pointer;transition:all .2s;text-decoration:none}
+#esroot .fsb:hover{border-color:var(--a1);color:var(--a1)}
+#esroot .foot-ct{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#fff;margin-bottom:16px;opacity:1}
+#esroot .foot-links{list-style:none;display:flex;flex-direction:column;gap:11px}
+#esroot .foot-links a{font-size:14px;color:#9fb6cc;text-decoration:none;transition:color .2s;cursor:pointer}
+#esroot .foot-links a:hover{color:var(--a1)}
+#esroot .foot-bottom{border-top:1px solid rgba(255,255,255,.08);padding-top:22px;text-align:center;font-size:12.5px;color:#9fb6cc;max-width:1240px;margin:0 auto}
+
+/* SCROLL REVEAL */
+#esroot .sr{opacity:0;transform:translate3d(0,34px,0);transition:opacity .6s cubic-bezier(.16,.84,.44,1),transform .6s cubic-bezier(.16,.84,.44,1);will-change:opacity,transform}
+#esroot .sr.on{opacity:1;transform:translate3d(0,0,0)}
+
+@media(max-width:900px){
+  #esroot .hero-inner{grid-template-columns:1fr}#esroot .hero-visual{display:none}
+  #esroot .forces,#esroot .packs,#esroot .cats{grid-template-columns:1fr}#esroot .kpis{grid-template-columns:1fr 1fr}
+  #esroot .contact{grid-template-columns:1fr}#esroot .cf-row{grid-template-columns:1fr}
+  #esroot .foot-grid{grid-template-columns:1fr 1fr}#esroot .nav{display:none}#esroot .hdr,#esroot .hdr-top{padding:0 18px}#esroot .hdr-top{padding:8px 18px}
+}
+
+/* CTA principale */
+#esroot .cta-main{max-width:760px;margin:0 auto;text-align:center}
+#esroot .cta-main-ico{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,var(--a1),var(--a2));display:flex;align-items:center;justify-content:center;color:#051726;margin:0 auto 24px}
+#esroot .cta-main-h{font-size:clamp(28px,3.4vw,44px);font-weight:700;color:#f3f9ff;letter-spacing:-1.2px;line-height:1.08;margin-bottom:16px}
+#esroot .cta-main-sub{font-size:16px;color:#a9c1d8;line-height:1.7;max-width:580px;margin:0 auto 36px}
+#esroot .cta-main-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:32px}
+#esroot .cta-big{background:linear-gradient(135deg,var(--a1),var(--a2));color:#051726;border:none;padding:18px 44px;border-radius:100px;font-size:17px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif !important;text-decoration:none;transition:all .2s;box-shadow:0 16px 36px -12px rgba(var(--rgb),.7)}
+#esroot .cta-big:hover{filter:brightness(1.08);transform:translateY(-2px)}
+#esroot .cta-wa{background:#25D366;color:#fff;border:none;padding:18px 32px;border-radius:100px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif !important;text-decoration:none;transition:all .2s;display:flex;align-items:center;gap:10px}
+#esroot .cta-wa:hover{background:#1eb858;transform:translateY(-2px)}
+#esroot .cta-direct{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;padding-top:28px;border-top:1px solid rgba(255,255,255,.08)}
+#esroot .cta-direct-item{display:flex;align-items:center;gap:10px;color:#a9c1d8;text-decoration:none;font-size:15px;font-weight:600;transition:color .2s}
+#esroot .cta-direct-item:hover{color:var(--a1)}
+#esroot .cta-direct-item svg{color:var(--a1)}
+
+/* Burger + menu mobile */
+#esroot .burger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:8px;margin-left:4px}
+#esroot .burger span{display:block;width:24px;height:2px;background:#fff;border-radius:2px;transition:all .3s}
+#esroot .burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+#esroot .burger.open span:nth-child(2){opacity:0}
+#esroot .burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+#esroot .mobile-menu{position:fixed;top:0;right:0;height:100vh;width:78%;max-width:320px;background:#0a2942;border-left:1px solid rgba(255,255,255,.08);z-index:600;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;gap:4px;padding:90px 24px 24px;overflow-y:auto}
+#esroot .mobile-menu.open{transform:translateX(0);box-shadow:-20px 0 60px rgba(0,0,0,.5)}
+#esroot .mobile-menu a{color:#eaf3fb;text-decoration:none;font-size:17px;font-weight:600;padding:15px 12px;border-radius:10px;transition:background .2s}
+#esroot .mobile-menu a:hover{background:rgba(255,255,255,.06)}
+#esroot .mobile-menu .mm-cta{background:linear-gradient(135deg,var(--a1),var(--a2));color:#051726;text-align:center;font-weight:700;margin-top:14px;border-radius:100px}
+#esroot .mobile-menu .mm-wa{background:#25D366;color:#fff;text-align:center;font-weight:700;border-radius:100px}
+#esroot .mm-lang{display:flex;gap:8px;margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)}
+#esroot .mm-lang button{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#eaf3fb;padding:10px;border-radius:10px;font-family:'Sora',sans-serif !important;font-size:13px;font-weight:600;cursor:pointer}
+#esroot .menu-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:550;opacity:0;pointer-events:none;transition:opacity .3s}
+#esroot .menu-backdrop.open{opacity:1;pointer-events:auto}
+
+@media(max-width:768px){
+  #esroot .hdr{padding:0 16px;height:62px}
+  #esroot .hdr-top{padding:7px 16px;font-size:10.5px}
+  #esroot .hdr-top span{display:none}
+  #esroot .logo{font-size:18px}#esroot .logo small{font-size:8px;letter-spacing:1.5px}
+  #esroot .nav{display:none}
+  #esroot .hdr-right .lang,#esroot .hdr-right .cart,#esroot .hdr-right .btn-form,#esroot .hdr-right .btn-shop{display:none}
+  #esroot .burger{display:flex}
+  #esroot .hero{min-height:auto}
+  #esroot .hero-inner{padding:48px 18px 30px;gap:0}
+  #esroot .hero h1{font-size:32px;letter-spacing:-1px}
+  #esroot .hero-sub{font-size:14px;margin-bottom:32px}
+  #esroot .hero-btns{flex-direction:column;gap:10px}
+  #esroot .hero-btns .bp,#esroot .hero-btns .bo{width:100%;text-align:center;padding:15px}
+  #esroot .hero-mini{flex-direction:column;gap:14px}
+  #esroot .sec{padding:54px 18px}
+  #esroot .sec-h{font-size:26px}
+  #esroot .forces,#esroot .packs,#esroot .cats,#esroot .kpis{grid-template-columns:1fr;gap:16px}
+  #esroot .kpis{grid-template-columns:1fr 1fr}
+  #esroot .kpi-n{font-size:40px}
+  #esroot .pack-img,#esroot .cat-img{height:200px}
+  #esroot .cta-main-h{font-size:26px}
+  #esroot .cta-main-btns{flex-direction:column;gap:12px}
+  #esroot .cta-big,#esroot .cta-wa{width:100%;justify-content:center;text-align:center;font-size:15px;padding:16px}
+  #esroot .cta-direct{flex-direction:column;gap:14px}
+      #esroot .foot-grid{grid-template-columns:1fr 1fr;gap:28px}
+  #esroot .force,#esroot .pack-body,#esroot .cat-body,#esroot .contact-form{padding:24px}
+}
+@media(max-width:420px){
+  #esroot .kpis{grid-template-columns:1fr}
+  #esroot .foot-grid{grid-template-columns:1fr}
+  #esroot .hero h1{font-size:28px}
+}
+
+/* ===================== AJOUTS v3+ (inspirés de la v2) ===================== */
+@keyframes esBubble{0%{transform:translateY(20px) scale(.5);opacity:0}18%{opacity:.7}100%{transform:translateY(-300px) scale(1);opacity:0}}
+@keyframes esDash{to{stroke-dashoffset:-240}}
+
+/* --- Bulles qui remontent dans le hero --- */
+#esroot .hero .es-bub{position:absolute;border-radius:50%;background:radial-gradient(circle at 35% 30%,#bff0ff,var(--a3));pointer-events:none;z-index:2;box-shadow:0 0 10px rgba(var(--rgb),.5)}
+
+/* --- Vagues plus fines + effet de perspective (2 couches) --- */
+#esroot .hero-wave-back{position:absolute;left:0;bottom:-1px;width:200%;height:48px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 720 50' preserveAspectRatio='none'%3E%3Cpath d='M0,25 C120,5 240,5 360,25 C480,45 600,45 720,25 L720,50 L0,50 Z' fill='rgba(53,198,240,0.42)'/%3E%3C/svg%3E");background-repeat:repeat-x;background-size:50% 100%;animation:esWaveX 10s linear infinite reverse;z-index:3;pointer-events:none;transform:translateZ(0);will-change:transform}
+
+/* --- Section Zones d'intervention (sombre, comme la v2) --- */
+#esroot .zones-wrap{position:relative;overflow:hidden;background:radial-gradient(120% 100% at 15% 10%,#11436b 0%,#0a2942 50%,#061726 100%)}
+#esroot .zones-wrap::before{content:'';position:absolute;top:-120px;left:-60px;width:460px;height:460px;border-radius:50%;background:radial-gradient(circle,rgba(var(--rgb),.22),transparent 65%);animation:esGlow 7s ease-in-out infinite;pointer-events:none}
+#esroot .zones-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:48px;align-items:center}
+#esroot .zwrap-eyebrow{display:inline-block;color:var(--a1);font-size:12.5px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:14px}
+#esroot .zwrap-h2{font-size:clamp(26px,3vw,40px);font-weight:700;color:#f3f9ff;letter-spacing:-1px;line-height:1.1;margin-bottom:16px}
+#esroot .zwrap-sub{font-size:16px;color:#a9c1d8;line-height:1.65;margin-bottom:24px}
+#esroot .zone-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+#esroot .zone{display:flex;align-items:center;gap:9px;font-size:14.5px;font-weight:600;color:#d7e6f4}
+#esroot .zone .zdot{width:7px;height:7px;border-radius:50%;background:var(--a1);box-shadow:0 0 8px var(--a1)}
+#esroot .es-map{position:relative;height:420px;border-radius:24px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:linear-gradient(170deg,rgba(20,64,95,.55),rgba(6,23,38,.9))}
+#esroot .es-map-grid{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);background-size:26px 26px}
+#esroot .es-pin{position:absolute}
+#esroot .es-pin .pdot{position:absolute;transform:translate(-50%,-50%);border-radius:50%;animation:esGlow 3.4s ease-in-out infinite}
+#esroot .es-pin .plabel{position:absolute;left:50%;white-space:nowrap;font-family:'Sora',sans-serif !important;text-shadow:0 1px 7px rgba(2,12,22,.9);pointer-events:none}
+#esroot .map-legend{position:absolute;top:14px;left:14px;display:flex;align-items:center;gap:14px;padding:9px 14px;border-radius:12px;background:rgba(6,23,38,.88);border:1px solid rgba(255,255,255,.12)}
+#esroot .map-legend span{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600}
+
+/* --- Salons & événements (chips avec LED) --- */
+#esroot .ev-head{display:flex;align-items:center;gap:16px;margin:54px 0 12px;flex-wrap:wrap}
+#esroot .ev-head .lbl{color:var(--a1);font-size:12.5px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;white-space:nowrap}
+#esroot .ev-head .ln{height:1px;flex:1;min-width:40px;background:rgba(255,255,255,.12)}
+#esroot .ev-head .cnt{font-size:13px;color:#8ba6c2;white-space:nowrap}
+#esroot .ev-sub{font-size:15.5px;color:#a9c1d8;line-height:1.6;max-width:720px;margin:0 0 24px}
+#esroot .ev-list{display:flex;flex-wrap:wrap;gap:10px}
+#esroot .ev-chip{display:inline-flex;align-items:center;gap:8px;padding:9px 15px;border-radius:100px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);color:#c3d4e6;font-size:13.5px;font-weight:600;transition:border-color .25s,transform .25s}
+#esroot .ev-chip:hover{transform:translateY(-2px);border-color:var(--a1)}
+#esroot .ev-chip .led{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.38)}
+#esroot .ev-chip .city{color:#7d97ad;font-weight:500;font-size:12px}
+#esroot .ev-chip.pop{border-color:rgba(var(--rgb),.55);background:rgba(var(--rgb),.10);color:#eaf3fb}
+#esroot .ev-chip.pop .led{width:9px;height:9px;background:var(--a1);box-shadow:0 0 10px var(--a1),0 0 18px rgba(var(--rgb),.8);animation:esGlow 1.8s ease-in-out infinite}
+
+/* --- Avis clients --- */
+#esroot .testis{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+#esroot .testi{display:flex;flex-direction:column;background:#fff;border:1px solid var(--border-d);border-radius:22px;padding:32px;box-shadow:0 14px 36px -26px rgba(10,41,66,.4);transition:transform .35s,box-shadow .35s}
+#esroot .testi:hover{transform:translateY(-6px);box-shadow:0 28px 50px -28px rgba(10,41,66,.5)}
+#esroot .testi-stars{color:var(--a2);font-size:16px;letter-spacing:2px}
+#esroot .testi-q{font-size:16px;line-height:1.62;color:#2c3e52;margin:18px 0 0;flex:1;font-weight:500}
+#esroot .testi-who{display:flex;align-items:center;gap:13px;margin-top:26px}
+#esroot .testi-av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#0a2942,var(--deep));display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif !important;color:#fff;font-weight:700;font-size:16px}
+#esroot .testi-name{font-family:'Sora',sans-serif !important;font-size:15px;font-weight:600;color:var(--txt-d)}
+#esroot .testi-role{font-size:13px;color:#7d8fa1}
+
+@media(max-width:900px){
+  #esroot .zones-grid{grid-template-columns:1fr;gap:30px}
+  #esroot .testis{grid-template-columns:1fr}
+}
+@media(max-width:768px){
+  #esroot .zone-list{grid-template-columns:repeat(2,1fr)}
+  #esroot .es-map{height:340px}
+}
+
+
+/* ===== Fluidité / accessibilité ===== */
+@media(prefers-reduced-motion:reduce){
+  #esroot *,#esroot *::before,#esroot *::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+  #esroot .es-bub,#esroot .hero-wave-back{display:none !important}
+  #esroot .sr{opacity:1 !important;transform:none !important}
+  html{scroll-behavior:auto !important}
+}
+/* ===== Optimisation & aération ===== */
+#esroot a,#esroot button{touch-action:manipulation}
+#esroot [id]{scroll-margin-top:90px}
+#esroot .forces,#esroot .cats{gap:26px}
+#esroot .packs,#esroot .testis{gap:28px}
+#esroot .zones-grid{gap:56px}
+#esroot .kpis-wrap{border-top:1px solid #eef2f6;border-bottom:1px solid #eef2f6}
+#esroot .ev-list{gap:12px;line-height:1.5}
+#esroot .hero-mini{margin-top:6px}
+@media(max-width:900px){#esroot .es-bub{display:none !important}}
+
+/* ===== Packs interactifs (toggle supplément Nespresso) ===== */
+#esroot .es-pr-switch-wrap{display:flex;align-items:center;justify-content:center;gap:14px;margin:0 auto 46px;flex-wrap:wrap}
+#esroot .es-pr-opt{font-family:'Sora',sans-serif !important;font-weight:600;font-size:14.5px;color:#7d8fa1;cursor:pointer;transition:color .2s;display:inline-flex;align-items:center;gap:6px}
+#esroot .es-pr-opt.on{color:#0a2942}
+#esroot .es-pr-opt .es-pr-note{font-size:12.5px;color:var(--deep);font-weight:700}
+#esroot .es-switch{display:inline-flex;align-items:center;width:58px;height:30px;border-radius:100px;background:#dce4ec;position:relative;cursor:pointer;transition:background .25s;flex:none}
+#esroot .es-switch.on{background:linear-gradient(135deg,var(--a1),var(--a2))}
+#esroot .es-switch-thumb{display:block;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(10,22,40,.3);transition:transform .25s;transform:translateX(3px)}
+#esroot .es-switch.on .es-switch-thumb{transform:translateX(31px)}
+#esroot .es-switch.on .es-switch-thumb{transform:translateX(28px)}
+
+#esroot .es-pr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;align-items:center;perspective:1400px}
+#esroot .es-pcard{position:relative;display:flex;flex-direction:column;background:#fff;border:1px solid var(--border-d);border-radius:24px;padding:30px 26px;box-shadow:0 14px 36px -24px rgba(10,41,66,.45);text-align:center;transition:transform .5s cubic-bezier(.16,.84,.44,1),box-shadow .4s}
+#esroot .es-pcard.tl{transform:rotateY(8deg) scale(.95);transform-origin:right center}
+#esroot .es-pcard.tr{transform:rotateY(-8deg) scale(.95);transform-origin:left center}
+#esroot .es-pcard.popular{transform:translateY(-16px);z-index:2;border:2px solid var(--a2);box-shadow:0 26px 56px -28px rgba(46,182,230,.55)}
+#esroot .es-pcard:hover{transform:translateY(-8px) scale(1.01) rotateY(0deg);box-shadow:0 34px 60px -30px rgba(10,41,66,.5)}
+#esroot .es-pcard-badge{position:absolute;top:0;right:0;display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,#0a2942,#16405f);color:var(--a1);font-size:11.5px;font-weight:700;padding:6px 13px;border-radius:0 22px 0 14px}
+#esroot .es-pcard-img{height:172px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;background:radial-gradient(120% 100% at 50% 12%,#f6fafd,#eef3f8);border-radius:16px}
+#esroot .es-pcard-img img{max-height:100%;max-width:100%;object-fit:contain;filter:drop-shadow(0 16px 20px rgba(10,41,66,.18));transition:opacity .25s}
+#esroot .es-pbrand{display:inline-flex;align-items:center;gap:6px;align-self:center;padding:5px 12px;border-radius:100px;background:#e7f7fe;border:1px solid #c7ebfa;color:var(--deep);font-size:12.5px;font-weight:700;margin-bottom:12px}
+#esroot .es-pcard-name{font-family:'Sora',sans-serif !important;font-size:19px;font-weight:700;color:#0a2942;margin-bottom:10px}
+#esroot .es-pcard-price{display:flex;align-items:baseline;justify-content:center;gap:4px;margin-bottom:4px}
+#esroot .es-pcard-price .amt{font-family:'Sora',sans-serif !important;font-size:42px;font-weight:700;color:#0a2942;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+#esroot .es-pcard-price .cur{font-family:'Sora',sans-serif !important;font-size:16px;font-weight:700;color:#0a2942}
+#esroot .es-pcard-billed{font-size:12.5px;color:#7d8fa1;margin-bottom:18px}
+#esroot .es-pcard-feats{list-style:none;display:flex;flex-direction:column;gap:9px;text-align:left;margin-bottom:18px}
+#esroot .es-pcard-feats li{display:flex;align-items:flex-start;gap:9px;font-size:14px;color:#34465a}
+#esroot .es-pcard-feats .ck{flex:none;display:flex;width:18px;height:18px;align-items:center;justify-content:center;border-radius:50%;background:#dff4fc;color:var(--deep);font-size:11px;font-weight:800;margin-top:1px}
+#esroot .es-pcard-btn{display:block;width:100%;font-family:'Sora',sans-serif !important;font-size:14.5px;font-weight:600;padding:13px;border-radius:14px;text-decoration:none;transition:filter .2s,background .2s;margin-top:auto}
+#esroot .es-pcard:not(.popular) .es-pcard-btn{background:#e7f7fe;color:#0a2942;border:1px solid #c7ebfa}
+#esroot .es-pcard:not(.popular) .es-pcard-btn:hover{background:#d4f0fb}
+#esroot .es-pcard.popular .es-pcard-btn{background:linear-gradient(135deg,var(--a1),var(--a2));color:#051726;box-shadow:0 14px 30px -14px rgba(46,182,230,.8)}
+#esroot .es-pcard.popular .es-pcard-btn:hover{filter:brightness(1.06)}
+#esroot .es-pcard-desc{font-size:12.5px;color:#7d8fa1;margin-top:12px}
+#esroot .es-pr-disclaimer{text-align:center;font-size:12.5px;color:#7d8fa1;max-width:780px;margin:38px auto 0;line-height:1.6}
+@media(max-width:900px){
+  #esroot .es-pr-grid{grid-template-columns:1fr;perspective:none;gap:20px}
+  #esroot .es-pcard.tl,#esroot .es-pcard.tr,#esroot .es-pcard.popular{transform:none}
+  #esroot .es-pcard:hover{transform:translateY(-6px)}
+}
+
+
+/* ===== Avis clients : carrousel animé ===== */
+@keyframes esTestiScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+#esroot .es-testi-marquee{position:relative;overflow:hidden;padding:10px 0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);contain:content}
+#esroot .es-testi-track{display:flex;gap:24px;width:max-content;animation:esTestiScroll 75s linear infinite;will-change:transform;transform:translateZ(0)}
+#esroot .es-testi-marquee:hover .es-testi-track{animation-play-state:paused}
+#esroot .es-testi-marquee .testi{width:374px;flex:none;margin:0}
+@media(max-width:560px){#esroot .es-testi-marquee .testi{width:286px}#esroot .es-testi-track{animation-duration:55s}}
+
+/* ===== Transition d'entrée façon vague d'eau ===== */
+@keyframes esWaterReveal{0%{transform:translateY(0)}100%{transform:translateY(-112%)}}
+html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-index:2147483646;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 1180' preserveAspectRatio='none'%3E%3Cpath d='M0,0 H1440 V1030 C1200,1095 960,975 720,1035 C480,1095 240,975 0,1035 Z' fill='%230a2942'/%3E%3Cpath d='M0,1035 C240,975 480,1095 720,1035 C960,975 1200,1095 1440,1030' fill='none' stroke='%236fe0ff' stroke-width='5' opacity='0.85'/%3E%3C/svg%3E");background-size:100% 100%;background-repeat:no-repeat;animation:esWaterReveal .6s cubic-bezier(.76,0,.24,1) .05s forwards;will-change:transform}
+#esroot #loader{display:none !important}
+@media(prefers-reduced-motion:reduce){html::before{display:none !important}}
+</style>
+
+<div id="esroot" class="es-fullbleed">
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <div class="marquee-group">
+      <span data-fr="🚚 Livraison sous 24h sur toute la Côte d'Azur" data-en="🚚 Delivery within 24h across the French Riviera">🚚 Livraison sous 24h sur toute la Côte d'Azur</span>
+      <span data-fr="📍 Monaco · Nice · Cannes · Antibes · Marseille" data-en="📍 Monaco · Nice · Cannes · Antibes · Marseille">📍 Monaco · Nice · Cannes · Antibes · Marseille</span>
+      <span data-fr="☕ Location de matériel événementiel : machines à café, fontaines à eau, frigos" data-en="☕ Event equipment rental: coffee machines, water fountains, fridges">☕ Location de matériel événementiel : machines à café, fontaines à eau, frigos</span>
+      <span data-fr="✅ Packs clés en main pour vos événements" data-en="✅ Turnkey packs for your events">✅ Packs clés en main pour vos événements</span>
+      <span data-fr="🛍️ Boutique en ligne ouverte 24h/24" data-en="🛍️ Online shop open 24/7">🛍️ Boutique en ligne ouverte 24h/24</span>
+      <span data-fr="📞 07 61 46 57 20 — Devis gratuit en 24h" data-en="📞 07 61 46 57 20 — Free quote within 24h">📞 07 61 46 57 20 — Devis gratuit en 24h</span>
+      <span data-fr="💬 Réponse immédiate sur WhatsApp" data-en="💬 Instant reply on WhatsApp">💬 Réponse immédiate sur WhatsApp</span>
+    </div>
+    <div class="marquee-group" aria-hidden="true">
+      <span data-fr="🚚 Livraison sous 24h sur toute la Côte d'Azur" data-en="🚚 Delivery within 24h across the French Riviera">🚚 Livraison sous 24h sur toute la Côte d'Azur</span>
+      <span data-fr="📍 Monaco · Nice · Cannes · Antibes · Marseille" data-en="📍 Monaco · Nice · Cannes · Antibes · Marseille">📍 Monaco · Nice · Cannes · Antibes · Marseille</span>
+      <span data-fr="☕ Location de matériel événementiel : machines à café, fontaines à eau, frigos" data-en="☕ Event equipment rental: coffee machines, water fountains, fridges">☕ Location de matériel événementiel : machines à café, fontaines à eau, frigos</span>
+      <span data-fr="✅ Packs clés en main pour vos événements" data-en="✅ Turnkey packs for your events">✅ Packs clés en main pour vos événements</span>
+      <span data-fr="🛍️ Boutique en ligne ouverte 24h/24" data-en="🛍️ Online shop open 24/7">🛍️ Boutique en ligne ouverte 24h/24</span>
+      <span data-fr="📞 07 61 46 57 20 — Devis gratuit en 24h" data-en="📞 07 61 46 57 20 — Free quote within 24h">📞 07 61 46 57 20 — Devis gratuit en 24h</span>
+      <span data-fr="💬 Réponse immédiate sur WhatsApp" data-en="💬 Instant reply on WhatsApp">💬 Réponse immédiate sur WhatsApp</span>
+    </div>
+  </div>
+</div>
+
+<div id="loader">
+  <div class="ld-logo" id="ldlogo"><span class="eau">Eau</span>Service<small class="by">BY EVENTS CAFÉ</small></div>
+  <div class="ld-bar" id="ldbar"></div>
+</div>
+
+<header>
+  <div class="hdr-top">
+    <p data-fr="🛍️ Location de matériel événementiel sur la Côte d'Azur — boutique en ligne ouverte 24h/24" data-en="🛍️ Event equipment rental on the French Riviera — online shop open 24/7">🛍️ Location de matériel événementiel sur la Côte d'Azur — boutique en ligne ouverte 24h/24</p>
+    <span data-fr="Devis rapide &amp; équipe pro 7j/7" data-en="Fast quote &amp; pro team 7/7">Devis rapide &amp; équipe pro 7j/7</span>
+  </div>
+  <div class="hdr">
+    <a href="#top" class="logo"><span class="eau">Eau</span>Service<small>BY EVENTS CAFÉ</small></a>
+    <ul class="nav">
+      <li><a href="#forces" data-fr="Nos forces" data-en="Our strengths">Nos forces</a></li>
+      <li><a href="#packs" data-fr="Nos packs" data-en="Our packs">Nos packs</a></li>
+      <li><a href="#produits" data-fr="Nos équipements" data-en="Our equipment">Nos équipements</a></li>
+      <li><a href="#contact" data-fr="Contact" data-en="Contact">Contact</a></li>
+    </ul>
+    <button class="burger" id="burger" aria-label="Menu" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="hdr-right">
+      <div class="lang">
+        <button class="on" onclick="setLang('fr')" id="lfr">FR</button>
+        <button onclick="setLang('en')" id="len">EN</button>
+      </div>
+      <a href="#es-devis" class="btn-form" data-fr="Devis gratuit" data-en="Free quote">Devis gratuit</a>
+      <a href="/panier/" class="cart" data-fr="Panier" data-en="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:middle"><path d="M12 3l8 4.5v9l-8 4.5l-8 -4.5v-9z"></path><path d="M12 12l8 -4.5"></path><path d="M12 12v9"></path><path d="M12 12l-8 -4.5"></path></svg> <span data-fr="Panier" data-en="Cart">Panier</span> <span class="badge">0</span></a>
+      <a href="/boutique/" class="btn-shop" data-fr="Boutique" data-en="Shop">Boutique</a>
+    </div>
+  </div>
+</header>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#forces" onclick="closeMenu()" data-fr="Nos forces" data-en="Our strengths">Nos forces</a>
+  <a href="#packs" onclick="closeMenu()" data-fr="Nos packs" data-en="Our packs">Nos packs</a>
+  <a href="#produits" onclick="closeMenu()" data-fr="Nos équipements" data-en="Our equipment">Nos équipements</a>
+  <a href="#contact" onclick="closeMenu()" data-fr="Contact" data-en="Contact">Contact</a>
+  <a href="/boutique/" data-fr="Boutique" data-en="Shop">Boutique</a>
+  <a href="/panier/" data-fr="Panier" data-en="Cart">Panier</a>
+  <a href="https://formulaire.events-cafe.com/formulaire.html" class="mm-cta" data-fr="Formulaire de commande" data-en="Order form">Formulaire de commande</a>
+  <a href="#es-devis" onclick="closeMenu()" class="mm-cta" style="background:transparent;border:1.5px solid rgba(111,224,255,.6);color:#0a2942" data-fr="Devis gratuit" data-en="Free quote">Devis gratuit</a>
+  <a href="https://api.whatsapp.com/send?phone=33761465720" target="_blank" rel="noopener" class="mm-wa" data-fr="WhatsApp" data-en="WhatsApp">WhatsApp</a>
+  <div class="mm-lang">
+    <button onclick="setLang('fr');closeMenu()">Français</button>
+    <button onclick="setLang('en');closeMenu()">English</button>
+  </div>
+</div>
+<div class="menu-backdrop" id="menuBackdrop" onclick="closeMenu()"></div>
+
+
+<span id="top"></span>
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eyebrow" data-fr="Location de matériel événementiel professionnel" data-en="Professional event equipment rental">Location de matériel événementiel professionnel</div>
+      <h1 data-fr="Location de fontaines à eau et machines à café {span}sur la Côte d’Azur{/span}" data-en="Locations of water fountains and coffee machines {span}on the French Riviera{/span}">Location de fontaines à eau et machines à café <span>sur la Côte d’Azur</span></h1>
+      <p class="hero-sub" data-fr="EauService Events propose la location de fontaines à eau professionnelles, machines à café et équipements de rafraîchissement pour entreprises, salons, congrès et événements à Cannes, Antibes, Nice, Monaco, St-Tropez." data-en="EauService Events offers rentals of professional water coolers, coffee machines, and refreshment equipment for businesses, trade shows, conferences, and events in Cannes, Antibes, Nice, Monaco, St-Tropez.">EauService Events propose la location de fontaines à eau professionnelles, machines à café et équipements de rafraîchissement pour entreprises, salons, congrès et événements à Cannes, Antibes, Nice, Monaco, St Tropez...</p>
+      <div class="hero-btns">
+        <a href="/boutique/" class="bp" data-fr="🛍️ Voir la boutique en ligne" data-en="🛍️ Visit our online shop">🛍️ Voir la boutique en ligne</a>
+        <a href="#es-devis" class="bo" data-fr="Devis gratuit" data-en="Free quote">Devis gratuit</a>
+      </div>
+      <div class="hero-mini">
+        <div class="hmini"><div class="hmini-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:middle"><path d="M7 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M5 17h-2v-11a1 1 0 0 1 1 -1h9v12m-4 0h6m4 0h2v-6h-8m0 -5h5l3 5"></path></svg></div><div><div class="hmini-t" data-fr="Livraison 24h" data-en="24h delivery">Livraison 24h</div><div class="hmini-s" data-fr="Sur votre événement" data-en="To your event">Sur votre événement</div></div></div>
+        <div class="hmini"><div class="hmini-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:middle"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"></path></svg></div><div><div class="hmini-t" data-fr="Équipe pro &amp; réactive" data-en="Pro &amp; responsive team">Équipe pro &amp; réactive</div><div class="hmini-s" data-fr="Réponse 7j/7 sous 24h" data-en="7/7 reply within 24h">Réponse 7j/7 sous 24h</div></div></div>
+        <div class="hmini"><div class="hmini-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:middle"><path d="M12 3l8 4.5v9l-8 4.5l-8 -4.5v-9z"></path><path d="M12 12l8 -4.5"></path><path d="M12 12v9"></path><path d="M12 12l-8 -4.5"></path></svg></div><div><div class="hmini-t" data-fr="Boutique en ligne" data-en="Online shop">Boutique en ligne</div><div class="hmini-s" data-fr="Commande 24h/24" data-en="Order 24/7">Commande 24h/24</div></div></div>
+      </div>
+    </div>
+    <div class="hero-visual"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/Zenius-1.png" alt="Machine à café professionnelle pour location de matériel événementiel"></div>
+  </div>
+  <div class="hero-wave-back" aria-hidden="true"></div>
+  <span class="es-bub" style="left:58%;bottom:120px;width:10px;height:10px;animation:esBubble 7s ease-in infinite .4s"></span>
+  <span class="es-bub" style="left:72%;bottom:80px;width:7px;height:7px;animation:esBubble 8s ease-in infinite 1.5s"></span>
+  <span class="es-bub" style="left:84%;bottom:140px;width:5px;height:5px;animation:esBubble 9s ease-in infinite 2.5s"></span>
+</section>
+
+<!-- BOUTIQUE EN LIGNE -->
+<div class="packs-wrap"><section class="sec" style="text-align:center">
+  <div class="center-head sr" style="margin:0 auto">
+    <div class="eyebrow center" data-fr="Boutique en ligne" data-en="Online shop">Boutique en ligne</div>
+    <h2 class="sec-h" data-fr="Commandez votre matériel événementiel en ligne, 24h/24" data-en="Order your event equipment online, 24/7">Commandez votre matériel événementiel en ligne, 24h/24</h2>
+    <p class="sec-sub" style="margin:0 auto 32px" data-fr="Parcourez la boutique en ligne et recevez votre matériel sous 24h sur toute la Côte d'Azur." data-en="Browse the online shop and get your equipment within 24h across the French Riviera.">Parcourez la boutique en ligne et recevez votre matériel sous 24h sur toute la Côte d'Azur.</p>
+  </div>
+  <div class="cta-main-btns sr" style="margin-bottom:0">
+    <a href="/boutique/" class="cta-big" data-fr="🛍️ Accéder à la boutique en ligne" data-en="🛍️ Go to the online shop">🛍️ Accéder à la boutique en ligne</a>
+    <a href="https://formulaire.events-cafe.com/formulaire.html" class="cta-big" style="padding:18px 32px;background:#fff;color:#0a2942;border:1.5px solid #bfe6f6;box-shadow:0 10px 30px -18px rgba(10,41,66,.4)" data-fr="Formulaire de commande" data-en="Order form">Formulaire de commande</a>
+  </div>
+</section></div>
+
+<!-- FORCES -->
+<div class="sec-light-wrap"><section class="sec sec-light" id="forces">
+  <div class="center-head sr">
+    <div class="eyebrow center" data-fr="Nos forces" data-en="Our strengths">Nos forces</div>
+    <h2 class="sec-h" data-fr="Une location de matériel événementiel professionnelle, fiable et réactive" data-en="Professional, reliable and responsive event equipment rental">Une location de matériel événementiel professionnelle, fiable et réactive</h2>
+    <p class="sec-sub" data-fr="Une équipe réactive pour vos salons et séminaires. Matériel de qualité et accompagnement du début à la fin." data-en="A responsive team for your trade shows and seminars. Quality equipment and support from start to finish.">Une équipe réactive pour vos salons et séminaires. Matériel de qualité et accompagnement du début à la fin.</p>
+  </div>
+  <div class="forces">
+    <div class="force sr"><div class="force-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:middle"><path d="M7 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M5 17h-2v-11a1 1 0 0 1 1 -1h9v12m-4 0h6m4 0h2v-6h-8m0 -5h5l3 5"></path></svg></div><h3 data-fr="Livraison rapide &amp; ponctuelle" data-en="Fast, on-time delivery">Livraison rapide &amp; ponctuelle</h3><p data-fr="Notre équipe assure une livraison professionnelle et soignée directement sur votre stand ou lieu d'événement, partout en PACA et sur la Côte d'Azur, sous 24h." data-en="Our team ensures professional, careful delivery directly to your stand or event venue, anywhere in PACA and the French Riviera, within 24h.">Notre équipe assure une livraison professionnelle et soignée directement sur votre stand ou lieu d'événement, partout en PACA et sur la Côte d'Azur, sous 24h.</p></div>
+    <div class="force sr"><div class="force-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:middle"><path d="M12 3l8 4.5v9l-8 4.5l-8 -4.5v-9z"></path><path d="M12 12l8 -4.5"></path><path d="M12 12v9"></path><path d="M12 12l-8 -4.5"></path></svg></div><h3 data-fr="Large gamme de matériel professionnel" data-en="Wide range of professional equipment">Large gamme de matériel professionnel</h3><p data-fr="Machines à café, fontaines à eau et solutions de réfrigération : une gamme complète pensée pour vos salons, séminaires, réceptions et événements d'entreprise." data-en="Coffee machines, water fountains and refrigeration solutions: a complete range designed for your trade shows, seminars, receptions and corporate events.">Machines à café, fontaines à eau et solutions de réfrigération : une gamme complète pensée pour vos salons, séminaires, réceptions et événements d'entreprise.</p></div>
+    <div class="force sr"><div class="force-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:middle"><path d="M4 21v-13a3 3 0 0 1 3 -3h10a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h-9l-4 4"></path><path d="M8 9l8 0"></path><path d="M8 13l6 0"></path></svg></div><h3 data-fr="Réactivité &amp; accompagnement personnalisé" data-en="Responsiveness &amp; personalized support">Réactivité &amp; accompagnement personnalisé</h3><p data-fr="Une équipe professionnelle joignable 7j/7, un devis rapide sous 24h et un accompagnement personnalisé pour la réussite de votre événement, de la commande jusqu'à la livraison." data-en="A professional team available 7/7, a fast quote within 24h and personalized support for the success of your event, from order to delivery.">Une équipe professionnelle joignable 7j/7, un devis rapide sous 24h et un accompagnement personnalisé pour la réussite de votre événement, de la commande jusqu'à la livraison.</p></div>
+  </div>
+</section></div>
+
+<!-- PACKS -->
+<div class="packs-wrap"><section class="sec" id="packs">
+  <div class="center-head sr">
+    <div class="eyebrow center" data-fr="Nos packs" data-en="Our packs">Nos packs</div>
+    <h2 class="sec-h" data-fr="Des packs clés en main, prêts à commander" data-en="Turnkey packs, ready to order">Des packs clés en main, prêts à commander</h2>
+    <p class="sec-sub" data-fr="Café Covim ou Lavazza — ou supplément Nespresso. Livraison et installation incluses." data-en="Covim or Lavazza coffee — or the Nespresso add-on. Delivery and setup included.">Café Covim ou Lavazza — ou supplément Nespresso. Livraison et installation incluses.</p>
+  </div>
+
+  <div class="es-pr-switch-wrap sr">
+    <span class="es-pr-opt on" onclick="esSetBrand('std')" data-fr="Café Covim / Lavazza" data-en="Covim / Lavazza coffee">Café Covim / Lavazza</span>
+    <span class="es-switch" onclick="esToggleBrand()"><span class="es-switch-thumb"></span></span>
+    <span class="es-pr-opt" onclick="esSetBrand('nes')" data-fr="Nespresso (+40 € HT)" data-en="Nespresso (+€40 excl. tax)">Nespresso <span class="es-pr-note">(+40 € HT)</span></span>
+  </div>
+
+  <div class="es-pr-grid sr">
+
+    <!-- Pack Essentiel Café & Eau (brandable) -->
+    <div class="es-pcard tl" data-brandable="" data-base="140" data-nes="180" data-img-std="https://eau-service-events.fr/wp-content/uploads/2026/06/pack-de-base-covim.png" data-img-nes="https://eau-service-events.fr/wp-content/uploads/2026/06/pack-de-base-nespresso.png">
+      <div class="es-pcard-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/pack-de-base-covim.png" alt="Pack Essentiel Café &amp; Eau"></div>
+      <div class="es-pbrand">☕ <span class="es-brandlbl">Covim / Lavazza</span></div>
+      <div class="es-pcard-name" data-fr="Pack Essentiel Café &amp; Eau" data-en="Essential Coffee &amp; Water Pack">Pack Essentiel Café &amp; Eau</div>
+      <div class="es-pcard-price"><span class="amt">140</span><span class="cur">€ HT</span></div>
+      <div class="es-pcard-billed" data-fr="Livraison &amp; installation incluses" data-en="Delivery &amp; setup included">Livraison &amp; installation incluses</div>
+      <ul class="es-pcard-feats">
+        <li><span class="ck">✓</span><span class="es-machine">Machine à café Covim / Lavazza</span></li>
+        <li><span class="ck">✓</span><span data-fr="Fontaine à eau professionnelle" data-en="Professional water dispenser">Fontaine à eau professionnelle</span></li>
+        <li><span class="ck">✓</span><span data-fr="Bonbonne d'eau incluse" data-en="Water bottle included">Bonbonne d'eau incluse</span></li>
+        <li><span class="ck">✓</span><span data-fr="Capsules café, gobelets, sucre &amp; touillettes" data-en="Coffee capsules, cups, sugar &amp; stirrers">Capsules café, gobelets, sucre &amp; touillettes</span></li>
+      </ul>
+      <a href="/boutique/" class="es-pcard-btn" data-fr="Commander ce pack" data-en="Order this pack">Commander ce pack</a>
+      <p class="es-pcard-desc" data-fr="Idéal réunions &amp; séminaires" data-en="Ideal for meetings &amp; seminars">Idéal réunions &amp; séminaires</p>
+    </div>
+
+    <!-- Pack Complet Événement (brandable, populaire) -->
+    <div class="es-pcard popular" data-brandable="" data-base="320" data-nes="360" data-img-std="https://eau-service-events.fr/wp-content/uploads/2026/06/Pack-complet-covim.png" data-img-nes="https://eau-service-events.fr/wp-content/uploads/2026/06/pack-complet-nespresso.png">
+      <div class="es-pcard-badge"><svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M12 2l2.9 6.3 6.9.6-5.2 4.6 1.6 6.8L12 17.8 5.8 20.9l1.6-6.8L2.2 8.9l6.9-.6z"></path></svg><span data-fr="Populaire" data-en="Popular">Populaire</span></div>
+      <div class="es-pcard-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/Pack-complet-covim.png" alt="Pack Complet Événement"></div>
+      <div class="es-pbrand">☕ <span class="es-brandlbl">Covim / Lavazza</span></div>
+      <div class="es-pcard-name" data-fr="Pack Complet Événement" data-en="Complete Event Pack">Pack Complet Événement</div>
+      <div class="es-pcard-price"><span class="amt">320</span><span class="cur">€ HT</span></div>
+      <div class="es-pcard-billed" data-fr="Livraison, installation &amp; reprise incluses" data-en="Delivery, setup &amp; collection included">Livraison, installation &amp; reprise incluses</div>
+      <ul class="es-pcard-feats">
+        <li><span class="ck">✓</span><span class="es-machine">Machine à café Covim / Lavazza</span></li>
+        <li><span class="ck">✓</span><span data-fr="Fontaine à eau professionnelle" data-en="Professional water dispenser">Fontaine à eau professionnelle</span></li>
+        <li><span class="ck">✓</span><span data-fr="Réfrigérateur" data-en="Refrigerator">Réfrigérateur</span></li>
+        <li><span class="ck">✓</span><span data-fr="Bonbonne d'eau incluse" data-en="Water bottle included">Bonbonne d'eau incluse</span></li>
+        <li><span class="ck">✓</span><span data-fr="Capsules café, gobelets, sucre &amp; touillettes" data-en="Coffee capsules, cups, sugar &amp; stirrers">Capsules café, gobelets, sucre &amp; touillettes</span></li>
+      </ul>
+      <a href="/boutique/" class="es-pcard-btn" data-fr="Commander ce pack" data-en="Order this pack">Commander ce pack</a>
+      <p class="es-pcard-desc" data-fr="Idéal salons, expositions &amp; congrès" data-en="Ideal for trade shows, exhibitions &amp; conferences">Idéal salons, expositions &amp; congrès</p>
+    </div>
+
+    <!-- Pack Eau Essentiel (sans café) -->
+    <div class="es-pcard tr" data-base="125">
+      <div class="es-pcard-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/pack-eau.png" alt="Pack Eau Essentiel"></div>
+      <div class="es-pbrand" style="background:#eef3f8;border-color:#e0e8f0;color:#5b6b7d">💧 <span data-fr="Sans café" data-en="No coffee">Sans café</span></div>
+      <div class="es-pcard-name" data-fr="Pack Eau Essentiel" data-en="Essential Water Pack">Pack Eau Essentiel</div>
+      <div class="es-pcard-price"><span class="amt">125</span><span class="cur">€ HT</span></div>
+      <div class="es-pcard-billed" data-fr="Livraison &amp; installation incluses" data-en="Delivery &amp; setup included">Livraison &amp; installation incluses</div>
+      <ul class="es-pcard-feats">
+        <li><span class="ck">✓</span><span data-fr="Fontaine à eau professionnelle" data-en="Professional water dispenser">Fontaine à eau professionnelle</span></li>
+        <li><span class="ck">✓</span><span data-fr="Bonbonne d'eau 18,9 L" data-en="18.9 L water bottle">Bonbonne d'eau 18,9 L</span></li>
+        <li><span class="ck">✓</span><span data-fr="100 gobelets fournis" data-en="100 cups supplied">100 gobelets fournis</span></li>
+        <li><span class="ck">✓</span><span data-fr="Installation &amp; reprise sur place" data-en="On-site setup &amp; collection">Installation &amp; reprise sur place</span></li>
+      </ul>
+      <a href="/boutique/" class="es-pcard-btn" data-fr="Commander ce pack" data-en="Order this pack">Commander ce pack</a>
+      <p class="es-pcard-desc" data-fr="Idéal stands &amp; bureaux temporaires" data-en="Ideal for stands &amp; temporary offices">Idéal stands &amp; bureaux temporaires</p>
+    </div>
+
+  </div>
+  <p class="es-pr-disclaimer sr" data-fr="Tarifs indicatifs HT — personnalisables selon votre événement. Le supplément Nespresso (+40 € HT) remplace la machine Covim / Lavazza par une machine Nespresso." data-en="Indicative prices excl. tax — customizable for your event. The Nespresso add-on (+€40 excl. tax) replaces the Covim / Lavazza machine with a Nespresso one.">Tarifs indicatifs HT — personnalisables selon votre événement. Le supplément Nespresso (+40 € HT) remplace la machine Covim / Lavazza par une machine Nespresso.</p>
+</section></div>
+
+
+<!-- KPIs -->
+<div class="kpis-wrap"><section class="sec">
+  <div class="kpis">
+    <div class="sr"><div class="kpi-n">+250</div><div class="kpi-l" data-fr="Clients nous font confiance" data-en="Clients trust us">Clients nous font confiance</div></div>
+    <div class="sr"><div class="kpi-n">+40</div><div class="kpi-l" data-fr="Salons partenaires" data-en="Partner trade shows">Salons partenaires</div></div>
+    <div class="sr"><div class="kpi-n">+500</div><div class="kpi-l" data-fr="Événements chaque année" data-en="Events each year">Événements chaque année</div></div>
+    <div class="sr"><div class="kpi-n">+20</div><div class="kpi-l" data-fr="Ans d'expérience" data-en="Years of experience">Ans d'expérience</div></div>
+  </div>
+</section></div>
+
+<!-- ZONES D'INTERVENTION -->
+<div class="zones-wrap"><section class="sec" id="zones">
+  <div class="zones-grid">
+    <div class="sr">
+      <div class="zwrap-eyebrow" data-fr="Zone d'intervention" data-en="Service area">Zone d'intervention</div>
+      <h2 class="zwrap-h2" data-fr="Nous intervenons sur toute la Côte d'Azur" data-en="We cover the entire French Riviera">Nous intervenons sur toute la Côte d'Azur</h2>
+      <p class="zwrap-sub" data-fr="De Toulon à Menton, nous livrons et installons votre matériel sur le lieu de votre événement." data-en="From Toulon to Menton, we deliver and install your equipment at your venue.">De Toulon à Menton, nous livrons et installons votre matériel sur le lieu de votre événement.</p>
+      <div class="zone-list">
+        <div class="zone"><span class="zdot"></span>Nice</div>
+        <div class="zone"><span class="zdot"></span>Cannes</div>
+        <div class="zone"><span class="zdot"></span>Antibes</div>
+        <div class="zone"><span class="zdot"></span>Monaco</div>
+        <div class="zone"><span class="zdot"></span>Sophia Antipolis</div>
+        <div class="zone"><span class="zdot"></span>Grasse</div>
+        <div class="zone"><span class="zdot"></span>Mandelieu</div>
+        <div class="zone"><span class="zdot"></span>Fréjus</div>
+        <div class="zone"><span class="zdot"></span>Saint-Raphaël</div>
+        <div class="zone"><span class="zdot"></span>Menton</div>
+        <div class="zone"><span class="zdot"></span>Toulon</div>
+        <div class="zone"><span class="zdot"></span><span data-fr="et alentours" data-en="&amp; nearby">et alentours</span></div>
+      </div>
+    </div>
+    <div class="es-map sr" id="es-map">
+      <div class="es-map-grid"></div>
+      <svg viewBox="0 0 600 360" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;">
+        <path d="M0,0 H600 V148 C540,164 500,158 455,182 C405,206 360,180 315,198 C270,216 235,193 200,206 C150,225 110,206 60,213 C40,216 18,215 0,209 Z" style="fill:rgba(255,255,255,.045);stroke:rgba(53,198,240,.28);stroke-width:1.4;"></path>
+        <path id="es-route" d="" style="fill:none;stroke:#6fe0ff;stroke-width:2.4;stroke-linecap:round;opacity:.8;animation:esDash 22s linear infinite;" stroke-dasharray="2 9"></path>
+        <text x="300" y="330" text-anchor="middle" style="fill:rgba(207,227,243,.3);font-family:'Sora',sans-serif;font-size:14px;font-weight:600;letter-spacing:5px;" data-fr="MER MÉDITERRANÉE" data-en="MEDITERRANEAN SEA">MER MÉDITERRANÉE</text>
+      </svg>
+      <div class="map-legend">
+        <span style="color:#cfe3f3;"><span style="width:12px;height:12px;border-radius:50%;background:#6fe0ff;box-shadow:0 0 10px #6fe0ff;"></span><span data-fr="Hub principal" data-en="Main hub">Hub principal</span></span>
+        <span style="color:#9fc0db;"><span style="width:9px;height:9px;border-radius:50%;border:2px solid #6fe0ff;"></span><span data-fr="Ville desservie" data-en="City served">Ville desservie</span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ev-head sr">
+    <span class="lbl" data-fr="Sur les plus grands rendez-vous" data-en="At the biggest events">Sur les plus grands rendez-vous</span>
+    <span class="ln"></span>
+    <span class="cnt" data-fr="30+ salons &amp; événements équipés" data-en="30+ trade shows &amp; events equipped">30+ salons &amp; événements équipés</span>
+  </div>
+  <p class="ev-sub sr" data-fr="Chaque année, nous équipons les salons, congrès et événements majeurs de la Côte d'Azur et de Monaco." data-en="Every year we equip the major trade shows, conferences and events of the French Riviera and Monaco.">Chaque année, nous équipons les salons, congrès et événements majeurs de la Côte d'Azur et de Monaco.</p>
+  <div class="ev-list sr">
+    <span class="ev-chip pop"><span class="led"></span>Festival de Cannes <span class="city">· Cannes</span></span>
+    <span class="ev-chip pop"><span class="led"></span>Cannes Lions <span class="city">· Cannes</span></span>
+    <span class="ev-chip pop"><span class="led"></span>MIPCOM <span class="city">· Cannes</span></span>
+    <span class="ev-chip"><span class="led"></span>MIPTV <span class="city">· Cannes</span></span>
+    <span class="ev-chip"><span class="led"></span>MIDEM <span class="city">· Cannes</span></span>
+    <span class="ev-chip pop"><span class="led"></span>TFWA — Tax Free <span class="city">· Cannes</span></span>
+    <span class="ev-chip"><span class="led"></span>ILTM <span class="city">· Cannes</span></span>
+    <span class="ev-chip"><span class="led"></span>MIPIM <span class="city">· Cannes</span></span>
+    <span class="ev-chip"><span class="led"></span>MAPIC <span class="city">· Cannes</span></span>
+    <span class="ev-chip"><span class="led"></span>NRJ Music Awards <span class="city">· Cannes</span></span>
+    <span class="ev-chip"><span class="led"></span>Yachting Festival <span class="city">· Cannes</span></span>
+    <span class="ev-chip pop"><span class="led"></span>Monaco Yacht Show <span class="city">· Monaco</span></span>
+    <span class="ev-chip pop"><span class="led"></span>Grand Prix F1 <span class="city">· Monaco</span></span>
+    <span class="ev-chip"><span class="led"></span>Top Marques <span class="city">· Monaco</span></span>
+    <span class="ev-chip"><span class="led"></span>Sportel <span class="city">· Monaco</span></span>
+    <span class="ev-chip"><span class="led"></span>Monte-Carlo TV Festival <span class="city">· Monaco</span></span>
+    <span class="ev-chip"><span class="led"></span>Rolex MC Masters <span class="city">· Monaco</span></span>
+    <span class="ev-chip"><span class="led"></span>Jumping de Monaco <span class="city">· Monaco</span></span>
+    <span class="ev-chip"><span class="led"></span>EVER Monaco <span class="city">· Monaco</span></span>
+    <span class="ev-chip pop"><span class="led"></span>Carnaval de Nice <span class="city">· Nice</span></span>
+    <span class="ev-chip"><span class="led"></span>Nice Jazz Festival <span class="city">· Nice</span></span>
+    <span class="ev-chip"><span class="led"></span>Ironman France <span class="city">· Nice</span></span>
+    <span class="ev-chip"><span class="led"></span>Innovative City <span class="city">· Nice</span></span>
+    <span class="ev-chip"><span class="led"></span>Jazz à Juan <span class="city">· Juan-les-Pins</span></span>
+    <span class="ev-chip"><span class="led"></span>Antibes Yacht Show <span class="city">· Antibes</span></span>
+    <span class="ev-chip"><span class="led"></span>Les Voiles <span class="city">· Saint-Tropez</span></span>
+    <span class="ev-chip"><span class="led"></span>Roc d'Azur <span class="city">· Fréjus</span></span>
+    <span class="ev-chip"><span class="led"></span>Expo Rose <span class="city">· Grasse</span></span>
+    <span class="ev-chip"><span class="led"></span>Festival de Hyères <span class="city">· Hyères</span></span>
+    <span class="ev-chip"><span class="led"></span>Fête du Mimosa <span class="city">· Mandelieu</span></span>
+    <span class="ev-chip"><span class="led"></span>Festival de Ramatuelle <span class="city">· Ramatuelle</span></span>
+  </div>
+</section></div>
+
+<!-- PRODUITS CATEGORIES -->
+<div class="sec-light-wrap"><section class="sec sec-light" id="produits">
+  <div class="center-head sr">
+    <div class="eyebrow center" data-fr="Nos équipements" data-en="Our equipment">Nos équipements</div>
+    <h2 class="sec-h" data-fr="Notre matériel événementiel par catégorie" data-en="Our event equipment by category">Notre matériel événementiel par catégorie</h2>
+    <p class="sec-sub" data-fr="Café, eau et réfrigération — à la location ou en pack." data-en="Coffee, water and refrigeration — for rent or in packs.">Café, eau et réfrigération — à la location ou en pack.</p>
+  </div>
+  <div class="cats">
+    <a href="/boutique/" class="cat sr"><div class="cat-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/covim_blanche-removebg-preview.png" alt="Machines à café - location de matériel événementiel"></div><div class="cat-body"><div class="cat-name" data-fr="Machines à café" data-en="Coffee machines">Machines à café</div><div class="cat-desc" data-fr="Nespresso, Lavazza, Covim — professionnelles et domestiques." data-en="Nespresso, Lavazza, Covim — professional and domestic.">Nespresso, Lavazza, Covim — professionnelles et domestiques.</div><div class="cat-link" data-fr="Voir les machines →" data-en="View machines →">Voir les machines →</div></div></a>
+    <a href="/boutique/" class="cat sr"><div class="cat-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/fontaine_a_eau_grise_everest-removebg-preview-1.png" alt="Fontaines à eau - location de matériel événementiel"></div><div class="cat-body"><div class="cat-name" data-fr="Fontaines à eau" data-en="Water fountains">Fontaines à eau</div><div class="cat-desc" data-fr="À bonbonne ou réseau, eau fraîche et chaude. Zéro plastique." data-en="Bottle or mains-fed, cold and hot water. Zero plastic.">À bonbonne ou réseau, eau fraîche et chaude. Zéro plastique.</div><div class="cat-link" data-fr="Voir les fontaines →" data-en="View fountains →">Voir les fontaines →</div></div></a>
+    <a href="/boutique/" class="cat sr"><div class="cat-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/table-top.png" alt="Réfrigération - location de matériel événementiel"></div><div class="cat-body"><div class="cat-name" data-fr="Réfrigération" data-en="Refrigeration">Réfrigération</div><div class="cat-desc" data-fr="Frigo table top et réfrigérateurs pour vos boissons fraîches." data-en="Table-top fridge and refrigerators to keep your drinks cool.">Frigo table top et réfrigérateurs pour vos boissons fraîches.</div><div class="cat-link" data-fr="Voir la réfrigération →" data-en="View refrigeration →">Voir la réfrigération →</div></div></a>
+    <a href="/boutique/" class="cat sr"><div class="cat-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/bouilloire-1.png" alt="Suppléments"></div><div class="cat-body"><div class="cat-name" data-fr="Suppléments" data-en="Add-ons">Suppléments</div><div class="cat-desc" data-fr="Bouilloire, mousseur à lait, chaises, tables, ventilateurs, gobelets… et bien plus, en location." data-en="Kettle, milk frother, chairs, tables, fans, cups… and much more, for rent.">Bouilloire, mousseur à lait, chaises, tables, ventilateurs, gobelets… et bien plus, en location.</div><div class="cat-link" data-fr="Voir les suppléments →" data-en="View add-ons →">Voir les suppléments →</div></div></a>
+  </div>
+  </section></div>
+
+<!-- AVIS CLIENTS -->
+<div class="sec-light-wrap"><section class="sec sec-light" id="avis">
+  <div class="center-head sr">
+    <div class="eyebrow center" data-fr="Avis clients" data-en="Client reviews">Avis clients</div>
+    <h2 class="sec-h" data-fr="La réactivité qui fait la différence" data-en="Responsiveness that makes the difference">La réactivité qui fait la différence</h2>
+    <p class="sec-sub" data-fr="Plus de 250 clients nous font confiance sur la Côte d'Azur et à Monaco." data-en="Over 250 clients trust us across the French Riviera and Monaco.">Plus de 250 clients nous font confiance sur la Côte d'Azur et à Monaco.</p>
+  </div>
+  <div class="es-testi-marquee">
+    <div class="es-testi-track" id="esTestiTrack">
+      <div class="testi">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-q" data-fr="Matériel livré et installé la veille de notre salon, sans la moindre fausse note. Une réactivité rare sur la Côte d'Azur." data-en="Everything delivered and installed the day before our show, flawlessly. Rare responsiveness on the Riviera.">Matériel livré et installé la veille de notre salon, sans la moindre fausse note. Une réactivité rare sur la Côte d'Azur.</p>
+        <div class="testi-who"><div class="testi-av">CL</div><div><div class="testi-name">Camille Laurent</div><div class="testi-role" data-fr="Responsable événementiel, Nice" data-en="Event manager, Nice">Responsable événementiel, Nice</div></div></div>
+      </div>
+      <div class="testi">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-q" data-fr="Le pack complet a équipé nos 4 jours de congrès : fontaines, cafés, frigos. Tout était impeccable et les consommables n'ont jamais manqué." data-en="The complete pack equipped our 4-day conference: dispensers, coffee, fridges. Impeccable, and we never ran out of consumables.">Le pack complet a équipé nos 4 jours de congrès : fontaines, cafés, frigos. Tout était impeccable et les consommables n'ont jamais manqué.</p>
+        <div class="testi-who"><div class="testi-av">TM</div><div><div class="testi-name">Thomas Mercier</div><div class="testi-role" data-fr="Directeur de congrès, Cannes" data-en="Conference director, Cannes">Directeur de congrès, Cannes</div></div></div>
+      </div>
+      <div class="testi">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-q" data-fr="Une demande urgente un vendredi, du matériel installé le lundi. Service simple, professionnel et des délais toujours respectés." data-en="An urgent request on Friday, equipment installed by Monday. Simple, professional service with deadlines always met.">Une demande urgente un vendredi, du matériel installé le lundi. Service simple, professionnel et des délais toujours respectés.</p>
+        <div class="testi-who"><div class="testi-av">SB</div><div><div class="testi-name">Sophie Bernard</div><div class="testi-role" data-fr="Office manager, Sophia Antipolis" data-en="Office manager, Sophia Antipolis">Office manager, Sophia Antipolis</div></div></div>
+      </div>
+      <div class="testi">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-q" data-fr="Du matériel haut de gamme, livré pile à l'heure pour notre soirée VIP. Rien à redire — on refait appel à eux sans hésiter." data-en="Premium equipment, delivered right on time for our VIP evening. Nothing to fault — we'll book them again without hesitation.">Du matériel haut de gamme, livré pile à l'heure pour notre soirée VIP. Rien à redire — on refait appel à eux sans hésiter.</p>
+        <div class="testi-who"><div class="testi-av">JR</div><div><div class="testi-name">Julien Roche</div><div class="testi-role" data-fr="Chef de projet événementiel, Monaco" data-en="Event project manager, Monaco">Chef de projet événementiel, Monaco</div></div></div>
+      </div>
+      <div class="testi">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-q" data-fr="Fontaines et machines à café impeccables pendant tout le salon. Installation rapide et reprise sans le moindre souci." data-en="Water dispensers and coffee machines flawless throughout the whole show. Quick setup and collection without a hitch.">Fontaines et machines à café impeccables pendant tout le salon. Installation rapide et reprise sans le moindre souci.</p>
+        <div class="testi-who"><div class="testi-av">AM</div><div><div class="testi-name">Aurélie Martin</div><div class="testi-role" data-fr="Responsable accueil, Antibes" data-en="Front-desk manager, Antibes">Responsable accueil, Antibes</div></div></div>
+      </div>
+      <div class="testi">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-q" data-fr="Une équipe à l'écoute et des tarifs clairs. Le pack complet a impressionné nos exposants — service vraiment professionnel." data-en="An attentive team and clear pricing. The complete pack impressed our exhibitors — truly professional service.">Une équipe à l'écoute et des tarifs clairs. Le pack complet a impressionné nos exposants — service vraiment professionnel.</p>
+        <div class="testi-who"><div class="testi-av">KB</div><div><div class="testi-name">Karim Benali</div><div class="testi-role" data-fr="Organisateur d'événements, Cannes" data-en="Event organizer, Cannes">Organisateur d'événements, Cannes</div></div></div>
+      </div>
+      <div class="testi">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-q" data-fr="Organisation parfaite pour notre lancement produit : matériel premium, équipe ponctuelle et discrète. Un vrai partenaire de confiance." data-en="Perfect organization for our product launch: premium equipment, a punctual and discreet team. A true trusted partner.">Organisation parfaite pour notre lancement produit : matériel premium, équipe ponctuelle et discrète. Un vrai partenaire de confiance.</p>
+        <div class="testi-who"><div class="testi-av">LF</div><div><div class="testi-name">Laure Fontaine</div><div class="testi-role" data-fr="Directrice marketing, Monaco" data-en="Marketing director, Monaco">Directrice marketing, Monaco</div></div></div>
+      </div>
+      <div class="testi">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-q" data-fr="Je travaille sur de nombreux salons : EauService fait partie des prestataires les plus fiables de la région. Zéro imprévu." data-en="I work on many trade shows: EauService is one of the most reliable providers in the region. Zero surprises.">Je travaille sur de nombreux salons : EauService fait partie des prestataires les plus fiables de la région. Zéro imprévu.</p>
+        <div class="testi-who"><div class="testi-av">MD</div><div><div class="testi-name">Marc Dubois</div><div class="testi-role" data-fr="Régisseur général, Cannes" data-en="Stage manager, Cannes">Régisseur général, Cannes</div></div></div>
+      </div>
+      <div class="testi">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-q" data-fr="Réactivité bluffante et matériel toujours nickel. Nos visiteurs ont apprécié le café et l'eau fraîche en continu." data-en="Impressive responsiveness and spotless equipment. Our visitors loved the non-stop coffee and chilled water.">Réactivité bluffante et matériel toujours nickel. Nos visiteurs ont apprécié le café et l'eau fraîche en continu.</p>
+        <div class="testi-who"><div class="testi-av">NE</div><div><div class="testi-name">Nadia El Amrani</div><div class="testi-role" data-fr="Cheffe de projet, Antibes" data-en="Project lead, Antibes">Cheffe de projet, Antibes</div></div></div>
+      </div>
+    </div>
+  </div>
+</section></div>
+
+
+<!-- (Section simulateur de livraison retiree de l'accueil : on utilise celui du Panier) -->
+
+<!-- CONTACT / CTA PRINCIPAL -->
+<div class="contact-wrap"><section class="sec" id="contact">
+  <div class="cta-main sr">
+    <div class="cta-main-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px;display:inline-block;vertical-align:middle"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path><path d="M9 13l6 0"></path><path d="M9 17l6 0"></path></svg></div>
+    <div class="eyebrow center" data-fr="Boutique &amp; devis" data-en="Shop &amp; quote">Boutique &amp; devis</div>
+    <h2 class="cta-main-h" data-fr="Commandez en ligne ou demandez votre devis personnalisé" data-en="Order online or request your custom quote">Commandez en ligne ou demandez votre devis personnalisé</h2>
+    <p class="cta-main-sub" data-fr="Commandez en ligne ou demandez un devis. Réponse sous 24h." data-en="Order online or request a quote. We reply within 24h.">Commandez en ligne ou demandez un devis. Réponse sous 24h.</p>
+    <div class="cta-main-btns">
+      <a href="/boutique/" class="cta-big" data-fr="🛍️ Commander sur la boutique" data-en="🛍️ Order from the shop">🛍️ Commander sur la boutique</a>
+      <a href="https://formulaire.events-cafe.com/formulaire.html" class="cta-big" style="background:rgba(255,255,255,.10);border:1.5px solid rgba(111,224,255,.45);box-shadow:none;color:#eaf3fb" data-fr="Formulaire de commande →" data-en="Order form →">Formulaire de commande →</a>
+      <a href="https://api.whatsapp.com/send?phone=33761465720" class="cta-wa" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;display:inline-block;vertical-align:middle"><path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9"></path><path d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1"></path></svg> <span data-fr="WhatsApp — Réponse immédiate" data-en="WhatsApp — Instant reply">WhatsApp — Réponse immédiate</span></a>
+    </div>
+    <div class="cta-direct">
+      <a href="tel:+33761465720" class="cta-direct-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;display:inline-block;vertical-align:middle"><path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2"></path></svg><span>07 61 46 57 20</span></a>
+      <a href="mailto:contact@events-cafe.com" class="cta-direct-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;display:inline-block;vertical-align:middle"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"></path><path d="M3 7l9 6l9 -6"></path></svg><span>contact@events-cafe.com</span></a>
+    </div>
+  </div>
+</section></div>
+
+<!-- ===== FORMULAIRE DEVIS GRATUIT (s'envoie par e-mail via le snippet) ===== -->
+<div class="es-devis-wrap"><section id="es-devis">
+  <div class="esd-inner">
+    <div class="esd-head">
+      <span class="esd-eyebrow" data-fr="Devis gratuit" data-en="Free quote">Devis gratuit</span>
+      <h2 data-fr="Demandez votre devis gratuit en 24h" data-en="Get your free quote within 24h">Demandez votre devis gratuit en 24h</h2>
+      <p data-fr="Quelques infos rapides et on vous envoie un devis personnalisé sous 24h. Sans engagement." data-en="A few quick details and we'll send you a custom quote within 24h. No commitment.">Quelques infos rapides et on vous envoie un devis personnalisé sous 24h. Sans engagement.</p>
+    </div>
+    <div class="esd-alert esd-ok" id="esd-ok" style="display:none" data-fr="✅ Merci ! Votre demande de devis a bien été envoyée. Réponse sous 24h." data-en="✅ Thank you! Your quote request has been sent. We reply within 24h.">✅ Merci ! Votre demande de devis a bien été envoyée. Réponse sous 24h.</div>
+    <div class="esd-alert esd-err" id="esd-err" style="display:none">⚠️ Une erreur est survenue. Réessayez, ou écrivez-nous à <a href="mailto:contact@events-cafe.com">contact@events-cafe.com</a>.</div>
+    <form class="esd-form" action="/wp-admin/admin-post.php" method="post">
+      <input type="hidden" name="action" value="eauservice_devis">
+      <div class="esd-hp" aria-hidden="true"><label>Ne pas remplir<input type="text" name="es_website" tabindex="-1" autocomplete="off"></label></div>
+      <div class="esd-grid">
+        <div class="esd-field"><label data-fr="Nom &amp; prénom *" data-en="Full name *">Nom &amp; prénom *</label><input type="text" name="es_nom" required="" placeholder="Votre nom"></div>
+        <div class="esd-field"><label data-fr="E-mail *" data-en="Email *">E-mail *</label><input type="email" name="es_email" required="" placeholder="vous@exemple.com"></div>
+        <div class="esd-field"><label data-fr="Téléphone *" data-en="Phone *">Téléphone *</label><input type="tel" name="es_tel" required="" placeholder="06 12 34 56 78"></div>
+        <div class="esd-field"><label data-fr="Date de l'événement" data-en="Event date">Date de l'événement</label><input type="text" name="es_date" placeholder="Ex : 15-17 mars 2026"></div>
+        <div class="esd-field esd-full"><label data-fr="Type / lieu d'événement" data-en="Event type / venue">Type / lieu d'événement</label><input type="text" name="es_event" placeholder="Ex : salon, congrès — Palais des Festivals, Cannes"></div>
+        <div class="esd-field esd-full"><label data-fr="Votre besoin *" data-en="Your needs *">Votre besoin *</label><textarea name="es_message" rows="4" required="" placeholder="Matériel souhaité (café, eau, réfrigération…), nombre de personnes, durée…"></textarea></div>
+      </div>
+      <button type="submit" class="esd-btn" data-fr="Recevoir mon devis gratuit" data-en="Get my free quote">Recevoir mon devis gratuit</button>
+      <p class="esd-legal" data-fr="En envoyant ce formulaire, vous acceptez d'être recontacté par EauService." data-en="By submitting this form, you agree to be contacted by EauService.">En envoyant ce formulaire, vous acceptez d'être recontacté par EauService.</p>
+    </form>
+  </div>
+</section></div>
+<style>
+.es-devis-wrap{background:linear-gradient(180deg,#0F2747 0%,#0A1C36 100%);font-family:'Manrope',system-ui,-apple-system,sans-serif;}
+.es-devis-wrap #es-devis{padding:64px 20px;color:#eaf3ff;}
+#es-devis *{box-sizing:border-box;}
+#es-devis .esd-inner{max-width:760px;margin:0 auto;}
+#es-devis .esd-head{text-align:center;margin-bottom:30px;}
+#es-devis .esd-eyebrow{display:inline-block;color:#6fe0ff;font-size:12.5px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:12px;}
+#es-devis .esd-head h2{font-family:'Sora',system-ui,sans-serif;font-size:clamp(26px,4vw,40px);margin:0 0 12px;color:#fff;letter-spacing:-.5px;}
+#es-devis .esd-head p{margin:0 auto;max-width:540px;color:#aecbe8;line-height:1.6;font-size:15px;}
+#es-devis .esd-alert{margin:0 0 22px;padding:14px 18px;border-radius:12px;font-weight:600;font-size:14.5px;}
+#es-devis .esd-ok{background:rgba(46,200,120,.15);border:1px solid rgba(46,200,120,.5);color:#bff5d6;}
+#es-devis .esd-err{background:rgba(255,90,90,.13);border:1px solid rgba(255,90,90,.5);color:#ffd0d0;}
+#es-devis .esd-err a{color:#fff;}
+#es-devis .esd-form{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:26px;}
+#es-devis .esd-hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;}
+#es-devis .esd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+#es-devis .esd-field{display:flex;flex-direction:column;}
+#es-devis .esd-full{grid-column:1 / -1;}
+#es-devis .esd-field label{font-size:13px;font-weight:600;color:#cfe2f7;margin-bottom:7px;}
+#es-devis .esd-field input,#es-devis .esd-field textarea{width:100%;background:#fff;border:1px solid #d6e3f2;border-radius:11px;padding:12px 14px;font-size:15px;color:#0A1C36;font-family:inherit;}
+#es-devis .esd-field input:focus,#es-devis .esd-field textarea:focus{outline:none;border-color:#2eb6e6;box-shadow:0 0 0 3px rgba(46,182,230,.25);}
+#es-devis .esd-field textarea{resize:vertical;min-height:96px;}
+#es-devis .esd-btn{margin-top:20px;width:100%;border:none;cursor:pointer;background:linear-gradient(135deg,#2eb6e6,#1b86bc);color:#fff;font-family:'Sora',system-ui,sans-serif;font-weight:700;font-size:16px;padding:15px 20px;border-radius:12px;transition:transform .15s,box-shadow .15s;box-shadow:0 12px 28px -12px rgba(46,182,230,.8);}
+#es-devis .esd-btn:hover{transform:translateY(-2px);box-shadow:0 16px 34px -12px rgba(46,182,230,.9);}
+#es-devis .esd-legal{margin:16px 0 0;font-size:12px;color:#8fb0d0;line-height:1.5;text-align:center;}
+@media (max-width:600px){.es-devis-wrap #es-devis{padding:46px 16px;}#es-devis .esd-grid{grid-template-columns:1fr;}#es-devis .esd-form{padding:20px;}}
+</style>
+<script>
+(function(){
+  var p = new URLSearchParams(location.search).get('es_devis');
+  if(p==='ok'){ var e=document.getElementById('esd-ok'); if(e){ e.style.display='block'; } }
+  else if(p==='err'||p==='spam'){ var e2=document.getElementById('esd-err'); if(e2){ e2.style.display='block'; } }
+  if(p){ var s=document.getElementById('es-devis'); if(s){ setTimeout(function(){ s.scrollIntoView({behavior:'smooth'}); },300); } }
+})();
+</script>
+
+<footer>
+  <div class="foot-grid">
+    <div>
+      <div class="foot-logo"><span class="eau">Eau</span>Service<small>BY EVENTS CAFÉ</small></div>
+      <p class="foot-desc" data-fr="Location de matériel événementiel sur la Côte d'Azur. Café, eau et réfrigération. Boutique en ligne et devis sous 24h." data-en="Event equipment rental on the French Riviera. Coffee, water and refrigeration. Online shop and quotes within 24h.">Location de matériel événementiel sur la Côte d'Azur. Café, eau et réfrigération. Boutique en ligne et devis sous 24h.</p>
+      <div class="foot-soc"><a href="https://www.instagram.com/eventscafe_paca" class="fsb" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:middle"><path d="M4 4m0 4a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"></path><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M16.5 7.5l0 .01"></path></svg></a><a href="#" class="fsb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:middle"><path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"></path><path d="M8 11l0 5"></path><path d="M8 8l0 .01"></path><path d="M12 16l0 -5"></path><path d="M16 16v-3a2 2 0 0 0 -4 0"></path></svg></a></div>
+    </div>
+    <div><div class="foot-ct" data-fr="Nos équipements" data-en="Our equipment">Nos équipements</div><ul class="foot-links"><li><a href="#packs" data-fr="Packs" data-en="Packs">Packs</a></li><li><a href="#produits" data-fr="Machines à café" data-en="Coffee machines">Machines à café</a></li><li><a href="#produits" data-fr="Fontaines à eau" data-en="Water fountains">Fontaines à eau</a></li><li><a href="#produits" data-fr="Réfrigération" data-en="Refrigeration">Réfrigération</a></li></ul></div>
+    <div><div class="foot-ct" data-fr="Société" data-en="Company">Société</div><ul class="foot-links"><li><a href="#forces" data-fr="Nos forces" data-en="Our strengths">Nos forces</a></li><li><a href="#contact">Contact</a></li><li><a href="/boutique/" data-fr="Boutique" data-en="Shop">Boutique</a></li></ul></div>
+    <div><div class="foot-ct" data-fr="Contact" data-en="Contact">Contact</div><ul class="foot-links"><li><a href="tel:+33761465720">07 61 46 57 20</a></li><li><a href="mailto:contact@events-cafe.com">contact@events-cafe.com</a></li><li><span data-fr="Monaco · Nice · Cannes · Marseille" data-en="Monaco · Nice · Cannes · Marseille">Monaco · Nice · Cannes · Marseille</span></li></ul></div>
+  </div>
+  <div class="foot-bottom" data-fr="© 2025 EauService by Events Café — Tous droits réservés" data-en="© 2025 EauService by Events Café — All rights reserved">© 2025 EauService by Events Café — Tous droits réservés</div>
+</footer>
+
+<script>
+/* === Scroll reveal (lightweight, uses requestIdleCallback) === */
+(function(){
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){e.target.classList.add('on');obs.unobserve(e.target);}
+    });
+  },{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('#esroot .sr').forEach(function(el){obs.observe(el);});
+})();
+
+function toggleMenu(){
+  var burger=document.getElementById('burger');
+  var menu=document.getElementById('mobileMenu');
+  var back=document.getElementById('menuBackdrop');
+  if(burger) burger.classList.toggle('open');
+  if(menu) menu.classList.toggle('open');
+  if(back) back.classList.toggle('open');
+  document.body.style.overflow=(menu&&menu.classList.contains('open'))?'hidden':'';
+}
+function closeMenu(){
+  var burger=document.getElementById('burger');
+  var menu=document.getElementById('mobileMenu');
+  var back=document.getElementById('menuBackdrop');
+  if(burger) burger.classList.remove('open');
+  if(menu) menu.classList.remove('open');
+  if(back) back.classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function setLang(lang){
+  document.documentElement.lang=lang;
+  var lfr=document.getElementById('lfr'), len=document.getElementById('len');
+  if(lfr) lfr.classList.toggle('on',lang==='fr');
+  if(len) len.classList.toggle('on',lang==='en');
+  document.querySelectorAll('[data-'+lang+']').forEach(function(el){
+    /* Ne pas ecraser un parent dont les enfants ont aussi data-fr/data-en */
+    if(el.querySelector('[data-fr]')) return;
+    var val=el.getAttribute('data-'+lang);
+    if(val===null) return;
+    /* Placeholders {span}{/span} pour eviter que WordPress encode les balises */
+    val=val.replace(/\{span\}/g,'<span>').replace(/\{\/span\}/g,'</span>');
+    el.innerHTML=val;
+  });
+  if(window.esRenderPacks) esRenderPacks();
+}
+
+/* ===== TOGGLE NESPRESSO — fonctions globales (meme mecanisme que setLang) ===== */
+var esBrand='std';
+function esRenderPacks(){
+  var lg=document.documentElement.lang==='en'?'en':'fr';
+  var TXT={
+    brand:{std:{fr:'Covim / Lavazza',en:'Covim / Lavazza'},nes:{fr:'Nespresso',en:'Nespresso'}},
+    machine:{std:{fr:'Machine \u00e0 caf\u00e9 Covim / Lavazza',en:'Covim / Lavazza coffee machine'},nes:{fr:'Machine \u00e0 caf\u00e9 Nespresso',en:'Nespresso coffee machine'}}
+  };
+  document.querySelectorAll('.es-pcard[data-brandable]').forEach(function(c){
+    var price=esBrand==='nes'?+c.getAttribute('data-nes'):+c.getAttribute('data-base');
+    var newImg=esBrand==='nes'?c.getAttribute('data-img-nes'):c.getAttribute('data-img-std');
+    var img=c.querySelector('.es-pcard-img img');
+    if(img&&newImg&&img.getAttribute('src')!==newImg){img.style.opacity='0';setTimeout(function(){img.src=newImg;img.style.opacity='1';},180);}
+    var amt=c.querySelector('.es-pcard-price .amt');if(amt)amt.textContent=price;
+    var bl=c.querySelector('.es-brandlbl');if(bl)bl.textContent=TXT.brand[esBrand][lg];
+    var mc=c.querySelector('.es-machine');if(mc)mc.textContent=TXT.machine[esBrand][lg];
+  });
+  var wrap=document.querySelector('.es-pr-switch-wrap');
+  if(wrap){
+    var sw=wrap.querySelector('.es-switch');
+    var opts=wrap.querySelectorAll('.es-pr-opt');
+    if(sw) sw.classList.toggle('on',esBrand==='nes');
+    if(opts[0]) opts[0].classList.toggle('on',esBrand==='std');
+    if(opts[1]) opts[1].classList.toggle('on',esBrand==='nes');
+  }
+}
+function esSetBrand(b){ if(esBrand!==b){esBrand=b;esRenderPacks();} }
+function esToggleBrand(){ esSetBrand(esBrand==='std'?'nes':'std'); }
+</script>
+
+<script>
+(function(){
+  var map=document.getElementById('es-map');
+  if(!map) return;
+  var coast=[['Toulon',6,60,'town','b'],['Hyères',13,63,'town','t'],['Saint-Tropez',21,65,'town','b'],['Fréjus',29,61,'town','t'],['Saint-Raphaël',36,63,'town','b'],['Mandelieu',44,59,'town','t'],['Cannes',52,56,'hub','b'],['Antibes',62,55,'town','t'],['Cagnes-sur-Mer',69,53,'town','b'],['Nice',77,50,'hub','t'],['Villefranche',84,49,'town','b'],['Monaco',90,46,'hub','t'],['Menton',95,44,'town','b']];
+  var inland=[['Grasse',46,37,'inland','t'],['Mougins',56,44,'inland','t'],['Sophia Antipolis',67,39,'inland','t'],['Vence',74,35,'inland','t']];
+  function dot(k){
+    if(k==='hub') return {size:'18px',bg:'#6fe0ff',border:'3px solid rgba(255,255,255,.9)',shadow:'0 0 22px #6fe0ff',ls:'14.5px',lw:'700',lc:'#ffffff'};
+    if(k==='inland') return {size:'10px',bg:'transparent',border:'2px solid #6fe0ff',shadow:'0 0 8px rgba(53,198,240,.6)',ls:'11px',lw:'600',lc:'#9fc0db'};
+    return {size:'11px',bg:'#6fe0ff',border:'2px solid rgba(8,26,43,.6)',shadow:'0 0 12px #6fe0ff',ls:'11.5px',lw:'600',lc:'#cfe3f3'};
+  }
+  coast.concat(inland).forEach(function(m,i){
+    var d=dot(m[3]);
+    var edge=m[4]==='t'?'top:-11px;transform:translate(-50%,-100%);':'top:11px;transform:translate(-50%,0);';
+    var pin=document.createElement('div');
+    pin.className='es-pin';pin.style.left=m[1]+'%';pin.style.top=m[2]+'%';
+    pin.innerHTML='<span class="pdot" style="width:'+d.size+';height:'+d.size+';background:'+d.bg+';border:'+d.border+';box-shadow:'+d.shadow+';animation-duration:'+(3+(i%5)*0.25)+'s;"></span>'
+      +'<span class="plabel" style="'+edge+'font-size:'+d.ls+';font-weight:'+d.lw+';color:'+d.lc+';">'+m[0]+'</span>';
+    map.appendChild(pin);
+  });
+  var pts=coast.map(function(m){return {x:m[1]*6,y:m[2]*3.6};});
+  var d='M'+pts[0].x.toFixed(1)+','+pts[0].y.toFixed(1);
+  for(var i=1;i<pts.length-1;i++){var xc=((pts[i].x+pts[i+1].x)/2).toFixed(1),yc=((pts[i].y+pts[i+1].y)/2).toFixed(1);d+=' Q'+pts[i].x.toFixed(1)+','+pts[i].y.toFixed(1)+' '+xc+','+yc;}
+  d+=' L'+pts[pts.length-1].x.toFixed(1)+','+pts[pts.length-1].y.toFixed(1);
+  var r=document.getElementById('es-route'); if(r) r.setAttribute('d',d);
+})();
+</script>
+
+
+
+<!-- (toggle Nespresso: fonctions globales esToggleBrand/esSetBrand definies avec setLang) -->
+<script>
+/* Rendu initial du toggle apres chargement complet du DOM */
+(function(){
+  function go(){ if(window.esRenderPacks) esRenderPacks(); }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',go);}else{go();}
+})();
+</script>
+
+
+<script>
+(function(){
+  var t=document.getElementById('esTestiTrack'); if(!t) return;
+  t.setAttribute('aria-label','Avis clients');
+  t.innerHTML += t.innerHTML; /* duplication pour boucle fluide */
+})();
+</script>
+
+<!-- ===== SIMULATEUR LIVRAISON : retire de l'accueil (present uniquement dans le Panier) ===== -->
+
+<!-- SEO : donnees structurees -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "@id": "https://www.events-cafe.com/#eauservice",
+  "name": "EauService by Events Café",
+  "image": "https://eau-service-events.fr/wp-content/uploads/2026/06/pack-complet-nespresso.png",
+  "url": "https://www.events-cafe.com/",
+  "telephone": "+33761465720",
+  "email": "contact@events-cafe.com",
+  "priceRange": "€€",
+  "description": "Location de matériel événementiel sur la Côte d'Azur : fontaines à eau, machines à café Nespresso, Lavazza et Covim, réfrigérateurs et mobilier. Livraison, installation et reprise incluses. Devis gratuit sous 24h à Nice, Cannes, Monaco, Antibes et alentours.",
+  "address": {
+    "@type": "PostalAddress",
+    "addressRegion": "Provence-Alpes-Côte d'Azur",
+    "addressCountry": "FR"
+  },
+  "areaServed": [
+    {
+      "@type": "City",
+      "name": "Nice"
+    },
+    {
+      "@type": "City",
+      "name": "Cannes"
+    },
+    {
+      "@type": "City",
+      "name": "Antibes"
+    },
+    {
+      "@type": "City",
+      "name": "Monaco"
+    },
+    {
+      "@type": "City",
+      "name": "Sophia Antipolis"
+    },
+    {
+      "@type": "City",
+      "name": "Grasse"
+    },
+    {
+      "@type": "City",
+      "name": "Mandelieu"
+    },
+    {
+      "@type": "City",
+      "name": "Fréjus"
+    },
+    {
+      "@type": "City",
+      "name": "Saint-Raphaël"
+    },
+    {
+      "@type": "City",
+      "name": "Menton"
+    },
+    {
+      "@type": "City",
+      "name": "Toulon"
+    }
+  ],
+  "openingHoursSpecification": [
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "opens": "08:00",
+      "closes": "20:00"
+    }
+  ],
+  "sameAs": [
+    "https://www.instagram.com/eventscafe_paca"
+  ],
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.9",
+    "reviewCount": "9",
+    "bestRating": "5",
+    "worstRating": "1"
+  },
+  "review": [
+    {
+      "@type": "Review",
+      "author": {
+        "@type": "Person",
+        "name": "Camille Laurent"
+      },
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "5",
+        "bestRating": "5"
+      },
+      "reviewBody": "Matériel livré et installé la veille de notre salon, sans la moindre fausse note. Une réactivité rare sur la Côte d'Azur."
+    },
+    {
+      "@type": "Review",
+      "author": {
+        "@type": "Person",
+        "name": "Thomas Mercier"
+      },
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "5",
+        "bestRating": "5"
+      },
+      "reviewBody": "Le pack complet a équipé nos 4 jours de congrès : fontaines, cafés, frigos. Tout était impeccable."
+    },
+    {
+      "@type": "Review",
+      "author": {
+        "@type": "Person",
+        "name": "Sophie Bernard"
+      },
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "5",
+        "bestRating": "5"
+      },
+      "reviewBody": "Une demande urgente un vendredi, du matériel installé le lundi. Service simple, professionnel et ponctuel."
+    },
+    {
+      "@type": "Review",
+      "author": {
+        "@type": "Person",
+        "name": "Julien Roche"
+      },
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "5",
+        "bestRating": "5"
+      },
+      "reviewBody": "Du matériel haut de gamme, livré pile à l'heure pour notre soirée VIP. On refait appel à eux sans hésiter."
+    },
+    {
+      "@type": "Review",
+      "author": {
+        "@type": "Person",
+        "name": "Aurélie Martin"
+      },
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "5",
+        "bestRating": "5"
+      },
+      "reviewBody": "Fontaines et machines à café impeccables pendant tout le salon. Installation rapide et reprise sans souci."
+    },
+    {
+      "@type": "Review",
+      "author": {
+        "@type": "Person",
+        "name": "Karim Benali"
+      },
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "5",
+        "bestRating": "5"
+      },
+      "reviewBody": "Une équipe à l'écoute et des tarifs clairs. Le pack complet a impressionné nos exposants."
+    }
+  ],
+  "makesOffer": [
+    {
+      "@type": "Offer",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "Location de fontaines à eau pour événements"
+      }
+    },
+    {
+      "@type": "Offer",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "Location de machines à café Nespresso, Lavazza et Covim"
+      }
+    },
+    {
+      "@type": "Offer",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "Location de réfrigérateurs pour salons et stands"
+      }
+    },
+    {
+      "@type": "Offer",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "Packs événementiels clés en main"
+      }
+    }
+  ]
+}
+</script>
+</div>
