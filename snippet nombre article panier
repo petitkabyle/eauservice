@@ -1,0 +1,45 @@
+/* =====================================================================
+   EAUSERVICE — Pastille "nombre d'articles" sur le menu Panier
+   ---------------------------------------------------------------------
+   À COLLER DANS : Code Snippets > Ajouter un snippet
+   ⚠️ NE PAS coller de ligne <?php  (Code Snippets l'ajoute tout seul)
+   ⚠️ Type du snippet : "Functions (PHP)"  +  "Run everywhere / Partout"
+   Puis : "Enregistrer et activer".
+   ===================================================================== */
+
+add_filter( 'walker_nav_menu_start_el', 'eauservice_cart_badge_on_menu', 20, 4 );
+function eauservice_cart_badge_on_menu( $item_output, $item, $depth, $args ) {
+    if ( ! function_exists( 'WC' ) ) { return $item_output; }
+
+    // 1) Repère par le LIBELLÉ du menu ("Panier" ou "Cart")
+    $label = isset( $item->title ) ? mb_strtolower( wp_strip_all_tags( $item->title ) ) : '';
+    $match = ( strpos( $label, 'panier' ) !== false || strpos( $label, 'cart' ) !== false );
+
+    // 2) Sinon, repère par l'ADRESSE (page panier)
+    if ( ! $match && function_exists( 'wc_get_cart_url' ) ) {
+        $cart_path = trailingslashit( (string) wp_parse_url( wc_get_cart_url(), PHP_URL_PATH ) );
+        $item_path = trailingslashit( (string) wp_parse_url( $item->url, PHP_URL_PATH ) );
+        $match = ( $cart_path && $item_path && $cart_path === $item_path );
+    }
+
+    if ( $match ) {
+        $count = ( WC()->cart ) ? WC()->cart->get_cart_contents_count() : 0;
+        $badge = ' <span class="es-cart-badge">' . esc_html( $count ) . '</span>';
+        $item_output = preg_replace( '/<\/a>/', $badge . '</a>', $item_output, 1 ); // dans le lien
+    }
+    return $item_output;
+}
+
+/* Met le chiffre à jour sans recharger la page (AJAX WooCommerce) */
+add_filter( 'woocommerce_add_to_cart_fragments', 'eauservice_cart_badge_fragment' );
+function eauservice_cart_badge_fragment( $fragments ) {
+    $count = ( function_exists( 'WC' ) && WC()->cart ) ? WC()->cart->get_cart_contents_count() : 0;
+    $fragments['span.es-cart-badge'] = '<span class="es-cart-badge">' . esc_html( $count ) . '</span>';
+    return $fragments;
+}
+
+/* Style de la pastille (au cas où le CSS du thème ne soit pas chargé) */
+add_action( 'wp_head', 'eauservice_cart_badge_style' );
+function eauservice_cart_badge_style() {
+    echo '<style>.es-cart-badge{display:inline-block;min-width:18px;height:18px;line-height:18px;padding:0 6px;margin-left:6px;text-align:center;background:#1E6FD9;color:#fff;border-radius:10px;font-size:10px;font-weight:800;box-shadow:0 4px 12px rgba(30,111,217,.4);vertical-align:middle;}</style>';
+}
