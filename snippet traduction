@@ -1,0 +1,183 @@
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+add_action( 'wp_footer', 'eauservice_en_translation', 100 );
+function eauservice_en_translation() {
+	$on = ( function_exists( 'is_shop' ) && ( is_shop() || is_product_category() || is_product_taxonomy() ) )
+		|| ( function_exists( 'is_cart' ) && is_cart() )
+		|| ( function_exists( 'is_checkout' ) && is_checkout() );
+	if ( ! $on ) { return; }
+
+	$dict = array(
+		"Location événementielle · Côte d'Azur" => "Event Rentals · French Riviera",
+		"Location de machines à café, fontaines à eau & matériel pour vos événements" => "Rental of coffee machines, water fountains & equipment for your events",
+		"EauService équipe vos salons, congrès, séminaires et événements professionnels à" => "EauService equips your trade shows, congresses, seminars and corporate events in",
+		"Cannes, Nice, Monaco, Antibes" => "Cannes, Nice, Monaco, Antibes",
+		"et sur toute la Côte d'Azur. Machines à café professionnelles (Nespresso, Lavazza, Covim), fontaines à eau, réfrigération et mobilier — avec" => "and across the whole French Riviera. Professional coffee machines (Nespresso, Lavazza, Covim), water fountains, refrigeration and furniture — with",
+		"livraison, installation et reprise sur site" => "on-site delivery, setup and collection",
+		"Du stand de 10 m² au congrès de plusieurs milliers de visiteurs, nous proposons des packs clé en main adaptés à chaque format d'événement." => "From a 10 sqm booth to a congress with thousands of visitors, we offer turnkey packages tailored to every event format.",
+		"Livraison sur stand" => "Delivery to your booth",
+		"Installation incluse" => "Setup included",
+		"Devis sous 24h" => "Quote within 24h",
+		"Matériel professionnel" => "Professional equipment",
+		"Reprise après l'événement" => "Collection after the event",
+		"Livraison & installation" => "Delivery & setup",
+		"Sur votre stand ou lieu d'événement, partout sur la Côte d'Azur." => "To your booth or event venue, anywhere on the French Riviera.",
+		"Devis en 24h" => "Quote in 24h",
+		"Une réponse rapide et un accompagnement personnalisé." => "A fast reply and personalised support.",
+		"Matériel premium" => "Premium equipment",
+		"Équipements professionnels fiables et entretenus." => "Reliable, well-maintained professional equipment.",
+		"Service clé en main" => "Turnkey service",
+		"Livraison, montage et reprise gérés de A à Z." => "Delivery, setup and collection handled from A to Z.",
+		"Notre catalogue" => "Our catalogue",
+		"Nos produits à la location" => "Our rental products",
+		"Sélectionnez vos équipements ci-dessous. Besoin d'un ensemble complet ? Découvrez nos packs événementiels en tête de liste." => "Select your equipment below. Need a complete set? Discover our event packages at the top of the list.",
+		"Questions fréquentes" => "Frequently asked questions",
+		"Tout savoir sur la location événementielle" => "Everything about event rentals",
+		"Livrez-vous le matériel sur les salons et congrès de la Côte d'Azur ?" => "Do you deliver to trade shows and congresses on the French Riviera?",
+		"Oui. Nous livrons et installons votre matériel directement sur votre stand ou lieu d'événement, notamment au Palais des Festivals de Cannes, au Grimaldi Forum de Monaco, au Palais des Congrès de Nice et sur tous les sites de la région (Antibes, Juan-les-Pins, Menton…). Nous récupérons également le matériel à la fin de votre événement." => "Yes. We deliver and set up your equipment directly at your booth or event venue, in particular at the Palais des Festivals in Cannes, the Grimaldi Forum in Monaco, the Palais des Congrès in Nice and across the region (Antibes, Juan-les-Pins, Menton…). We also collect the equipment at the end of your event.",
+		"Quel est le délai pour obtenir un devis ?" => "How long does it take to get a quote?",
+		"Nous répondons à toute demande de devis sous 24h ouvrées. Pour les événements urgents, contactez-nous directement : nous faisons notre maximum pour nous adapter à votre calendrier." => "We answer any quote request within 24 business hours. For urgent events, contact us directly: we do our utmost to fit your schedule.",
+		"L'installation et la reprise sont-elles incluses ?" => "Are setup and collection included?",
+		"Nos packs événementiels incluent la livraison, l'installation sur site et la reprise du matériel après l'événement. Le détail des prestations est précisé dans chaque devis selon le lieu et la durée." => "Our event packages include delivery, on-site setup and collection of the equipment after the event. The details are specified in each quote depending on the venue and duration.",
+		"Proposez-vous des packs adaptés à la taille de mon événement ?" => "Do you offer packages suited to the size of my event?",
+		"Absolument. Du Pack de Base pour un petit stand au Pack Complet pour les grands congrès, nous proposons plusieurs formules avec machines à café, consommables, fontaines à eau et accessoires. Nous pouvons aussi composer une offre 100% sur mesure." => "Absolutely. From the Basic Pack for a small booth to the Complete Pack for large congresses, we offer several formulas with coffee machines, consumables, water fountains and accessories. We can also build a fully tailor-made offer.",
+		"Quels types de machines à café proposez-vous ?" => "What types of coffee machines do you offer?",
+		"Nous proposons une large gamme de machines professionnelles et grandes marques : Nespresso, Lavazza, Covim, Gemini… ainsi que les consommables associés (café, gobelets, sucre, touillettes) et des accessoires comme le mousseur à lait." => "We offer a wide range of professional, big-brand machines: Nespresso, Lavazza, Covim, Gemini… as well as the related consumables (coffee, cups, sugar, stirrers) and accessories such as the milk frother.",
+		"Sur quelle durée puis-je louer le matériel ?" => "For how long can I rent the equipment?",
+		"La location s'adapte à la durée de votre événement : d'une journée à plusieurs semaines. Indiquez vos dates de livraison et de reprise lors de la commande et nous organisons la logistique en conséquence." => "The rental adapts to the length of your event: from a single day to several weeks. Enter your delivery and collection dates at checkout and we organise the logistics accordingly.",
+		"Un événement à équiper sur la Côte d'Azur ?" => "An event to equip on the French Riviera?",
+		"Recevez un devis personnalisé sous 24h pour votre salon, congrès ou événement professionnel." => "Get a personalised quote within 24h for your trade show, congress or corporate event.",
+		"Demander un devis gratuit" => "Request a free quote",
+		"En savoir plus" => "Learn more",
+		"Retour à la boutique" => "Back to shop",
+		"← Retour à la boutique" => "← Back to shop",
+		"💧 Frais de livraison calculés selon la distance depuis Antibes. Zone éloignée, besoin particulier ou code promo ?" => "💧 Delivery fees calculated by distance from Antibes. Remote area, specific need or promo code?",
+		"Contactez-nous" => "Contact us",
+		"avant de valider, on s'arrange." => "before you check out, we'll sort it out.",
+		"Informations de livraison événementielle" => "Event delivery information",
+		"Indiquez les détails du lieu (salon, congrès, événement) pour une livraison et une reprise parfaitement organisées." => "Provide the venue details (trade show, congress, event) for perfectly organised delivery and collection.",
+		"Nom de l’événement / salon / congrès" => "Event / trade show / congress name",
+		"Lieu / site" => "Venue / site",
+		"Adresse complète du lieu de livraison" => "Full address of the delivery location",
+		"Hall / Pavillon" => "Hall / Pavilion",
+		"N° de stand / emplacement" => "Booth no. / location",
+		"Date de livraison souhaitée" => "Requested delivery date",
+		"Créneau horaire de livraison" => "Delivery time slot",
+		"Date de reprise / fin de location" => "Collection date / rental end",
+		"Créneau horaire de reprise" => "Collection time slot",
+		"Contact sur place (nom)" => "On-site contact (name)",
+		"Téléphone du contact sur place" => "On-site contact phone",
+		"Instructions d’accès / logistique" => "Access / logistics instructions",
+		"Produit" => "Product",
+		"Tarif" => "Price",
+		"Prix" => "Price",
+		"Quantité" => "Quantity",
+		"Sous-total" => "Subtotal",
+		"Total panier" => "Cart totals",
+		"Total" => "Total",
+		"Code promo" => "Promo code",
+		"Appliquer le code promo" => "Apply code",
+		"Mettre à jour le panier" => "Update cart",
+		"Valider la commande" => "Proceed to checkout",
+		"Continuer mes achats" => "Continue shopping",
+		"Votre panier est actuellement vide." => "Your cart is currently empty.",
+		"Retourner à la boutique" => "Return to shop",
+		"Panier" => "Cart",
+		"Détails de facturation" => "Billing details",
+		"Prénom" => "First name",
+		"Nom" => "Last name",
+		"Nom de famille" => "Last name",
+		"Nom de l’entreprise (facultatif)" => "Company name (optional)",
+		"Nom de l'entreprise (facultatif)" => "Company name (optional)",
+		"Pays / région" => "Country / region",
+		"Pays/région" => "Country / region",
+		"Numéro et nom de rue" => "Street address",
+		"Numéro de maison et nom de la rue" => "House number and street name",
+		"Bâtiment, appartement, lot, etc. (facultatif)" => "Apartment, suite, unit, etc. (optional)",
+		"Code postal" => "Postcode",
+		"Ville" => "Town / City",
+		"Téléphone" => "Phone",
+		"Adresse e-mail" => "Email address",
+		"Adresse de messagerie" => "Email address",
+		"Expédier à une adresse différente ?" => "Ship to a different address?",
+		"Livrer à une adresse différente ?" => "Ship to a different address?",
+		"Informations complémentaires" => "Additional information",
+		"Notes de commande (facultatif)" => "Order notes (optional)",
+		"Notes de commande" => "Order notes",
+		"Votre commande" => "Your order",
+		"Commander" => "Place order",
+		"Commande" => "Order",
+		"J’ai lu et j’accepte les conditions générales du site" => "I have read and agree to the website terms and conditions",
+		"J'ai lu et j'accepte les conditions générales du site" => "I have read and agree to the website terms and conditions",
+	);
+
+	$ph = array(
+		"Ex : Monaco Yacht Show 2026" => "e.g. Monaco Yacht Show 2026",
+		"Ex : Palais des Festivals, Cannes" => "e.g. Palais des Festivals, Cannes",
+		"N°, rue, code postal, ville" => "No., street, postcode, city",
+		"Ex : Hall 3" => "e.g. Hall 3",
+		"Ex : Stand B12" => "e.g. Booth B12",
+		"Ex : 8h - 10h" => "e.g. 8am - 10am",
+		"Ex : 18h - 20h" => "e.g. 6pm - 8pm",
+		"Quai de livraison, badges / accréditations nécessaires, horaires de montage, restrictions véhicules, contraintes d’accès…" => "Loading dock, required badges / accreditations, setup hours, vehicle restrictions, access constraints…",
+		"Code promo" => "Promo code",
+	);
+	?>
+	<style>
+	#es-lang{position:fixed;left:18px;bottom:18px;z-index:99990;display:flex;align-items:center;gap:6px;background:#0F2747;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:30px;padding:8px 14px;font:600 13px/1 'Manrope',system-ui,sans-serif;cursor:pointer;box-shadow:0 10px 28px -10px rgba(13,38,68,.6);transition:transform .15s,background .15s;}
+	#es-lang:hover{transform:translateY(-2px);background:#13345A;}
+	#es-lang b{font-weight:800;color:#6fe0ff;}
+	@media (max-width:600px){#es-lang{left:12px;bottom:12px;padding:7px 12px;font-size:12px;}}
+	</style>
+	<button type="button" id="es-lang" aria-label="Change language">
+		<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+		<span id="es-lang-label"><b>EN</b></span>
+	</button>
+	<script>
+	(function(){
+		var DICT = <?php echo wp_json_encode( $dict, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ); ?>;
+		var PH   = <?php echo wp_json_encode( $ph,   JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ); ?>;
+		var btn=document.getElementById('es-lang'),label=document.getElementById('es-lang-label'),KEY='es_lang',lang='fr';
+		try{ lang=localStorage.getItem(KEY)||'fr'; }catch(e){}
+		function norm(s){ return s.replace(/\u00A0/g,' ').replace(/\s+/g,' '); }
+		function translateTextNodes(rootEl){
+			if(!rootEl) return;
+			var walker=document.createTreeWalker(rootEl,NodeFilter.SHOW_TEXT,{acceptNode:function(node){
+				var p=node.parentNode; if(!p) return NodeFilter.FILTER_REJECT;
+				var tag=p.nodeName; if(tag==='SCRIPT'||tag==='STYLE'||tag==='NOSCRIPT') return NodeFilter.FILTER_REJECT;
+				if(p.closest&&p.closest('#es-lang')) return NodeFilter.FILTER_REJECT;
+				if(!node.nodeValue||!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+				return NodeFilter.FILTER_ACCEPT; }});
+			var nodes=[]; while(walker.nextNode()){ nodes.push(walker.currentNode); }
+			nodes.forEach(function(node){
+				var raw=node.nodeValue;
+				var lead=(raw.match(/^[\s\u00A0]*/)||[''])[0];
+				var trail=(raw.match(/[\s\u00A0]*$/)||[''])[0];
+				var core=norm(raw.slice(lead.length, raw.length-(trail.length||0)));
+				if(DICT.hasOwnProperty(core)){ node.nodeValue=lead+DICT[core]+trail; }
+			});
+		}
+		function translateAttrs(rootEl){
+			if(!rootEl) return;
+			rootEl.querySelectorAll('[placeholder]').forEach(function(el){ var v=norm(el.getAttribute('placeholder')||''); if(PH.hasOwnProperty(v)){ el.setAttribute('placeholder',PH[v]); } });
+			rootEl.querySelectorAll('input[type=submit][value], button[value]').forEach(function(el){ var v=norm(el.value||''); if(DICT.hasOwnProperty(v)){ el.value=DICT[v]; } });
+		}
+		function applyEN(){ var scope=document.querySelector('main')||document.querySelector('.site-content')||document.querySelector('#content')||document.body; translateTextNodes(scope); translateAttrs(scope); }
+		function setLabel(){ label.innerHTML=(lang==='en')?'<b>FR</b>':'<b>EN</b>'; }
+		btn.addEventListener('click',function(){
+			if(lang==='en'){ lang='fr'; try{ localStorage.setItem(KEY,'fr'); }catch(e){} location.reload(); }
+			else { lang='en'; try{ localStorage.setItem(KEY,'en'); }catch(e){} setLabel(); applyEN(); observe(); }
+		});
+		var obs;
+		function observe(){
+			if(obs||lang!=='en') return;
+			var target=document.querySelector('form.checkout')||document.querySelector('.woocommerce-cart-form')||document.querySelector('.woocommerce')||document.body;
+			obs=new MutationObserver(function(){ clearTimeout(observe._t); observe._t=setTimeout(applyEN,120); });
+			obs.observe(target,{childList:true,subtree:true});
+			if(window.jQuery){ jQuery(document.body).on('updated_checkout updated_cart_totals updated_wc_div wc_fragments_refreshed',function(){ setTimeout(applyEN,60); }); }
+		}
+		setLabel(); if(lang==='en'){ applyEN(); observe(); }
+	})();
+	</script>
+	<?php
+}
