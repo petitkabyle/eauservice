@@ -1,0 +1,879 @@
+/**
+ * ============================================================================
+ *  EAUSERVICE — Personnalisations boutique WooCommerce
+ *  ---------------------------------------------------------------------------
+ *  OÙ COLLER CE CODE ?
+ *  Option A (recommandée) : installer l'extension gratuite « Code Snippets »,
+ *    créer un nouveau snippet, coller TOUT le contenu ci-dessous (SANS la
+ *    premiere ligne <?php), choisir « Exécuter partout » et activer.
+ *  Option B : coller dans le fichier functions.php de votre THEME ENFANT
+ *    (Apparence > Editeur de fichiers > functions.php), à la fin du fichier,
+ *    cette fois EN GARDANT tout y compris après <?php.
+ *
+ *  Ce fichier gère 3 choses :
+ *   1) L'ORDRE des produits dans la boutique (packs en premier, dans l'ordre).
+ *   2) Un bouton « Lire la suite » à côté de « Ajouter au panier » (boutique).
+ *   3) Un bouton « Retour à la boutique » sur la fiche produit.
+ * ============================================================================
+ */
+
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+/* ===========================================================================
+ * 1) ORDRE PERSONNALISÉ DES PRODUITS
+ *    Ordre voulu :
+ *      1. Pack Eau
+ *      2. Pack Events de Base
+ *      3. Pack Events de Base (Covim / Lavazza)
+ *      4. Pack Events Complet
+ *      5. Pack (Events) Complet (Covim / Lavazza)
+ *      6. Pack (Events) Complet (Gemini)
+ *      7. Autres packs
+ *      8. Le reste des produits
+ *    Le tri se fait à l'affichage, sans rien modifier en base de données.
+ * =========================================================================== */
+function eauservice_pack_rank( $title ) {
+	$t            = function_exists( 'mb_strtolower' ) ? mb_strtolower( $title ) : strtolower( $title );
+	$has_brand    = ( strpos( $t, 'covim' ) !== false || strpos( $t, 'lavazza' ) !== false || strpos( $t, 'nespresso' ) !== false );
+	$has_gemini   = ( strpos( $t, 'gemini' ) !== false );
+
+	// 1. Pack Eau
+	if ( strpos( $t, 'pack eau' ) !== false || strpos( $t, 'pack d\'eau' ) !== false ) {
+		return 1;
+	}
+	// Packs « de base »
+	if ( strpos( $t, 'de base' ) !== false && strpos( $t, 'pack' ) !== false ) {
+		if ( $has_brand ) { return 3; } // 3. Pack Events de Base (Covim / Lavazza)
+		return 2;                       // 2. Pack Events de Base (générique)
+	}
+	// Packs « complet »
+	if ( strpos( $t, 'complet' ) !== false && strpos( $t, 'pack' ) !== false ) {
+		if ( $has_gemini ) { return 6; } // 6. Pack Complet (Gemini)
+		if ( $has_brand )  { return 5; } // 5. Pack Complet (Covim / Lavazza)
+		return 4;                        // 4. Pack Events Complet (générique)
+	}
+	// 7. Autres packs
+	if ( strpos( $t, 'pack' ) !== false ) {
+		return 7;
+	}
+	// 8. Le reste
+	return 100;
+}
+
+add_filter( 'the_posts', 'eauservice_order_shop_products', 20, 2 );
+function eauservice_order_shop_products( $posts, $query ) {
+	if ( is_admin() || empty( $posts ) || ! is_a( $query, 'WP_Query' ) ) {
+		return $posts;
+	}
+	if ( ! $query->is_main_query() ) {
+		return $posts;
+	}
+	if ( ! ( function_exists( 'is_shop' ) && ( is_shop() || is_product_category() || is_product_taxonomy() ) ) ) {
+		return $posts;
+	}
+
+	// Tri stable : on garde l'ordre d'origine en cas d'égalité de rang.
+	$indexed = array();
+	foreach ( $posts as $i => $p ) {
+		$indexed[] = array(
+			'rank' => eauservice_pack_rank( $p->post_title ),
+			'i'    => $i,
+			'post' => $p,
+		);
+	}
+	usort(
+		$indexed,
+		function ( $a, $b ) {
+			if ( $a['rank'] === $b['rank'] ) {
+				return $a['i'] - $b['i'];
+			}
+			return $a['rank'] - $b['rank'];
+		}
+	);
+
+	$sorted = array();
+	foreach ( $indexed as $item ) {
+		$sorted[] = $item['post'];
+	}
+	return $sorted;
+}
+
+/* ===========================================================================
+ * 2) BOUTONS BOUTIQUE : « Ajouter au panier » (gros) + « Lire la suite » (petit)
+ *    On enveloppe les deux dans un conteneur .es-loop-actions pour les aligner.
+ * =========================================================================== */
+
+// Ouvre le conteneur juste avant le bouton « Ajouter au panier » (prio 10).
+add_action( 'woocommerce_after_shop_loop_item', 'eauservice_actions_open', 9 );
+function eauservice_actions_open() {
+	echo '<div class="es-loop-actions">';
+}
+
+// Ajoute le bouton « Lire la suite » juste après « Ajouter au panier ».
+add_action( 'woocommerce_after_shop_loop_item', 'eauservice_loop_read_more', 15 );
+function eauservice_loop_read_more() {
+	global $product;
+	if ( ! $product ) {
+		return;
+	}
+	// Si le produit n'est PAS achetable (ex. prix non renseigné), WooCommerce
+	// affiche déjà « Lire la suite » à la place du panier : on évite le doublon.
+	if ( ! $product->is_purchasable() || ! $product->is_in_stock() ) {
+		return;
+	}
+	echo '<a href="' . esc_url( get_permalink( $product->get_id() ) ) . '" class="es-loop-readmore">'
+		. esc_html__( 'En savoir plus', 'woocommerce' ) . '</a>';
+}
+
+/* Renomme le bouton par défaut "Lire la suite" (produit sans prix) en
+   "En savoir plus" pour rester cohérent. */
+add_filter( 'woocommerce_product_add_to_cart_text', 'eauservice_add_to_cart_text', 10, 2 );
+function eauservice_add_to_cart_text( $text, $product ) {
+	if ( $product && ( ! $product->is_purchasable() || ! $product->is_in_stock() ) ) {
+		return esc_html__( 'En savoir plus', 'woocommerce' );
+	}
+	return $text;
+}
+
+// Ferme le conteneur.
+add_action( 'woocommerce_after_shop_loop_item', 'eauservice_actions_close', 16 );
+function eauservice_actions_close() {
+	echo '</div>';
+}
+
+/* ===========================================================================
+ * 3) FICHE PRODUIT : bouton « Retour à la boutique »
+ *    Placé tout en haut du résumé produit (au-dessus du titre).
+ * =========================================================================== */
+add_action( 'woocommerce_single_product_summary', 'eauservice_back_to_shop', 4 );
+function eauservice_back_to_shop() {
+	$shop_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/boutique/' );
+	echo '<a href="' . esc_url( $shop_url ) . '" class="es-back-to-shop">&larr; '
+		. esc_html__( 'Retour à la boutique', 'woocommerce' ) . '</a>';
+}
+
+
+/* ===========================================================================
+ * 4) NOMBRE DE PRODUITS PAR PAGE
+ *    Pour n'avoir que 2 pages au lieu de 3. Augmentez la valeur si besoin :
+ *    elle doit etre >= (nombre total de produits / 2).
+ *    Ex : 40 produits -> mettre au moins 20 ; 48 produits -> au moins 24.
+ * =========================================================================== */
+add_filter( 'loop_shop_per_page', 'eauservice_products_per_page', 30 );
+function eauservice_products_per_page( $cols ) {
+	return 12; // <-- ajustez ce nombre si vous voulez plus/moins par page (12 = 2 pages)
+}
+
+/* ===========================================================================
+ * 5) IMAGES NON COUPÉES DANS LA BOUTIQUE
+ *    Par defaut WooCommerce ROGNE les vignettes en carre : les produits
+ *    hauts (fontaine a eau) ou larges (Nespresso Zenius) sont coupes.
+ *    On force l'utilisation de l'image COMPLETE (non rognee) dans la boucle
+ *    boutique. Combine au CSS (object-fit:contain), l'image s'affiche ENTIERE.
+ *    -> Aucune regeneration de miniatures necessaire.
+ * =========================================================================== */
+add_filter( 'single_product_archive_thumbnail_size', 'eauservice_loop_image_full' );
+add_filter( 'woocommerce_gallery_thumbnail_size', 'eauservice_loop_image_full' );
+function eauservice_loop_image_full( $size ) {
+	return 'woocommerce_single'; // taille non rognee (largeur fixe, hauteur libre)
+}
+
+// Au cas ou le theme imposerait un rognage : on force le format "non rogne".
+add_filter( 'woocommerce_get_image_size_thumbnail', 'eauservice_uncrop_thumbnail' );
+function eauservice_uncrop_thumbnail( $size ) {
+	return array(
+		'width'  => 600,
+		'height' => 600,
+		'crop'   => 0, // 0 = non rogne (garde les proportions, rien n'est coupe)
+	);
+}
+
+
+/* ===========================================================================
+ * 6) LIVRAISON ÉVÉNEMENTIELLE — champs personnalisés sur la commande
+ *    Secteur événementiel : livraison sur salons, congrès, événements.
+ *    On ajoute une section dédiée avec un maximum d'infos logistiques.
+ *    Ces champs sont enregistrés dans la commande, affichés en back-office
+ *    ET dans les e-mails de commande.
+ * =========================================================================== */
+
+// Liste centralisée des champs (clé => libellé) pour réutilisation.
+function eauservice_event_fields_list() {
+	return array(
+		'es_event_name'    => 'Nom de l’événement / salon / congrès',
+		'es_venue_name'    => 'Lieu / site (parc expo, palais des congrès…)',
+		'es_venue_address' => 'Adresse complète du lieu de livraison',
+		'es_hall'          => 'Hall / Pavillon',
+		'es_stand'         => 'N° de stand / emplacement',
+		'es_delivery_date' => 'Date de livraison souhaitée',
+		'es_delivery_time' => 'Créneau horaire de livraison',
+		'es_pickup_date'   => 'Date de reprise / fin de location',
+		'es_pickup_time'   => 'Créneau horaire de reprise',
+		'es_onsite_contact'=> 'Contact sur place (nom)',
+		'es_onsite_phone'  => 'Téléphone du contact sur place',
+		'es_access_notes'  => 'Instructions d’accès / logistique',
+	);
+}
+
+// 6a. Affichage de la section sur la page de commande.
+add_action( 'woocommerce_after_order_notes', 'eauservice_event_delivery_fields' );
+function eauservice_event_delivery_fields( $checkout ) {
+	echo '<div id="eauservice_event_delivery" class="es-event-section">';
+	echo '<h3>' . esc_html__( 'Informations de livraison événementielle', 'woocommerce' ) . '</h3>';
+	echo '<p class="es-event-intro">Indiquez les détails du lieu (salon, congrès, événement) pour une livraison et une reprise parfaitement organisées.</p>';
+
+	woocommerce_form_field( 'es_event_name', array(
+		'type' => 'text', 'class' => array( 'form-row-wide' ), 'required' => true,
+		'label' => 'Nom de l’événement / salon / congrès',
+		'placeholder' => 'Ex : Monaco Yacht Show 2026',
+	), $checkout->get_value( 'es_event_name' ) );
+
+	woocommerce_form_field( 'es_venue_name', array(
+		'type' => 'text', 'class' => array( 'form-row-wide' ), 'required' => true,
+		'label' => 'Lieu / site',
+		'placeholder' => 'Ex : Palais des Festivals, Cannes',
+	), $checkout->get_value( 'es_venue_name' ) );
+
+	woocommerce_form_field( 'es_venue_address', array(
+		'type' => 'text', 'class' => array( 'form-row-wide' ), 'required' => true,
+		'label' => 'Adresse complète du lieu de livraison',
+		'placeholder' => 'N°, rue, code postal, ville',
+	), $checkout->get_value( 'es_venue_address' ) );
+
+	woocommerce_form_field( 'es_hall', array(
+		'type' => 'text', 'class' => array( 'form-row-first' ),
+		'label' => 'Hall / Pavillon', 'placeholder' => 'Ex : Hall 3',
+	), $checkout->get_value( 'es_hall' ) );
+
+	woocommerce_form_field( 'es_stand', array(
+		'type' => 'text', 'class' => array( 'form-row-last' ),
+		'label' => 'N° de stand / emplacement', 'placeholder' => 'Ex : Stand B12',
+	), $checkout->get_value( 'es_stand' ) );
+
+	woocommerce_form_field( 'es_delivery_date', array(
+		'type' => 'date', 'class' => array( 'form-row-first' ), 'required' => true,
+		'label' => 'Date de livraison souhaitée',
+	), $checkout->get_value( 'es_delivery_date' ) );
+
+	woocommerce_form_field( 'es_delivery_time', array(
+		'type' => 'text', 'class' => array( 'form-row-last' ),
+		'label' => 'Créneau horaire de livraison', 'placeholder' => 'Ex : 8h - 10h',
+	), $checkout->get_value( 'es_delivery_time' ) );
+
+	woocommerce_form_field( 'es_pickup_date', array(
+		'type' => 'date', 'class' => array( 'form-row-first' ),
+		'label' => 'Date de reprise / fin de location',
+	), $checkout->get_value( 'es_pickup_date' ) );
+
+	woocommerce_form_field( 'es_pickup_time', array(
+		'type' => 'text', 'class' => array( 'form-row-last' ),
+		'label' => 'Créneau horaire de reprise', 'placeholder' => 'Ex : 18h - 20h',
+	), $checkout->get_value( 'es_pickup_time' ) );
+
+	woocommerce_form_field( 'es_onsite_contact', array(
+		'type' => 'text', 'class' => array( 'form-row-first' ), 'required' => true,
+		'label' => 'Contact sur place (nom)',
+	), $checkout->get_value( 'es_onsite_contact' ) );
+
+	woocommerce_form_field( 'es_onsite_phone', array(
+		'type' => 'tel', 'class' => array( 'form-row-last' ), 'required' => true,
+		'label' => 'Téléphone du contact sur place',
+	), $checkout->get_value( 'es_onsite_phone' ) );
+
+	woocommerce_form_field( 'es_access_notes', array(
+		'type' => 'textarea', 'class' => array( 'form-row-wide' ),
+		'label' => 'Instructions d’accès / logistique',
+		'placeholder' => 'Quai de livraison, badges / accréditations nécessaires, horaires de montage, restrictions véhicules, contraintes d’accès…',
+	), $checkout->get_value( 'es_access_notes' ) );
+
+	echo '</div>';
+}
+
+// 6b. Validation des champs obligatoires.
+add_action( 'woocommerce_checkout_process', 'eauservice_validate_event_fields' );
+function eauservice_validate_event_fields() {
+	$required = array(
+		'es_event_name'    => 'Nom de l’événement',
+		'es_venue_name'    => 'Lieu / site',
+		'es_venue_address' => 'Adresse du lieu de livraison',
+		'es_delivery_date' => 'Date de livraison',
+		'es_onsite_contact'=> 'Contact sur place',
+		'es_onsite_phone'  => 'Téléphone du contact sur place',
+	);
+	foreach ( $required as $key => $label ) {
+		if ( empty( $_POST[ $key ] ) ) {
+			wc_add_notice( sprintf( 'Merci de renseigner : %s (livraison événementielle).', $label ), 'error' );
+		}
+	}
+}
+
+// 6c. Enregistrement dans la commande (compatible stockage classique + HPOS).
+add_action( 'woocommerce_checkout_create_order', 'eauservice_save_event_fields', 20, 2 );
+function eauservice_save_event_fields( $order, $data ) {
+	foreach ( array_keys( eauservice_event_fields_list() ) as $key ) {
+		if ( ! empty( $_POST[ $key ] ) ) {
+			$value = ( 'es_access_notes' === $key )
+				? sanitize_textarea_field( wp_unslash( $_POST[ $key ] ) )
+				: sanitize_text_field( wp_unslash( $_POST[ $key ] ) );
+			$order->update_meta_data( '_' . $key, $value );
+		}
+	}
+}
+
+// 6d. Affichage dans le back-office (sous l'adresse de livraison).
+add_action( 'woocommerce_admin_order_data_after_shipping_address', 'eauservice_show_event_fields_admin' );
+function eauservice_show_event_fields_admin( $order ) {
+	echo '<div class="es-admin-event"><h3 style="margin-top:14px;">Livraison événementielle</h3>';
+	foreach ( eauservice_event_fields_list() as $key => $label ) {
+		$val = $order->get_meta( '_' . $key );
+		if ( $val ) {
+			echo '<p style="margin:2px 0;"><strong>' . esc_html( $label ) . ' :</strong> ' . esc_html( $val ) . '</p>';
+		}
+	}
+	echo '</div>';
+}
+
+// 6e. Affichage dans les e-mails de commande + page de confirmation.
+add_action( 'woocommerce_email_after_order_table', 'eauservice_show_event_fields_email', 20, 4 );
+function eauservice_show_event_fields_email( $order, $sent_to_admin, $plain_text, $email ) {
+	$rows = '';
+	foreach ( eauservice_event_fields_list() as $key => $label ) {
+		$val = $order->get_meta( '_' . $key );
+		if ( $val ) {
+			$rows .= '<tr><td style="padding:6px 10px;border:1px solid #e5e5e5;"><strong>' . esc_html( $label ) . '</strong></td><td style="padding:6px 10px;border:1px solid #e5e5e5;">' . esc_html( $val ) . '</td></tr>';
+		}
+	}
+	if ( $rows ) {
+		echo '<h2 style="color:#1E6FD9;">Livraison événementielle</h2>';
+		echo '<table cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;margin-bottom:20px;">' . $rows . '</table>';
+	}
+}
+
+
+/* ===========================================================================
+ * 7) FORCER L'AFFICHAGE DE L'ADRESSE DE LIVRAISON
+ *    Par défaut WooCommerce masque l'adresse de livraison s'il n'y a pas de
+ *    zone d'expédition configurée. Comme on livre TOUJOURS sur site
+ *    (salon, congrès, événement), on force son affichage sur le checkout.
+ * =========================================================================== */
+add_filter( 'woocommerce_cart_needs_shipping_address', '__return_true' );
+
+// On s'assure aussi que la case "Livrer à une adresse différente" est cochée
+// par défaut, pour que l'adresse de livraison soit visible d'emblée.
+add_filter( 'woocommerce_ship_to_different_address_checked', '__return_true' );
+
+
+/* ===========================================================================
+ * 8) CONTENU VITRINE + SEO INJECTÉ SUR LA PAGE BOUTIQUE (archive auto)
+ *    La page Boutique est une archive WooCommerce : pas de zone pour coller
+ *    des blocs. On injecte donc le contenu par hooks, automatiquement :
+ *      - AVANT la grille : hero SEO + réassurance + titre catalogue
+ *      - APRÈS la grille : FAQ + bande CTA "Demander un devis"
+ *    S'affiche UNIQUEMENT sur la 1re page de la boutique (pas les sous-pages,
+ *    pas les catégories) pour ne pas alourdir la navigation.
+ *    Le style est dans boutique-woocommerce.css (section v22).
+ * =========================================================================== */
+
+// --- 8a. HAUT de la boutique : hero + réassurance -------------------------
+add_action( 'woocommerce_before_main_content', 'eauservice_shop_intro', 30 );
+function eauservice_shop_intro() {
+	if ( ! ( function_exists( 'is_shop' ) && is_shop() ) ) { return; }
+	if ( function_exists( 'is_paged' ) && is_paged() ) { return; } // page 2, 3… : on n'affiche pas
+	?>
+	<section class="es-hero">
+		<span class="es-eyebrow">Location événementielle · Côte d'Azur</span>
+		<h1>Location de machines à café, fontaines à eau &amp; matériel pour vos événements</h1>
+		<p>EauService équipe vos salons, congrès, séminaires et événements professionnels à <strong>Cannes, Nice, Monaco, Antibes</strong> et sur toute la Côte d'Azur. Machines à café professionnelles (Nespresso, Lavazza, Covim), fontaines à eau, réfrigération et mobilier — avec <strong>livraison, installation et reprise sur site</strong>.</p>
+		<p>Du stand de 10&nbsp;m² au congrès de plusieurs milliers de visiteurs, nous proposons des packs clé en main adaptés à chaque format d'événement.</p>
+		<div class="es-hero-tags">
+			<span>Livraison sur stand</span>
+			<span>Installation incluse</span>
+			<span>Devis sous 24h</span>
+			<span>Matériel professionnel</span>
+			<span>Reprise après l'événement</span>
+		</div>
+	</section>
+
+	<div class="es-assur">
+		<div class="es-assur-item">
+			<div class="es-assur-ico">&#128666;</div>
+			<div class="es-assur-t">Livraison &amp; installation</div>
+			<div class="es-assur-d">Sur votre stand ou lieu d'événement, partout sur la Côte d'Azur.</div>
+		</div>
+		<div class="es-assur-item">
+			<div class="es-assur-ico">&#9201;</div>
+			<div class="es-assur-t">Devis en 24h</div>
+			<div class="es-assur-d">Une réponse rapide et un accompagnement personnalisé.</div>
+		</div>
+		<div class="es-assur-item">
+			<div class="es-assur-ico">&#9733;</div>
+			<div class="es-assur-t">Matériel premium</div>
+			<div class="es-assur-d">Équipements professionnels fiables et entretenus.</div>
+		</div>
+		<div class="es-assur-item">
+			<div class="es-assur-ico">&#9851;</div>
+			<div class="es-assur-t">Service clé en main</div>
+			<div class="es-assur-d">Livraison, montage et reprise gérés de A à Z.</div>
+		</div>
+	</div>
+
+	<div class="es-section-head">
+		<span class="es-eyebrow">Notre catalogue</span>
+		<h2>Nos produits à la location</h2>
+		<p>Sélectionnez vos équipements ci-dessous. Besoin d'un ensemble complet&nbsp;? Découvrez nos packs événementiels en tête de liste.</p>
+	</div>
+	<?php
+}
+
+// --- 8b. BAS de la boutique : FAQ + CTA -----------------------------------
+add_action( 'woocommerce_after_main_content', 'eauservice_shop_outro', 5 );
+function eauservice_shop_outro() {
+	if ( ! ( function_exists( 'is_shop' ) && is_shop() ) ) { return; }
+	if ( function_exists( 'is_paged' ) && is_paged() ) { return; }
+	?>
+	<div class="es-section-head" style="margin-top:30px;">
+		<span class="es-eyebrow">Questions fréquentes</span>
+		<h2>Tout savoir sur la location événementielle</h2>
+	</div>
+
+	<div class="es-faq">
+		<details open>
+			<summary>Livrez-vous le matériel sur les salons et congrès de la Côte d'Azur&nbsp;?</summary>
+			<div class="es-faq-a">Oui. Nous livrons et installons votre matériel directement sur votre stand ou lieu d'événement, notamment au Palais des Festivals de Cannes, au Grimaldi Forum de Monaco, au Palais des Congrès de Nice et sur tous les sites de la région (Antibes, Juan-les-Pins, Menton…). Nous récupérons également le matériel à la fin de votre événement.</div>
+		</details>
+		<details>
+			<summary>Quel est le délai pour obtenir un devis&nbsp;?</summary>
+			<div class="es-faq-a">Nous répondons à toute demande de devis sous 24h ouvrées. Pour les événements urgents, contactez-nous directement&nbsp;: nous faisons notre maximum pour nous adapter à votre calendrier.</div>
+		</details>
+		<details>
+			<summary>L'installation et la reprise sont-elles incluses&nbsp;?</summary>
+			<div class="es-faq-a">Nos packs événementiels incluent la livraison, l'installation sur site et la reprise du matériel après l'événement. Le détail des prestations est précisé dans chaque devis selon le lieu et la durée.</div>
+		</details>
+		<details>
+			<summary>Proposez-vous des packs adaptés à la taille de mon événement&nbsp;?</summary>
+			<div class="es-faq-a">Absolument. Du Pack de Base pour un petit stand au Pack Complet pour les grands congrès, nous proposons plusieurs formules avec machines à café, consommables, fontaines à eau et accessoires. Nous pouvons aussi composer une offre 100% sur mesure.</div>
+		</details>
+		<details>
+			<summary>Quels types de machines à café proposez-vous&nbsp;?</summary>
+			<div class="es-faq-a">Nous proposons une large gamme de machines professionnelles et grandes marques&nbsp;: Nespresso, Lavazza, Covim, Gemini… ainsi que les consommables associés (café, gobelets, sucre, touillettes) et des accessoires comme le mousseur à lait.</div>
+		</details>
+		<details>
+			<summary>Sur quelle durée puis-je louer le matériel&nbsp;?</summary>
+			<div class="es-faq-a">La location s'adapte à la durée de votre événement&nbsp;: d'une journée à plusieurs semaines. Indiquez vos dates de livraison et de reprise lors de la commande et nous organisons la logistique en conséquence.</div>
+		</details>
+	</div>
+
+	<section class="es-cta-band">
+		<h2>Un événement à équiper sur la Côte d'Azur&nbsp;?</h2>
+		<p>Recevez un devis personnalisé sous 24h pour votre salon, congrès ou événement professionnel.</p>
+		<a class="es-cta-btn" href="https://formulaire.events-cafe.com/formulaire.html">Demander un devis gratuit</a>
+	</section>
+	<?php
+}
+
+
+/* ===========================================================================
+ * 9) DONNÉES STRUCTURÉES — LocalBusiness (référencement local)
+ *    Indique à Google qui vous êtes, où, et ce que vous proposez.
+ *    Améliore l'affichage dans Google + Google Maps.
+ *    >>> REMPLISSEZ VOS VRAIES INFOS entre les crochets [ ... ] <<<
+ * =========================================================================== */
+add_action( 'wp_head', 'eauservice_local_business_schema' );
+function eauservice_local_business_schema() {
+	// ---- À PERSONNALISER ----------------------------------------------
+	$nom        = 'EauService';
+	$telephone  = '+33 7 61 46 57 20';                  // numéro de contact principal
+	$rue        = '2 chemin des Frères Garberro, Galerie Marchande';
+	$code_postal= '06600';
+	$ville      = 'Antibes';
+	$lien_maps  = 'https://maps.app.goo.gl/FqH9hm9FLBDLpN6F6'; // fiche Google Business
+	$image      = 'https://eau-service-events.fr/wp-content/uploads/2024/12/logo-eauservice-blanc.png';
+	// -------------------------------------------------------------------
+
+	$data = array(
+		'@context'    => 'https://schema.org',
+		'@type'       => 'LocalBusiness',
+		'name'        => $nom,
+		'description' => 'Location de matériel événementiel sur la Côte d\'Azur : machines à café, fontaines à eau, réfrigération et mobilier pour salons, congrès et événements professionnels.',
+		'url'         => 'https://eau-service-events.fr/',
+		'telephone'   => $telephone,
+		'image'       => $image,
+		'priceRange'  => '€€',
+		'address'     => array(
+			'@type'           => 'PostalAddress',
+			'streetAddress'   => $rue,
+			'postalCode'      => $code_postal,
+			'addressLocality' => $ville,
+			'addressCountry'  => 'FR',
+		),
+		'areaServed'  => array( 'Cannes', 'Nice', 'Monaco', 'Antibes', 'Grasse', 'Menton', 'Côte d\'Azur' ),
+		'sameAs'      => array_filter( array( $lien_maps ) ),
+	);
+
+	echo "\n<script type=\"application/ld+json\">" . wp_json_encode( $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . "</script>\n";
+}
+
+/* ===========================================================================
+ * 10) DONNÉES STRUCTURÉES — FAQ (sur la page Boutique)
+ *     Reprend les questions de la boutique au format Schema FAQ.
+ *     Google peut alors afficher ces questions directement dans les résultats.
+ * =========================================================================== */
+add_action( 'wp_head', 'eauservice_faq_schema' );
+function eauservice_faq_schema() {
+	if ( ! ( function_exists( 'is_shop' ) && is_shop() ) ) { return; }
+	if ( function_exists( 'is_paged' ) && is_paged() ) { return; }
+
+	$faq = array(
+		'Livrez-vous le matériel sur les salons et congrès de la Côte d\'Azur ?' =>
+			'Oui. Nous livrons et installons votre matériel directement sur votre stand ou lieu d\'événement, notamment au Palais des Festivals de Cannes, au Grimaldi Forum de Monaco et au Palais des Congrès de Nice, et nous le récupérons à la fin de votre événement.',
+		'Quel est le délai pour obtenir un devis ?' =>
+			'Nous répondons à toute demande de devis sous 24h ouvrées. Pour les événements urgents, contactez-nous directement.',
+		'L\'installation et la reprise sont-elles incluses ?' =>
+			'Nos packs événementiels incluent la livraison, l\'installation sur site et la reprise du matériel après l\'événement.',
+		'Quels types de machines à café proposez-vous ?' =>
+			'Nous proposons une large gamme de machines professionnelles : Nespresso, Lavazza, Covim, Gemini, ainsi que les consommables et accessoires associés.',
+	);
+
+	$items = array();
+	foreach ( $faq as $q => $a ) {
+		$items[] = array(
+			'@type'          => 'Question',
+			'name'           => $q,
+			'acceptedAnswer' => array( '@type' => 'Answer', 'text' => $a ),
+		);
+	}
+	$data = array(
+		'@context'   => 'https://schema.org',
+		'@type'      => 'FAQPage',
+		'mainEntity' => $items,
+	);
+	echo "\n<script type=\"application/ld+json\">" . wp_json_encode( $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . "</script>\n";
+}
+
+
+/* ===========================================================================
+ * 11) PAGE DE CONFIRMATION (merci) — encart contact / accompagnement
+ *     Affiché après "Commande reçue" : message rassurant + boutons contact
+ *     (téléphone + e-mail) pour que le client ne se sente jamais seul.
+ *     >>> REMPLACEZ le téléphone et l'e-mail par les vôtres <<<
+ * =========================================================================== */
+add_action( 'woocommerce_thankyou', 'eauservice_thankyou_contact', 5 );
+function eauservice_thankyou_contact( $order_id ) {
+	if ( ! $order_id ) { return; }
+	// ---- À PERSONNALISER ----------------------------------------------
+	$tel       = '+33761465720';                 // numéro au format international (sans espaces) pour le lien
+	$tel_affit = '07 61 46 57 20';               // numéro affiché
+	$email     = 'contact@eau-service-events.fr';
+	$devis_url = 'https://formulaire.events-cafe.com/formulaire.html';
+	// -------------------------------------------------------------------
+	?>
+	<div class="es-thankyou-banner">
+		<div class="es-ty-check">&#10003;</div>
+		<h2>Merci pour votre commande !</h2>
+		<p>Votre commande a bien été reçue. Notre équipe la traite et vous recontacte sous 24h pour organiser la livraison de votre matériel événementiel. Un e-mail de confirmation vient de vous être envoyé.</p>
+	</div>
+
+	<div class="es-help-card">
+		<div class="es-help-txt">
+			<strong>Une question sur votre commande&nbsp;?</strong>
+			<span>Notre équipe vous accompagne par téléphone ou par e-mail.</span>
+		</div>
+		<div class="es-help-btns">
+			<a class="es-help-btn es-help-tel" href="tel:<?php echo esc_attr( $tel ); ?>">&#128222; <?php echo esc_html( $tel_affit ); ?></a>
+			<a class="es-help-btn es-help-mail" href="mailto:<?php echo esc_attr( $email ); ?>">&#9993; Nous écrire</a>
+		</div>
+	</div>
+	<?php
+}
+
+/* ===========================================================================
+ * 12) E-MAILS & CONFIRMATION — bloc contact en bas des e-mails client
+ *     (rassure le client + rappelle comment nous joindre)
+ * =========================================================================== */
+add_action( 'woocommerce_email_after_order_table', 'eauservice_email_contact_block', 30, 4 );
+function eauservice_email_contact_block( $order, $sent_to_admin, $plain_text, $email ) {
+	if ( $sent_to_admin || $plain_text ) { return; }
+	// ---- À PERSONNALISER ----------------------------------------------
+	$tel_affit = '07 61 46 57 20';
+	$email_pro = 'contact@eau-service-events.fr';
+	// -------------------------------------------------------------------
+	echo '<div style="margin:24px 0;padding:20px 24px;background:#EAF2FB;border-radius:12px;border-left:4px solid #1E6FD9;">';
+	echo '<p style="margin:0 0 6px;font-weight:bold;color:#0A1628;font-size:15px;">Une question sur votre commande&nbsp;?</p>';
+	echo '<p style="margin:0;color:#5B6B82;font-size:14px;">Notre équipe vous accompagne : &#128222; <a href="tel:' . esc_attr( str_replace( ' ', '', $tel_affit ) ) . '" style="color:#1E6FD9;font-weight:bold;text-decoration:none;">' . esc_html( $tel_affit ) . '</a> &nbsp;·&nbsp; &#9993; <a href="mailto:' . esc_attr( $email_pro ) . '" style="color:#1E6FD9;font-weight:bold;text-decoration:none;">' . esc_html( $email_pro ) . '</a></p>';
+	echo '<p style="margin:10px 0 0;color:#5B6B82;font-size:13px;">Merci de votre confiance,<br><strong>EauService</strong> — Location de matériel événementiel · Côte d\'Azur</p>';
+	echo '</div>';
+}
+
+
+/* ===========================================================================
+ * 13) TEMPLATE D'E-MAIL PERSONNALISÉ (design premium EauService)
+ *     - En-tête bleu nuit dégradé (le logo blanc/bleu clair ressort enfin)
+ *     - Miniatures des produits affichées dans le récap
+ *     - Styles soignés : titres, tableau, total, boutons
+ *     Fonctionne avec le modèle d'e-mail WooCommerce standard.
+ * =========================================================================== */
+
+// 13a. Afficher les MINIATURES des produits dans les e-mails de commande.
+add_filter( 'woocommerce_email_order_items_args', 'eauservice_email_show_images' );
+function eauservice_email_show_images( $args ) {
+	$args['show_image']  = true;
+	$args['image_size']  = array( 64, 64 );
+	return $args;
+}
+
+// 13b. Injecter du CSS personnalisé dans TOUS les e-mails WooCommerce.
+add_filter( 'woocommerce_email_styles', 'eauservice_email_custom_styles', 20, 2 );
+function eauservice_email_custom_styles( $css, $email = null ) {
+	$css .= '
+		/* Fond general de l e-mail */
+		body, #wrapper { background-color:#EAF2FB !important; }
+
+		/* En-tete : degrade bleu nuit -> le logo blanc/bleu ressort */
+		#template_header_image { padding-top:24px; text-align:center; }
+		#template_header_image img { max-width:240px !important; height:auto !important; margin:0 auto !important; }
+		#template_header {
+			background:#0F2747 !important;
+			background-image:linear-gradient(135deg,#0A1424 0%,#13345A 60%,#1E6FD9 140%) !important;
+			border-radius:16px 16px 0 0 !important;
+			padding:8px 0 !important;
+		}
+		#template_header h1, #template_header h1 a {
+			color:#FFFFFF !important; font-weight:800 !important; letter-spacing:-.3px !important;
+			text-shadow:0 1px 6px rgba(0,0,0,.25) !important; text-align:center !important;
+		}
+
+		/* Conteneur principal : coins arrondis + ombre douce */
+		#template_container {
+			border-radius:16px !important; overflow:hidden !important;
+			box-shadow:0 18px 50px rgba(13,38,68,.18) !important; border:none !important;
+		}
+		#body_content, #template_body { background:#FFFFFF !important; }
+		#body_content table td { padding:32px 40px !important; }
+
+		/* Titres dans le corps */
+		#body_content h1, #body_content h2 {
+			color:#0A1628 !important; font-weight:800 !important; letter-spacing:-.3px !important;
+		}
+
+		/* Tableau de commande */
+		#body_content table.td, .order_item { color:#0A1628 !important; }
+		#body_content table.td th {
+			background:#13345A !important; color:#EAF2FF !important;
+			text-transform:uppercase !important; font-size:12px !important; letter-spacing:.4px !important;
+			padding:12px 10px !important; border:none !important;
+		}
+		#body_content table.td td {
+			border-color:#EEF4FF !important; padding:12px 10px !important; color:#0A1628 !important;
+		}
+		/* Miniatures produits arrondies */
+		#body_content table.td td img {
+			border-radius:8px !important; border:1px solid #E1EBFA !important;
+			background:#F4F9FF !important; padding:3px !important; vertical-align:middle !important;
+			margin-right:10px !important;
+		}
+		/* Total bien visible */
+		#body_content table.td tfoot th, #body_content table.td tfoot td {
+			font-weight:800 !important; color:#0A1628 !important;
+		}
+		#body_content table.td tfoot tr:last-child th,
+		#body_content table.td tfoot tr:last-child td {
+			color:#1558B0 !important; font-size:18px !important;
+		}
+
+		/* Adresses */
+		.address { color:#5B6B82 !important; border-color:#E6EEFA !important; }
+
+		/* Pied de page */
+		#template_footer #credit {
+			color:#7C93B5 !important; font-size:12px !important; padding:24px 48px !important; line-height:1.6 !important;
+		}
+		#template_footer #credit a { color:#1E6FD9 !important; }
+	';
+	return $css;
+}
+
+/* 13c. (Optionnel) Petit message d accueil en haut du corps des e-mails
+ *      client (sous l en-tete). Rassurant et personnalise. */
+add_action( 'woocommerce_email_header', 'eauservice_email_intro_note', 20, 2 );
+function eauservice_email_intro_note( $email_heading, $email = null ) {
+	if ( ! $email || ! is_object( $email ) ) { return; }
+	$client_emails = array( 'customer_processing_order', 'customer_completed_order', 'customer_on_hold_order', 'customer_invoice' );
+	if ( ! in_array( $email->id, $client_emails, true ) ) { return; }
+	echo '<p style="margin:0 0 6px;color:#5B6B82;font-size:15px;line-height:1.6;">Bonjour, merci d avoir choisi <strong style="color:#0A1628;">EauService</strong> pour votre evenement sur la Cote d Azur. Voici le recapitulatif de votre commande.</p>';
+}
+
+
+/* ===========================================================================
+ * 14) OPTIMISATIONS PERFORMANCE & SEO (légères, sans plugin)
+ *     Objectif : pages plus rapides + meilleur référencement, sans alourdir.
+ *     Tout est conditionnel pour ne casser aucune fonctionnalité.
+ * =========================================================================== */
+
+// 14a. Charger les styles/scripts WooCommerce UNIQUEMENT sur les pages Woo.
+//      (évite de charger le CSS/JS panier sur l'accueil, le blog… => + rapide)
+add_action( 'wp_enqueue_scripts', 'eauservice_dequeue_woo_assets', 99 );
+function eauservice_dequeue_woo_assets() {
+	if ( function_exists( 'is_woocommerce' ) ) {
+		$is_woo = is_woocommerce() || is_cart() || is_checkout() || is_account_page();
+		if ( ! $is_woo ) {
+			wp_dequeue_style( 'woocommerce-general' );
+			wp_dequeue_style( 'woocommerce-layout' );
+			wp_dequeue_style( 'woocommerce-smallscreen' );
+			wp_dequeue_script( 'wc-cart-fragments' );
+			wp_dequeue_script( 'woocommerce' );
+			wp_dequeue_script( 'wc-add-to-cart' );
+		}
+	}
+}
+
+// 14b. Retirer les emojis WordPress (script inutile chargé partout = + léger).
+remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+remove_action( 'wp_print_styles', 'print_emoji_styles' );
+remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+remove_action( 'admin_print_styles', 'print_emoji_styles' );
+
+// 14c. Lazy-loading natif + dimensions sur les images (déjà géré par WP,
+//      on s'assure juste que c'est actif pour le score vitesse mobile).
+add_filter( 'wp_lazy_loading_enabled', '__return_true' );
+
+// 14d. DNS-prefetch / preconnect vers Google Fonts (charge la police + vite).
+add_action( 'wp_head', 'eauservice_resource_hints', 1 );
+function eauservice_resource_hints() {
+	echo '<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>' . "\n";
+	echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
+}
+
+// 14e. SEO : title de l'onglet boutique optimisé si aucun plugin SEO ne gère.
+//      (Yoast prend le dessus s'il est actif : aucun conflit.)
+add_filter( 'document_title_parts', 'eauservice_shop_title', 5 );
+function eauservice_shop_title( $parts ) {
+	if ( function_exists( 'is_shop' ) && is_shop() && ! defined( 'WPSEO_VERSION' ) ) {
+		$parts['title'] = 'Location de matériel événementiel Côte d\'Azur';
+	}
+	return $parts;
+}
+
+// 14f. SEO : attribut alt automatique sur les images produit qui n'en ont pas
+//      (utilise le nom du produit) -> meilleures images dans Google.
+add_filter( 'wp_get_attachment_image_attributes', 'eauservice_auto_alt', 10, 2 );
+function eauservice_auto_alt( $attr, $attachment ) {
+	if ( empty( $attr['alt'] ) ) {
+		$parent = wp_get_post_parent_id( $attachment->ID );
+		if ( $parent && 'product' === get_post_type( $parent ) ) {
+			$attr['alt'] = get_the_title( $parent ) . ' - location événementiel Côte d\'Azur';
+		}
+	}
+	return $attr;
+}
+
+/* ===========================================================================
+ * 15) FRAIS DE LIVRAISON PAR DISTANCE (depuis le dépôt d'Antibes)
+ *     Calcule la distance entre le dépôt (Chemin des Frères Garbero, 06600
+ *     Antibes) et l'adresse du client, puis applique une fourchette de prix.
+ *     Géocodage via l'API gratuite adresse.data.gouv.fr (sans clé), avec
+ *     table de codes postaux locale en secours + cache (transient).
+ *     >>> FOURCHETTES (modifiables dans eauservice_fee_km) :
+ *       0-5 km = OFFERT | 5-15 = 30 | 15-30 = 50 | 30-70 = 120 |
+ *       70-120 = 150 | +120 km = 200
+ * =========================================================================== */
+function eauservice_depot() { return array( 43.5915, 7.0985 ); } // Antibes 06600
+function eauservice_road_factor() { return 1.45; } // vol d'oiseau -> route
+
+function eauservice_pc_coords() {
+	return array(
+		'06600'=>array(43.581,7.123),'06160'=>array(43.567,7.108),'06220'=>array(43.580,7.057),'06410'=>array(43.629,7.095),
+		'06270'=>array(43.658,7.122),'06560'=>array(43.625,7.048),'06110'=>array(43.576,7.019),'06400'=>array(43.552,7.017),
+		'06150'=>array(43.547,6.978),'06250'=>array(43.600,7.000),'06210'=>array(43.546,6.938),'06130'=>array(43.659,6.924),
+		'06800'=>array(43.664,7.149),'06700'=>array(43.668,7.190),'06000'=>array(43.700,7.268),'06100'=>array(43.703,7.246),
+		'06200'=>array(43.690,7.210),'06300'=>array(43.708,7.290),'06140'=>array(43.722,7.112),'06570'=>array(43.695,7.122),
+		'06320'=>array(43.717,7.402),'06310'=>array(43.707,7.331),'06230'=>array(43.704,7.311),'06360'=>array(43.727,7.362),
+		'98000'=>array(43.738,7.424),'06240'=>array(43.743,7.423),'06190'=>array(43.759,7.461),'06500'=>array(43.775,7.497),
+		'83700'=>array(43.425,6.768),'83600'=>array(43.433,6.737),'83120'=>array(43.309,6.638),'83990'=>array(43.270,6.640),
+		'83350'=>array(43.215,6.612),'83310'=>array(43.273,6.521),'83580'=>array(43.234,6.587),'83000'=>array(43.124,5.928),
+	);
+}
+
+function eauservice_haversine( $a, $b ) {
+	$R = 6371; $p = M_PI / 180;
+	$dLa = ( $b[0] - $a[0] ) * $p; $dLo = ( $b[1] - $a[1] ) * $p;
+	$x = sin( $dLa / 2 ) ** 2 + cos( $a[0] * $p ) * cos( $b[0] * $p ) * sin( $dLo / 2 ) ** 2;
+	return 2 * $R * asin( min( 1, sqrt( $x ) ) );
+}
+
+function eauservice_fee_km( $km ) {
+	if ( $km <= 5 )   return 0;
+	if ( $km <= 15 )  return 30;
+	if ( $km <= 30 )  return 50;
+	if ( $km <= 70 )  return 120;
+	if ( $km <= 120 ) return 150;
+	return 200;
+}
+
+function eauservice_coords( $cp, $ville, $adresse = '' ) {
+	$cp5   = substr( preg_replace( '/\D/', '', (string) $cp ), 0, 5 );
+	$table = eauservice_pc_coords();
+	if ( $cp5 && isset( $table[ $cp5 ] ) ) { return $table[ $cp5 ]; }
+	if ( $cp5 && 0 === strpos( $cp5, '98' ) ) { return array( 43.738, 7.424 ); } // Monaco
+
+	$q = trim( $adresse . ' ' . $cp5 . ' ' . $ville );
+	if ( '' === $q ) { return null; }
+
+	$key    = 'es_geo_' . md5( $q );
+	$cached = get_transient( $key );
+	if ( false !== $cached ) { return ( 'none' === $cached ) ? null : $cached; }
+
+	$resp = wp_remote_get( 'https://api-adresse.data.gouv.fr/search/?limit=1&q=' . rawurlencode( $q ), array( 'timeout' => 4 ) );
+	if ( ! is_wp_error( $resp ) ) {
+		$body = json_decode( wp_remote_retrieve_body( $resp ), true );
+		if ( ! empty( $body['features'][0]['geometry']['coordinates'] ) ) {
+			$c      = $body['features'][0]['geometry']['coordinates'];
+			$coords = array( (float) $c[1], (float) $c[0] );
+			set_transient( $key, $coords, WEEK_IN_SECONDS );
+			return $coords;
+		}
+	}
+	set_transient( $key, 'none', DAY_IN_SECONDS );
+	return null;
+}
+
+// 15a. Application automatique des frais au panier / checkout.
+add_action( 'woocommerce_cart_calculate_fees', 'eauservice_appliquer_frais_livraison' );
+function eauservice_appliquer_frais_livraison( $cart ) {
+	if ( is_admin() && ! defined( 'DOING_AJAX' ) ) { return; }
+	if ( ! function_exists( 'WC' ) || ! WC()->customer ) { return; }
+
+	$c = WC()->customer;
+	$cp      = $c->get_shipping_postcode()  ? $c->get_shipping_postcode()  : $c->get_billing_postcode();
+	$ville   = $c->get_shipping_city()      ? $c->get_shipping_city()      : $c->get_billing_city();
+	$adresse = $c->get_shipping_address_1() ? $c->get_shipping_address_1() : $c->get_billing_address_1();
+
+	// Code postal hors zone proche (autre departement) => plus de 120 km => 200 EUR
+	$cp5 = substr( preg_replace( '/\D/', '', (string) $cp ), 0, 5 );
+	$dep = substr( $cp5, 0, 2 );
+	if ( '' !== $cp5 && 0 !== strpos( $cp5, '98' ) && ! in_array( $dep, array( '06', '83', '04' ), true ) ) {
+		$cart->add_fee( 'Frais de livraison & installation', 200, false );
+		return;
+	}
+
+	$coords = eauservice_coords( $cp, $ville, $adresse );
+	if ( null === $coords ) { return; } // adresse inconnue -> sur devis
+
+	$km  = eauservice_haversine( eauservice_depot(), $coords ) * eauservice_road_factor();
+	$fee = eauservice_fee_km( $km );
+
+	if ( 0 === $fee ) {
+		$cart->add_fee( 'Livraison offerte (Antibes)', 0, false );
+	} else {
+		$cart->add_fee( 'Frais de livraison & installation', $fee, false );
+	}
+}
+
+// 15b. Message au checkout : tarif sur mesure + code promo possibles.
+add_action( 'woocommerce_review_order_before_payment', 'eauservice_note_livraison' );
+function eauservice_note_livraison() {
+	echo '<p style="font-size:13px;line-height:1.6;color:#34465a;margin:0 0 16px;padding:13px 15px;background:#e7f7fe;border:1px solid #c7ebfa;border-radius:13px;">'
+		. '💧 Frais de livraison calculés selon la distance depuis Antibes. '
+		. 'Zone éloignée, besoin particulier ou code promo ? '
+		. '<a href="https://api.whatsapp.com/send?phone=33761465720" target="_blank" rel="noopener" style="color:#1b86bc;font-weight:700;">Contactez-nous</a> '
+		. 'avant de valider, on s\'arrange.</p>';
+}
