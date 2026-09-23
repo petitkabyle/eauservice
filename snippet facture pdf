@@ -1,0 +1,37 @@
+add_filter( 'wpo_wcpdf_custom_css', 'eauservice_pdf_invoice_css' );
+function eauservice_pdf_invoice_css( $css ) {
+    $css .= '
+        #header h1, #header h2, #header h3 {
+            color: #0B2A4A !important;
+        }
+        #header img {
+            max-height: 70px;
+        }
+        .document-title {
+            color: #0B2A4A !important;
+            border-bottom: 3px solid #4FA8E0;
+            padding-bottom: 8px;
+        }
+        table.order-details thead th {
+            background-color: #0B2A4A !important;
+            color: #ffffff !important;
+            padding: 8px !important;
+        }
+        table.order-details tbody tr:nth-child(even) {
+            background-color: #EAF4FC !important;
+        }
+        table.order-details tfoot tr.total td,
+        table.order-details tfoot tr.total th {
+            font-weight: bold;
+            color: #0B2A4A !important;
+            border-top: 2px solid #0B2A4A !important;
+        }
+        #footer {
+            color: #5A7589 !important;
+            font-size: 10px;
+            border-top: 1px solid #EAF4FC;
+            padding-top: 10px;
+        }
+    ';
+    return $css;
+}
