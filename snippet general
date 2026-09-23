@@ -612,6 +612,8 @@ function eauservice_services_schema() {
 			'@context' => 'https://schema.org',
 			'@type' => 'Service',
 			'serviceType' => 'Location de machines à café professionnelles',
+			'name' => 'Location de machines à café Nespresso, Lavazza, Covim',
+			'description' => 'Location de machines à café professionnelles (Nespresso Zenius, Lavazza, Covim) avec capsules, gobelets et consommables inclus pour événements, salons et congrès.',
 			'provider' => array(
 				'@type' => 'Organization',
 				'name' => 'EauService',
@@ -626,72 +628,36 @@ function eauservice_services_schema() {
 				),
 				'geoRadius' => '100000'
 			),
-			'hasOfferCatalog' => array(
-				'@type' => 'OfferCatalog',
-				'name' => 'Machines à café professionnelles',
-				'itemListElement' => array(
-					array(
-						'@type' => 'Offer',
-						'priceCurrency' => 'EUR',
-						'price' => '180',
-						'availability' => 'https://schema.org/InStock',
-						'itemOffered' => array(
-							'@type' => 'Product',
-							'name' => 'Machine Nespresso Zenius professionnelle',
-							'description' => 'Machine à café Nespresso professionnelle avec capsules, gobelets et consommables',
-							'brand' => array('@type' => 'Brand', 'name' => 'Nespresso'),
-							'offers' => array(
-								'@type' => 'Offer',
-								'priceCurrency' => 'EUR',
-								'price' => '180',
-								'availability' => 'https://schema.org/InStock'
-							)
-						)
-					),
-					array(
-						'@type' => 'Offer',
-						'priceCurrency' => 'EUR',
-						'price' => '140',
-						'availability' => 'https://schema.org/InStock',
-						'itemOffered' => array(
-							'@type' => 'Product',
-							'name' => 'Machine Lavazza professionnelle',
-							'description' => 'Machine à café Lavazza avec capsules et accessoires',
-							'brand' => array('@type' => 'Brand', 'name' => 'Lavazza'),
-							'offers' => array(
-								'@type' => 'Offer',
-								'priceCurrency' => 'EUR',
-								'price' => '140',
-								'availability' => 'https://schema.org/InStock'
-							)
-						)
-					),
-					array(
-						'@type' => 'Offer',
-						'priceCurrency' => 'EUR',
-						'price' => '140',
-						'availability' => 'https://schema.org/InStock',
-						'itemOffered' => array(
-							'@type' => 'Product',
-							'name' => 'Machine Covim professionnelle',
-							'description' => 'Machine à café Covim avec capsules et consommables',
-							'brand' => array('@type' => 'Brand', 'name' => 'Covim'),
-							'offers' => array(
-								'@type' => 'Offer',
-								'priceCurrency' => 'EUR',
-								'price' => '140',
-								'availability' => 'https://schema.org/InStock'
-							)
-						)
-					)
-				)
-			),
 			'offers' => array(
 				'@type' => 'AggregateOffer',
 				'priceCurrency' => 'EUR',
 				'lowPrice' => '140',
-				'highPrice' => '360',
-				'offerCount' => '10'
+				'highPrice' => '180',
+				'offerCount' => '3',
+				'availability' => 'https://schema.org/InStock',
+				'offers' => array(
+					array(
+						'@type' => 'Offer',
+						'name' => 'Location machine Nespresso Zenius',
+						'price' => '180',
+						'priceCurrency' => 'EUR',
+						'availability' => 'https://schema.org/InStock'
+					),
+					array(
+						'@type' => 'Offer',
+						'name' => 'Location machine Lavazza professionnelle',
+						'price' => '140',
+						'priceCurrency' => 'EUR',
+						'availability' => 'https://schema.org/InStock'
+					),
+					array(
+						'@type' => 'Offer',
+						'name' => 'Location machine Covim professionnelle',
+						'price' => '140',
+						'priceCurrency' => 'EUR',
+						'availability' => 'https://schema.org/InStock'
+					)
+				)
 			),
 			'termsOfService' => 'Livraison et installation incluses. Reprise après l\'événement.',
 			'availableChannel' => array(
