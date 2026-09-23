@@ -1,0 +1,90 @@
+/**
+ * ============================================================================
+ *  EAUSERVICE — DONNÉES STRUCTURÉES "PRODUCT" (fiches produit WooCommerce)
+ *  ---------------------------------------------------------------------------
+ *  OÙ COLLER CE CODE ?
+ *  Extension « Code Snippets » > nouveau snippet > coller TOUT le contenu
+ *  ci-dessous (SANS la première ligne <?php) > « Exécuter partout » > activer.
+ *
+ *  À QUOI ÇA SERT ?
+ *  Sur chaque fiche produit (fontaine à eau, machine à café, frigo, packs...),
+ *  ce code ajoute automatiquement des données structurées "Product" :
+ *  prix, disponibilité, image, note moyenne (si tu as des avis produit actifs).
+ *  Google peut alors afficher un résultat enrichi (prix, stock, étoiles)
+ *  directement dans les résultats de recherche → meilleur taux de clic.
+ *
+ *  ⚠️ ANTI-CONFLIT : si Yoast SEO (extension "Yoast WooCommerce SEO" payante)
+ *  ou Rank Math (module e-commerce) génère déjà ce schema Product, ce
+ *  snippet se met en pause automatiquement pour éviter les doublons.
+ *  Teste toujours ton URL sur https://search.google.com/test/rich-results
+ *  après activation : si "Product" apparaît deux fois, désactive un des deux.
+ * ============================================================================
+ */
+
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+add_action( 'wp_head', 'eauservice_product_schema', 5 );
+function eauservice_product_schema() {
+	if ( ! function_exists( 'is_product' ) || ! is_product() ) { return; }
+
+	global $product;
+	if ( ! $product || ! is_a( $product, 'WC_Product' ) ) {
+		global $post;
+		if ( ! $post ) { return; }
+		$product = wc_get_product( $post->ID );
+		if ( ! $product ) { return; }
+	}
+
+	// Évite un doublon si Yoast WooCommerce SEO / Rank Math e-commerce est actif.
+	if ( defined( 'YOAST_WOOCOMMERCE_SEO_VERSION' ) ) { return; }
+
+	$image_id  = $product->get_image_id();
+	$image_url = $image_id ? wp_get_attachment_image_url( $image_id, 'full' ) : wc_placeholder_img_src( 'full' );
+
+	$availability = 'https://schema.org/OutOfStock';
+	if ( $product->is_in_stock() ) {
+		$availability = 'https://schema.org/InStock';
+	}
+	if ( $product->is_on_backorder( 1 ) ) {
+		$availability = 'https://schema.org/BackOrder';
+	}
+
+	$data = array(
+		'@context'    => 'https://schema.org/',
+		'@type'       => 'Product',
+		'name'        => $product->get_name(),
+		'description' => wp_strip_all_tags( $product->get_short_description() ? $product->get_short_description() : $product->get_description() ),
+		'sku'         => $product->get_sku() ? $product->get_sku() : (string) $product->get_id(),
+		'image'       => $image_url,
+		'url'         => get_permalink( $product->get_id() ),
+		'brand'       => array(
+			'@type' => 'Brand',
+			'name'  => 'EauService',
+		),
+		'offers'      => array(
+			'@type'         => 'Offer',
+			'url'           => get_permalink( $product->get_id() ),
+			'priceCurrency' => get_woocommerce_currency(),
+			'price'         => (string) wc_get_price_to_display( $product ),
+			'availability'  => $availability,
+			'itemCondition' => 'https://schema.org/NewCondition',
+			// Pour de la location, on précise que le prix couvre la période de location affichée sur la fiche.
+			'seller'        => array(
+				'@type' => 'Organization',
+				'name'  => 'EauService',
+			),
+		),
+	);
+
+	// Ajoute la note moyenne + le nombre d'avis, uniquement si le produit a de vrais avis publiés
+	// (ne JAMAIS inventer de note : Google sanctionne les faux avis structurés).
+	if ( $product->get_review_count() > 0 && $product->get_average_rating() ) {
+		$data['aggregateRating'] = array(
+			'@type'       => 'AggregateRating',
+			'ratingValue' => (string) $product->get_average_rating(),
+			'reviewCount' => (string) $product->get_review_count(),
+		);
+	}
+
+	echo "\n<script type=\"application/ld+json\">" . wp_json_encode( $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . "</script>\n";
+}
