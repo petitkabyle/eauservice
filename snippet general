@@ -632,26 +632,56 @@ function eauservice_services_schema() {
 				'itemListElement' => array(
 					array(
 						'@type' => 'Offer',
+						'priceCurrency' => 'EUR',
+						'price' => '180',
+						'availability' => 'https://schema.org/InStock',
 						'itemOffered' => array(
 							'@type' => 'Product',
 							'name' => 'Machine Nespresso Zenius professionnelle',
-							'description' => 'Machine à café Nespresso professionnelle avec capsules, gobelets et consommables'
+							'description' => 'Machine à café Nespresso professionnelle avec capsules, gobelets et consommables',
+							'brand' => array('@type' => 'Brand', 'name' => 'Nespresso'),
+							'offers' => array(
+								'@type' => 'Offer',
+								'priceCurrency' => 'EUR',
+								'price' => '180',
+								'availability' => 'https://schema.org/InStock'
+							)
 						)
 					),
 					array(
 						'@type' => 'Offer',
+						'priceCurrency' => 'EUR',
+						'price' => '140',
+						'availability' => 'https://schema.org/InStock',
 						'itemOffered' => array(
 							'@type' => 'Product',
 							'name' => 'Machine Lavazza professionnelle',
-							'description' => 'Machine à café Lavazza avec capsules et accessoires'
+							'description' => 'Machine à café Lavazza avec capsules et accessoires',
+							'brand' => array('@type' => 'Brand', 'name' => 'Lavazza'),
+							'offers' => array(
+								'@type' => 'Offer',
+								'priceCurrency' => 'EUR',
+								'price' => '140',
+								'availability' => 'https://schema.org/InStock'
+							)
 						)
 					),
 					array(
 						'@type' => 'Offer',
+						'priceCurrency' => 'EUR',
+						'price' => '140',
+						'availability' => 'https://schema.org/InStock',
 						'itemOffered' => array(
 							'@type' => 'Product',
 							'name' => 'Machine Covim professionnelle',
-							'description' => 'Machine à café Covim avec capsules et consommables'
+							'description' => 'Machine à café Covim avec capsules et consommables',
+							'brand' => array('@type' => 'Brand', 'name' => 'Covim'),
+							'offers' => array(
+								'@type' => 'Offer',
+								'priceCurrency' => 'EUR',
+								'price' => '140',
+								'availability' => 'https://schema.org/InStock'
+							)
 						)
 					)
 				)
