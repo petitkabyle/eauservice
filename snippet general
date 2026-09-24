@@ -1120,17 +1120,27 @@ function eauservice_get_tarif_livraison( $cp, $ville = '' ) {
 }
 
 // 15a. Application automatique des frais au panier / checkout.
-// UTILISE LES CHAMPS PERSONNALISÉS es_delivery_postcode et es_delivery_city
+// UTILISE LA SESSION (stockée par le hook AJAX ci-dessus)
 add_action( 'woocommerce_cart_calculate_fees', 'eauservice_appliquer_frais_livraison', 10 );
 function eauservice_appliquer_frais_livraison( $cart ) {
 	if ( is_admin() && ! defined( 'DOING_AJAX' ) ) { 
 		return; 
 	}
 	
-	// Récupérer le code postal et la ville depuis les champs personnalisés
-	// Ces champs sont remplis dans la section "Informations de livraison"
-	$cp    = isset( $_POST['es_delivery_postcode'] ) ? trim( sanitize_text_field( $_POST['es_delivery_postcode'] ) ) : '';
-	$ville = isset( $_POST['es_delivery_city'] ) ? trim( sanitize_text_field( $_POST['es_delivery_city'] ) ) : '';
+	// PRIORITÉ 1 : Lire depuis la SESSION (mis à jour par AJAX)
+	$cp    = WC()->session->get( 'es_delivery_postcode' );
+	$ville = WC()->session->get( 'es_delivery_city' );
+	
+	// PRIORITÉ 2 : Si vides, essayer $_POST (soumission finale)
+	if ( empty( $cp ) && isset( $_POST['es_delivery_postcode'] ) ) {
+		$cp = sanitize_text_field( $_POST['es_delivery_postcode'] );
+	}
+	if ( empty( $ville ) && isset( $_POST['es_delivery_city'] ) ) {
+		$ville = sanitize_text_field( $_POST['es_delivery_city'] );
+	}
+	
+	$cp = trim( $cp );
+	$ville = trim( $ville );
 	
 	// Si vides, ne rien faire (pas de frais)
 	if ( empty( $cp ) || strlen( $cp ) < 5 ) {
@@ -1164,6 +1174,35 @@ function eauservice_note_livraison() {
  *     Force WooCommerce à recalculer les frais quand le client modifie
  *     son code postal sur la page de validation de commande.
  * =========================================================================== */
+
+// AJOUT CRITIQUE : Ajouter nos champs personnalisés aux données envoyées lors du recalcul
+add_filter( 'woocommerce_checkout_posted_data', 'eauservice_add_delivery_fields_to_posted_data' );
+function eauservice_add_delivery_fields_to_posted_data( $data ) {
+	if ( isset( $_POST['es_delivery_postcode'] ) ) {
+		$data['es_delivery_postcode'] = sanitize_text_field( $_POST['es_delivery_postcode'] );
+	}
+	if ( isset( $_POST['es_delivery_city'] ) ) {
+		$data['es_delivery_city'] = sanitize_text_field( $_POST['es_delivery_city'] );
+	}
+	return $data;
+}
+
+// AJOUT CRITIQUE : Inclure les champs dans les fragments AJAX
+add_filter( 'woocommerce_update_order_review_fragments', 'eauservice_pass_delivery_fields_to_ajax' );
+function eauservice_pass_delivery_fields_to_ajax( $fragments ) {
+	// Stocker les valeurs en session pour qu'elles soient disponibles lors du calcul des frais
+	if ( isset( $_POST['post_data'] ) ) {
+		parse_str( $_POST['post_data'], $post_data );
+		if ( isset( $post_data['es_delivery_postcode'] ) ) {
+			WC()->session->set( 'es_delivery_postcode', sanitize_text_field( $post_data['es_delivery_postcode'] ) );
+		}
+		if ( isset( $post_data['es_delivery_city'] ) ) {
+			WC()->session->set( 'es_delivery_city', sanitize_text_field( $post_data['es_delivery_city'] ) );
+		}
+	}
+	return $fragments;
+}
+
 add_action( 'wp_footer', 'eauservice_force_cart_refresh_checkout' );
 function eauservice_force_cart_refresh_checkout() {
 	// Sur la page PANIER
@@ -1210,22 +1249,38 @@ function eauservice_force_cart_refresh_checkout() {
 // DEBUG : Afficher les champs personnalisés détectés
 add_action( 'woocommerce_review_order_after_order_total', 'eauservice_debug_shipping_info', 1 );
 function eauservice_debug_shipping_info() {
-	// Récupérer les valeurs des champs personnalisés
-	$cp_delivery = isset( $_POST['es_delivery_postcode'] ) ? sanitize_text_field( $_POST['es_delivery_postcode'] ) : '';
-	$ville_delivery = isset( $_POST['es_delivery_city'] ) ? sanitize_text_field( $_POST['es_delivery_city'] ) : '';
+	// Récupérer depuis SESSION (priorité pour AJAX)
+	$cp_session = WC()->session->get( 'es_delivery_postcode' );
+	$ville_session = WC()->session->get( 'es_delivery_city' );
+	
+	// Récupérer depuis POST (soumission finale)
+	$cp_post = isset( $_POST['es_delivery_postcode'] ) ? sanitize_text_field( $_POST['es_delivery_postcode'] ) : '';
+	$ville_post = isset( $_POST['es_delivery_city'] ) ? sanitize_text_field( $_POST['es_delivery_city'] ) : '';
+	
+	// Valeur finale utilisée
+	$cp_delivery = $cp_session ? $cp_session : $cp_post;
+	$ville_delivery = $ville_session ? $ville_session : $ville_post;
 	
 	?>
 	<tr class="eauservice-debug">
 		<td colspan="2" style="background:#fffbcc;border:2px solid #ffa500;padding:12px;font-size:12px;">
 			<strong style="color:#d84315;">🐛 DEBUG (supprimer après test)</strong><br>
 			<small>
-				<strong>Code postal livraison:</strong> <code><?php echo esc_html( $cp_delivery ? $cp_delivery : '(vide - remplissez le champ ci-dessus)' ); ?></code><br>
-				<strong>Ville livraison:</strong> <code><?php echo esc_html( $ville_delivery ? $ville_delivery : '(vide - remplissez le champ ci-dessus)' ); ?></code><br>
+				<strong>SESSION Code postal:</strong> <code><?php echo esc_html( $cp_session ? $cp_session : '(vide)' ); ?></code><br>
+				<strong>SESSION Ville:</strong> <code><?php echo esc_html( $ville_session ? $ville_session : '(vide)' ); ?></code><br>
+				<strong>POST Code postal:</strong> <code><?php echo esc_html( $cp_post ? $cp_post : '(vide)' ); ?></code><br>
+				<strong>POST Ville:</strong> <code><?php echo esc_html( $ville_post ? $ville_post : '(vide)' ); ?></code><br>
+				<hr style="border:1px solid #ffa500;margin:8px 0;">
+				<strong style="color:#1976d2;">→ VALEUR UTILISÉE:</strong><br>
+				<strong>Code postal livraison:</strong> <code style="background:#4caf50;color:white;padding:2px 6px;border-radius:3px;"><?php echo esc_html( $cp_delivery ? $cp_delivery : '(VIDE - remplissez ci-dessus)' ); ?></code><br>
+				<strong>Ville livraison:</strong> <code style="background:#4caf50;color:white;padding:2px 6px;border-radius:3px;"><?php echo esc_html( $ville_delivery ? $ville_delivery : '(VIDE - remplissez ci-dessus)' ); ?></code><br>
 				<?php if ( ! empty( $cp_delivery ) && strlen( $cp_delivery ) >= 5 ) : 
 					$tarif = eauservice_get_tarif_livraison( $cp_delivery, $ville_delivery );
 				?>
 				<br><strong style="color:#1976d2;">💰 Tarif calculé:</strong> 
-				<?php echo esc_html( $tarif['montant'] ); ?> € - <?php echo esc_html( $tarif['libelle'] ); ?>
+				<span style="background:#1976d2;color:white;padding:4px 10px;border-radius:5px;font-weight:bold;font-size:16px;">
+					<?php echo esc_html( $tarif['montant'] ); ?> € - <?php echo esc_html( $tarif['libelle'] ); ?>
+				</span>
 				<?php else: ?>
 				<br><strong style="color:#d32f2f;">⚠️ Remplissez le code postal et la ville dans la section "Informations de livraison" ci-dessus !</strong>
 				<?php endif; ?>
