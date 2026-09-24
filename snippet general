@@ -213,25 +213,31 @@ function eauservice_event_fields_list() {
 add_action( 'woocommerce_after_order_notes', 'eauservice_event_delivery_fields' );
 function eauservice_event_delivery_fields( $checkout ) {
 	echo '<div id="eauservice_event_delivery" class="es-event-section">';
-	echo '<h3>Informations de livraison</h3>';
-	echo '<p style="color:#d32f2f;font-weight:bold;margin-bottom:16px;">★ Remplissez le code postal et la ville ci-dessous pour calculer automatiquement les frais de livraison.</p>';
+	echo '<h3 style="background:#ff6b00;color:white;padding:12px;margin:-10px -10px 15px;border-radius:8px;">🔥 INFORMATIONS DE LIVRAISON OBLIGATOIRES 🔥</h3>';
+	echo '<p style="color:#d32f2f;font-weight:bold;margin-bottom:16px;font-size:16px;background:#fff3cd;padding:10px;border-left:4px solid #ff6b00;">★★★ REMPLISSEZ LE CODE POSTAL ET LA VILLE CI-DESSOUS POUR CALCULER LES FRAIS DE LIVRAISON ★★★</p>';
 
 	// CODE POSTAL ET VILLE - ESSENTIELS POUR LE CALCUL
 	woocommerce_form_field( 'es_delivery_postcode', array(
 		'type' => 'text',
 		'class' => array( 'form-row-first', 'update_totals_on_change' ),
 		'required' => true,
-		'label' => '★ Code postal de livraison',
+		'label' => '🎯 CODE POSTAL DE LIVRAISON (OBLIGATOIRE)',
 		'placeholder' => '06400',
-		'custom_attributes' => array( 'maxlength' => '5' ),
+		'custom_attributes' => array( 
+			'maxlength' => '5',
+			'style' => 'border: 3px solid #ff6b00 !important; background: #fffbf0 !important; font-size: 18px !important;'
+		),
 	), $checkout->get_value( 'es_delivery_postcode' ) );
 
 	woocommerce_form_field( 'es_delivery_city', array(
 		'type' => 'text',
 		'class' => array( 'form-row-last', 'update_totals_on_change' ),
 		'required' => true,
-		'label' => '★ Ville de livraison',
+		'label' => '🎯 VILLE DE LIVRAISON (OBLIGATOIRE)',
 		'placeholder' => 'Cannes',
+		'custom_attributes' => array(
+			'style' => 'border: 3px solid #ff6b00 !important; background: #fffbf0 !important; font-size: 18px !important;'
+		),
 	), $checkout->get_value( 'es_delivery_city' ) );
 
 	woocommerce_form_field( 'es_venue_address', array(
@@ -1181,9 +1187,18 @@ function eauservice_force_cart_refresh_checkout() {
 		?>
 		<script type="text/javascript">
 		jQuery(function($) {
+			console.log('🔥🔥🔥 SCRIPT FRAIS DE LIVRAISON CHARGÉ 🔥🔥🔥');
+			console.log('Champ code postal existe?', $('#es_delivery_postcode').length);
+			console.log('Champ ville existe?', $('#es_delivery_city').length);
+			
 			// NOUVEAU : Recalculer quand on remplit les champs PERSONNALISÉS
 			$(document.body).on('change blur keyup', '#es_delivery_postcode, #es_delivery_city', function() {
-				console.log('🚚 Code postal/ville livraison changé → mise à jour');
+				var cp = $('#es_delivery_postcode').val();
+				var ville = $('#es_delivery_city').val();
+				console.log('🚚🚚🚚 CHAMP MODIFIÉ 🚚🚚🚚');
+				console.log('Code postal saisi:', cp);
+				console.log('Ville saisie:', ville);
+				console.log('Déclenchement de update_checkout...');
 				$(document.body).trigger('update_checkout');
 			});
 		});
@@ -1214,9 +1229,22 @@ function eauservice_debug_shipping_info() {
 				<?php else: ?>
 				<br><strong style="color:#d32f2f;">⚠️ Remplissez le code postal et la ville dans la section "Informations de livraison" ci-dessus !</strong>
 				<?php endif; ?>
+				<br><br>
+				<button type="button" onclick="console.log('=== VALEURS ACTUELLES ==='); console.log('CP:', document.getElementById('es_delivery_postcode') ? document.getElementById('es_delivery_postcode').value : 'CHAMP INTROUVABLE'); console.log('Ville:', document.getElementById('es_delivery_city') ? document.getElementById('es_delivery_city').value : 'CHAMP INTROUVABLE'); alert('Voir la console (F12)');" style="background:#ff6b00;color:white;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;font-weight:bold;">
+					🔍 Vérifier les champs dans la console
+				</button>
 			</small>
 		</td>
 	</tr>
+	<script>
+	jQuery(document).ready(function($) {
+		console.log('🐛 DEBUG - Valeurs actuelles:');
+		console.log('es_delivery_postcode existe?', $('#es_delivery_postcode').length);
+		console.log('es_delivery_city existe?', $('#es_delivery_city').length);
+		console.log('Valeur CP:', $('#es_delivery_postcode').val());
+		console.log('Valeur Ville:', $('#es_delivery_city').val());
+	});
+	</script>
 	<?php
 }
 
