@@ -1112,56 +1112,74 @@ function eauservice_get_tarif_livraison( $cp, $ville = '' ) {
 }
 
 // 15a. Application automatique des frais au panier / checkout.
-add_action( 'woocommerce_cart_calculate_fees', 'eauservice_appliquer_frais_livraison' );
+// PRIORITÉ 99 pour s'exécuter APRÈS tous les autres hooks
+add_action( 'woocommerce_cart_calculate_fees', 'eauservice_appliquer_frais_livraison', 99 );
 function eauservice_appliquer_frais_livraison( $cart ) {
 	if ( is_admin() && ! defined( 'DOING_AJAX' ) ) { return; }
 	if ( ! function_exists( 'WC' ) || ! WC()->customer ) { return; }
 
 	$c = WC()->customer;
 	
-	// Récupérer le code postal et la ville (TOUJOURS prendre facturation si livraison vide)
-	$cp    = $c->get_billing_postcode();
-	$ville = $c->get_billing_city();
+	// ÉTAPE 1 : Récupérer le code postal et la ville (priorité à facturation)
+	$cp_billing    = $c->get_billing_postcode();
+	$ville_billing = $c->get_billing_city();
+	$cp_shipping   = $c->get_shipping_postcode();
+	$ville_shipping= $c->get_shipping_city();
 	
-	// Essayer l'adresse de livraison si elle existe
-	if ( ! empty( $c->get_shipping_postcode() ) ) {
-		$cp = $c->get_shipping_postcode();
-		$ville = $c->get_shipping_city();
+	// Choisir le code postal à utiliser : facturation par défaut, livraison si renseignée
+	$cp = $cp_billing;
+	$ville = $ville_billing;
+	
+	if ( ! empty( $cp_shipping ) ) {
+		$cp = $cp_shipping;
+		$ville = $ville_shipping;
 	}
 	
-	// Debug : ajouter un commentaire visible pour voir ce qui est détecté
-	// Décommenter ces lignes pour débugger :
-	// error_log( 'EauService - CP détecté : ' . $cp . ' / Ville : ' . $ville );
+	// Logging détaillé pour debug
+	error_log( '=== EAUSERVICE DEBUG FRAIS LIVRAISON ===' );
+	error_log( 'CP Facturation: ' . $cp_billing . ' / Ville: ' . $ville_billing );
+	error_log( 'CP Livraison: ' . $cp_shipping . ' / Ville: ' . $ville_shipping );
+	error_log( 'CP Final utilisé: ' . $cp . ' / Ville: ' . $ville );
 	
-	// Si aucun code postal n'est renseigné, ne rien faire
-	if ( empty( $cp ) ) {
-		return;
-	}
-	
-	// Obtenir le tarif selon le code postal / la ville
-	$tarif = eauservice_get_tarif_livraison( $cp, $ville );
-	
-	// Debug : voir le tarif calculé
-	// error_log( 'EauService - Tarif calculé : ' . print_r( $tarif, true ) );
-	
-	// Si le montant est null, c'est que l'adresse n'est pas reconnue -> ne rien ajouter
-	if ( null === $tarif['montant'] ) {
-		return;
-	}
-	
-	// IMPORTANT : Retirer les anciens frais avant d'ajouter les nouveaux
-	foreach ( $cart->get_fees() as $fee_key => $fee ) {
-		if ( strpos( $fee->name, 'Frais de livraison' ) !== false || strpos( $fee->name, 'Livraison' ) !== false ) {
-			unset( $cart->fees_api()->fees[ $fee_key ] );
+	// ÉTAPE 2 : Retirer TOUS les anciens frais de livraison existants
+	$removed_count = 0;
+	if ( ! empty( $cart->fees_api()->fees ) ) {
+		foreach ( $cart->fees_api()->fees as $fee_key => $fee ) {
+			if ( strpos( strtolower( $fee->name ), 'livraison' ) !== false || 
+			     strpos( strtolower( $fee->name ), 'frais' ) !== false ) {
+				unset( $cart->fees_api()->fees[ $fee_key ] );
+				$removed_count++;
+				error_log( 'Frais supprimé: ' . $fee->name );
+			}
 		}
 	}
+	error_log( 'Nombre de frais supprimés: ' . $removed_count );
 	
-	// Ajouter les frais au panier
+	// ÉTAPE 3 : Si aucun code postal, ne rien ajouter
+	if ( empty( $cp ) ) {
+		error_log( 'AUCUN CODE POSTAL - Pas de frais ajoutés' );
+		return;
+	}
+	
+	// ÉTAPE 4 : Calculer le nouveau tarif
+	$tarif = eauservice_get_tarif_livraison( $cp, $ville );
+	error_log( 'Tarif calculé - Montant: ' . $tarif['montant'] . ' € / Libellé: ' . $tarif['libelle'] );
+	
+	// Si le montant est null, c'est que l'adresse n'est pas reconnue
+	if ( null === $tarif['montant'] ) {
+		error_log( 'Tarif NULL - Adresse non reconnue' );
+		return;
+	}
+	
+	// ÉTAPE 5 : Ajouter les nouveaux frais avec taxable=false
 	if ( 0 === $tarif['montant'] ) {
 		$cart->add_fee( $tarif['libelle'], 0, false );
+		error_log( 'Frais GRATUIT ajouté: ' . $tarif['libelle'] );
 	} else {
-		$cart->add_fee( $tarif['libelle'], $tarif['montant'], false ); // false = pas de taxe sur les frais
+		$cart->add_fee( $tarif['libelle'], $tarif['montant'], false );
+		error_log( 'Frais ajouté: ' . $tarif['libelle'] . ' - ' . $tarif['montant'] . ' €' );
 	}
+	error_log( '=== FIN DEBUG EAUSERVICE ===' );
 }
 
 // 15b. Message au checkout : tarif sur mesure + code promo possibles.
@@ -1175,9 +1193,10 @@ function eauservice_note_livraison() {
 }
 
 /* ===========================================================================
- * 16) FORCER LE RECALCUL DES FRAIS AU CHECKOUT + DEBUG
+ * 16) FORCER LE RECALCUL DES FRAIS AU CHECKOUT + DEBUG AMÉLIORÉ
  *     Force WooCommerce à recalculer les frais quand le client modifie
  *     son code postal sur la page de validation de commande.
+ *     + Vide le cache WooCommerce + Force update_totals
  * =========================================================================== */
 add_action( 'wp_footer', 'eauservice_force_cart_refresh_checkout' );
 function eauservice_force_cart_refresh_checkout() {
@@ -1185,40 +1204,102 @@ function eauservice_force_cart_refresh_checkout() {
 	?>
 	<script type="text/javascript">
 	jQuery(function($) {
-		// Forcer le rafraîchissement du panier quand le code postal change
-		$(document.body).on('change input blur', '#billing_postcode, #shipping_postcode, #billing_city, #shipping_city', function() {
-			console.log('EauService - Changement détecté, mise à jour...');
+		var timeoutId = null;
+		
+		// Fonction de mise à jour avec debounce (attendre que l'utilisateur arrête de taper)
+		function updateCheckout() {
+			console.log('🚚 EauService - Mise à jour des frais de livraison...');
+			
+			// Forcer la mise à jour du checkout
 			$(document.body).trigger('update_checkout');
+			
+			// Double sécurité : forcer aussi update_totals
+			setTimeout(function() {
+				$(document.body).trigger('update_order_review');
+			}, 500);
+		}
+		
+		// Écouter TOUS les changements sur les champs d'adresse
+		$(document.body).on('change input blur keyup', '#billing_postcode, #shipping_postcode, #billing_city, #shipping_city', function() {
+			clearTimeout(timeoutId);
+			timeoutId = setTimeout(updateCheckout, 800); // Attendre 800ms après le dernier caractère
 		});
 		
-		// Afficher les valeurs actuelles dans la console
-		console.log('EauService - Code postal facturation : ' + $('#billing_postcode').val());
-		console.log('EauService - Ville facturation : ' + $('#billing_city').val());
+		// Forcer une mise à jour au chargement de la page
+		console.log('🚚 EauService - Initialisation checkout');
+		console.log('Code postal facturation : ' + $('#billing_postcode').val());
+		console.log('Ville facturation : ' + $('#billing_city').val());
+		
+		// Forcer le recalcul après 1 seconde (le temps que WooCommerce charge)
+		setTimeout(function() {
+			console.log('🚚 EauService - Forçage du recalcul initial...');
+			$(document.body).trigger('update_checkout');
+		}, 1000);
 	});
 	</script>
 	<?php
 }
 
-// DEBUG TEMPORAIRE : Afficher les infos sur le checkout
+// DEBUG TEMPORAIRE : Afficher les infos détaillées sur le checkout
 add_action( 'woocommerce_review_order_before_payment', 'eauservice_debug_info_checkout', 1 );
 function eauservice_debug_info_checkout() {
 	if ( ! WC()->customer ) { return; }
 	$c = WC()->customer;
-	$cp = $c->get_billing_postcode();
-	$ville = $c->get_billing_city();
 	
-	// Afficher un bloc de debug (à retirer une fois que ça marche)
+	$cp_billing    = $c->get_billing_postcode();
+	$ville_billing = $c->get_billing_city();
+	$cp_shipping   = $c->get_shipping_postcode();
+	$ville_shipping= $c->get_shipping_city();
+	
+	// Code postal final utilisé (même logique que dans le hook)
+	$cp = $cp_billing;
+	$ville = $ville_billing;
+	if ( ! empty( $cp_shipping ) ) {
+		$cp = $cp_shipping;
+		$ville = $ville_shipping;
+	}
+	
+	// Afficher un bloc de debug détaillé
 	echo '<!-- DEBUG EAUSERVICE -->';
-	echo '<div style="background:#fff3cd;border:2px solid #ffc107;padding:10px;margin:10px 0;border-radius:8px;font-size:12px;">';
-	echo '<strong>🐛 DEBUG (à retirer) :</strong><br>';
-	echo 'Code postal détecté : <strong>' . esc_html( $cp ) . '</strong><br>';
-	echo 'Ville détectée : <strong>' . esc_html( $ville ) . '</strong><br>';
+	echo '<div style="background:#fff8dc;border:3px solid #ff9800;padding:14px;margin:12px 0;border-radius:10px;font-size:13px;font-family:monospace;">';
+	echo '<strong style="color:#d84315;font-size:15px;">🐛 DEBUG EAUSERVICE (supprimer après test)</strong><br><br>';
+	
+	echo '<strong>Facturation:</strong><br>';
+	echo '  └ Code postal: <span style="background:#ffeb3b;padding:2px 6px;border-radius:3px;">' . esc_html( $cp_billing ? $cp_billing : '(vide)' ) . '</span><br>';
+	echo '  └ Ville: <span style="background:#ffeb3b;padding:2px 6px;border-radius:3px;">' . esc_html( $ville_billing ? $ville_billing : '(vide)' ) . '</span><br><br>';
+	
+	echo '<strong>Livraison:</strong><br>';
+	echo '  └ Code postal: <span style="background:#ffeb3b;padding:2px 6px;border-radius:3px;">' . esc_html( $cp_shipping ? $cp_shipping : '(vide)' ) . '</span><br>';
+	echo '  └ Ville: <span style="background:#ffeb3b;padding:2px 6px;border-radius:3px;">' . esc_html( $ville_shipping ? $ville_shipping : '(vide)' ) . '</span><br><br>';
+	
+	echo '<strong style="color:#1976d2;">✓ Utilisé pour calcul:</strong><br>';
+	echo '  └ Code postal: <strong style="background:#4caf50;color:#fff;padding:2px 8px;border-radius:4px;">' . esc_html( $cp ? $cp : '(AUCUN!)' ) . '</strong><br>';
+	echo '  └ Ville: <strong style="background:#4caf50;color:#fff;padding:2px 8px;border-radius:4px;">' . esc_html( $ville ? $ville : '(AUCUNE!)' ) . '</strong><br><br>';
 	
 	if ( ! empty( $cp ) ) {
 		$tarif = eauservice_get_tarif_livraison( $cp, $ville );
-		echo 'Tarif calculé : <strong>' . esc_html( $tarif['montant'] ) . ' € - ' . esc_html( $tarif['libelle'] ) . '</strong>';
+		echo '<strong style="color:#1976d2;">💰 Tarif calculé:</strong><br>';
+		echo '  └ Montant: <strong style="background:#2196f3;color:#fff;padding:3px 10px;border-radius:4px;font-size:14px;">' . esc_html( $tarif['montant'] ) . ' €</strong><br>';
+		echo '  └ Libellé: <em>' . esc_html( $tarif['libelle'] ) . '</em><br><br>';
+		
+		// Vérifier si les frais sont bien appliqués dans le panier
+		$frais_appliques = false;
+		if ( WC()->cart ) {
+			foreach ( WC()->cart->get_fees() as $fee ) {
+				if ( strpos( strtolower( $fee->name ), 'livraison' ) !== false ) {
+					$frais_appliques = true;
+					echo '<strong style="color:#388e3c;">✓ Frais appliqués au panier:</strong> ' . esc_html( $fee->name ) . ' (' . wc_price( $fee->amount ) . ')<br>';
+				}
+			}
+		}
+		
+		if ( ! $frais_appliques ) {
+			echo '<strong style="color:#d32f2f;">⚠️ PROBLÈME : Les frais ne sont PAS appliqués au panier !</strong><br>';
+			echo '<em>Vérifier les logs PHP (error_log) pour plus de détails.</em><br>';
+		}
 	} else {
-		echo '<span style="color:red;">Aucun code postal détecté</span>';
+		echo '<span style="color:#d32f2f;font-weight:bold;">⚠️ AUCUN CODE POSTAL DÉTECTÉ</span><br>';
+		echo '<em>Remplissez votre adresse de facturation ou de livraison.</em><br>';
 	}
 	echo '</div>';
 	echo '<!-- FIN DEBUG -->';
