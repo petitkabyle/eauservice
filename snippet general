@@ -1015,73 +1015,89 @@ function eauservice_auto_alt( $attr, $attachment ) {
 }
 
 /* ===========================================================================
- * 15) FRAIS DE LIVRAISON PAR DISTANCE (depuis le dépôt d'Antibes)
- *     Calcule la distance entre le dépôt (Chemin des Frères Garbero, 06600
- *     Antibes) et l'adresse du client, puis applique une fourchette de prix.
- *     Géocodage via l'API gratuite adresse.data.gouv.fr (sans clé), avec
- *     table de codes postaux locale en secours + cache (transient).
- *     >>> FOURCHETTES (modifiables dans eauservice_fee_km) :
- *       0-5 km = OFFERT | 5-15 = 30 | 15-30 = 50 | 30-70 = 120 |
- *       70-120 = 150 | +120 km = 200
+ * 15) FRAIS DE LIVRAISON PAR CODE POSTAL (tarifs fixes par ville)
+ *     Applique des tarifs fixes selon le code postal / la ville :
+ *     >>> TARIFS PAR VILLE :
+ *       Antibes (06600, 06160) = GRATUIT
+ *       Cannes (06400, 06150, 06110, 06210, 06220, 06590) = 30 €
+ *       Nice (06000, 06100, 06200, 06300) = 50 €
+ *       Monaco (98000, 98xxx) = 50 €
+ *       Autres villes Alpes-Maritimes (06xxx) = 80 €
+ *       Var (83xxx) = 100 €
+ *       Autres départements = 200 €
+ *     
+ *     Le système reconnaît automatiquement la ville via le code postal.
+ *     Si besoin d'ajuster : modifiez la fonction eauservice_get_tarif_livraison()
  * =========================================================================== */
-function eauservice_depot() { return array( 43.5915, 7.0985 ); } // Antibes 06600
-function eauservice_road_factor() { return 1.45; } // vol d'oiseau -> route
 
-function eauservice_pc_coords() {
-	return array(
-		'06600'=>array(43.581,7.123),'06160'=>array(43.567,7.108),'06220'=>array(43.580,7.057),'06410'=>array(43.629,7.095),
-		'06270'=>array(43.658,7.122),'06560'=>array(43.625,7.048),'06110'=>array(43.576,7.019),'06400'=>array(43.552,7.017),
-		'06150'=>array(43.547,6.978),'06250'=>array(43.600,7.000),'06210'=>array(43.546,6.938),'06130'=>array(43.659,6.924),
-		'06800'=>array(43.664,7.149),'06700'=>array(43.668,7.190),'06000'=>array(43.700,7.268),'06100'=>array(43.703,7.246),
-		'06200'=>array(43.690,7.210),'06300'=>array(43.708,7.290),'06140'=>array(43.722,7.112),'06570'=>array(43.695,7.122),
-		'06320'=>array(43.717,7.402),'06310'=>array(43.707,7.331),'06230'=>array(43.704,7.311),'06360'=>array(43.727,7.362),
-		'98000'=>array(43.738,7.424),'06240'=>array(43.743,7.423),'06190'=>array(43.759,7.461),'06500'=>array(43.775,7.497),
-		'83700'=>array(43.425,6.768),'83600'=>array(43.433,6.737),'83120'=>array(43.309,6.638),'83990'=>array(43.270,6.640),
-		'83350'=>array(43.215,6.612),'83310'=>array(43.273,6.521),'83580'=>array(43.234,6.587),'83000'=>array(43.124,5.928),
-	);
-}
-
-function eauservice_haversine( $a, $b ) {
-	$R = 6371; $p = M_PI / 180;
-	$dLa = ( $b[0] - $a[0] ) * $p; $dLo = ( $b[1] - $a[1] ) * $p;
-	$x = sin( $dLa / 2 ) ** 2 + cos( $a[0] * $p ) * cos( $b[0] * $p ) * sin( $dLo / 2 ) ** 2;
-	return 2 * $R * asin( min( 1, sqrt( $x ) ) );
-}
-
-function eauservice_fee_km( $km ) {
-	if ( $km <= 5 )   return 0;
-	if ( $km <= 15 )  return 30;
-	if ( $km <= 30 )  return 50;
-	if ( $km <= 70 )  return 120;
-	if ( $km <= 120 ) return 150;
-	return 200;
-}
-
-function eauservice_coords( $cp, $ville, $adresse = '' ) {
-	$cp5   = substr( preg_replace( '/\D/', '', (string) $cp ), 0, 5 );
-	$table = eauservice_pc_coords();
-	if ( $cp5 && isset( $table[ $cp5 ] ) ) { return $table[ $cp5 ]; }
-	if ( $cp5 && 0 === strpos( $cp5, '98' ) ) { return array( 43.738, 7.424 ); } // Monaco
-
-	$q = trim( $adresse . ' ' . $cp5 . ' ' . $ville );
-	if ( '' === $q ) { return null; }
-
-	$key    = 'es_geo_' . md5( $q );
-	$cached = get_transient( $key );
-	if ( false !== $cached ) { return ( 'none' === $cached ) ? null : $cached; }
-
-	$resp = wp_remote_get( 'https://api-adresse.data.gouv.fr/search/?limit=1&q=' . rawurlencode( $q ), array( 'timeout' => 4 ) );
-	if ( ! is_wp_error( $resp ) ) {
-		$body = json_decode( wp_remote_retrieve_body( $resp ), true );
-		if ( ! empty( $body['features'][0]['geometry']['coordinates'] ) ) {
-			$c      = $body['features'][0]['geometry']['coordinates'];
-			$coords = array( (float) $c[1], (float) $c[0] );
-			set_transient( $key, $coords, WEEK_IN_SECONDS );
-			return $coords;
-		}
+/**
+ * Détermine les frais de livraison selon le code postal
+ * @param string $cp Code postal du client
+ * @param string $ville Ville du client (utilisée comme secours si code postal ambigu)
+ * @return array ['montant' => float, 'libelle' => string]
+ */
+function eauservice_get_tarif_livraison( $cp, $ville = '' ) {
+	// Normaliser le code postal (retirer espaces, garder que les chiffres)
+	$cp_clean = preg_replace( '/\D/', '', (string) $cp );
+	$cp5 = substr( $cp_clean, 0, 5 );
+	
+	// Normaliser la ville pour comparaison
+	$ville_lower = function_exists('mb_strtolower') ? mb_strtolower( trim( $ville ) ) : strtolower( trim( $ville ) );
+	
+	// ===== ANTIBES = GRATUIT =====
+	$codes_antibes = array( '06600', '06160' );
+	if ( in_array( $cp5, $codes_antibes, true ) ) {
+		return array( 'montant' => 0, 'libelle' => 'Livraison offerte (Antibes)' );
 	}
-	set_transient( $key, 'none', DAY_IN_SECONDS );
-	return null;
+	if ( false !== strpos( $ville_lower, 'antibes' ) || false !== strpos( $ville_lower, 'juan' ) ) {
+		return array( 'montant' => 0, 'libelle' => 'Livraison offerte (Antibes)' );
+	}
+	
+	// ===== CANNES = 30 € =====
+	$codes_cannes = array( '06400', '06150', '06110', '06210', '06220', '06590' );
+	if ( in_array( $cp5, $codes_cannes, true ) ) {
+		return array( 'montant' => 30, 'libelle' => 'Frais de livraison & installation (Cannes)' );
+	}
+	if ( false !== strpos( $ville_lower, 'cannes' ) || false !== strpos( $ville_lower, 'croisette' ) || 
+	     false !== strpos( $ville_lower, 'mougins' ) || false !== strpos( $ville_lower, 'mandelieu' ) ) {
+		return array( 'montant' => 30, 'libelle' => 'Frais de livraison & installation (Cannes)' );
+	}
+	
+	// ===== NICE = 50 € =====
+	$codes_nice = array( '06000', '06100', '06200', '06300' );
+	if ( in_array( $cp5, $codes_nice, true ) ) {
+		return array( 'montant' => 50, 'libelle' => 'Frais de livraison & installation (Nice)' );
+	}
+	if ( false !== strpos( $ville_lower, 'nice' ) || false !== strpos( $ville_lower, 'nissa' ) ) {
+		return array( 'montant' => 50, 'libelle' => 'Frais de livraison & installation (Nice)' );
+	}
+	
+	// ===== MONACO = 50 € =====
+	if ( '98' === substr( $cp5, 0, 2 ) || '98000' === $cp5 ) {
+		return array( 'montant' => 50, 'libelle' => 'Frais de livraison & installation (Monaco)' );
+	}
+	if ( false !== strpos( $ville_lower, 'monaco' ) || false !== strpos( $ville_lower, 'monte' ) || 
+	     false !== strpos( $ville_lower, 'carlo' ) ) {
+		return array( 'montant' => 50, 'libelle' => 'Frais de livraison & installation (Monaco)' );
+	}
+	
+	// ===== AUTRES VILLES ALPES-MARITIMES (06) = 80 € =====
+	if ( '06' === substr( $cp5, 0, 2 ) ) {
+		return array( 'montant' => 80, 'libelle' => 'Frais de livraison & installation (Alpes-Maritimes)' );
+	}
+	
+	// ===== VAR (83) = 100 € =====
+	if ( '83' === substr( $cp5, 0, 2 ) ) {
+		return array( 'montant' => 100, 'libelle' => 'Frais de livraison & installation (Var)' );
+	}
+	
+	// ===== AUTRES DÉPARTEMENTS = 200 € =====
+	if ( strlen( $cp5 ) === 5 ) {
+		return array( 'montant' => 200, 'libelle' => 'Frais de livraison & installation' );
+	}
+	
+	// ===== AUCUN CODE POSTAL VALIDE = PAS DE FRAIS (sera calculé au checkout) =====
+	return array( 'montant' => null, 'libelle' => '' );
 }
 
 // 15a. Application automatique des frais au panier / checkout.
@@ -1091,28 +1107,29 @@ function eauservice_appliquer_frais_livraison( $cart ) {
 	if ( ! function_exists( 'WC' ) || ! WC()->customer ) { return; }
 
 	$c = WC()->customer;
-	$cp      = $c->get_shipping_postcode()  ? $c->get_shipping_postcode()  : $c->get_billing_postcode();
-	$ville   = $c->get_shipping_city()      ? $c->get_shipping_city()      : $c->get_billing_city();
-	$adresse = $c->get_shipping_address_1() ? $c->get_shipping_address_1() : $c->get_billing_address_1();
-
-	// Code postal hors zone proche (autre departement) => plus de 120 km => 200 EUR
-	$cp5 = substr( preg_replace( '/\D/', '', (string) $cp ), 0, 5 );
-	$dep = substr( $cp5, 0, 2 );
-	if ( '' !== $cp5 && 0 !== strpos( $cp5, '98' ) && ! in_array( $dep, array( '06', '83', '04' ), true ) ) {
-		$cart->add_fee( 'Frais de livraison & installation', 200, false );
+	
+	// Récupérer le code postal et la ville (priorité à l'adresse de livraison)
+	$cp    = $c->get_shipping_postcode()  ? $c->get_shipping_postcode()  : $c->get_billing_postcode();
+	$ville = $c->get_shipping_city()      ? $c->get_shipping_city()      : $c->get_billing_city();
+	
+	// Si aucun code postal n'est renseigné, ne rien faire (attendre que le client saisisse)
+	if ( empty( $cp ) ) {
 		return;
 	}
-
-	$coords = eauservice_coords( $cp, $ville, $adresse );
-	if ( null === $coords ) { return; } // adresse inconnue -> sur devis
-
-	$km  = eauservice_haversine( eauservice_depot(), $coords ) * eauservice_road_factor();
-	$fee = eauservice_fee_km( $km );
-
-	if ( 0 === $fee ) {
-		$cart->add_fee( 'Livraison offerte (Antibes)', 0, false );
+	
+	// Obtenir le tarif selon le code postal / la ville
+	$tarif = eauservice_get_tarif_livraison( $cp, $ville );
+	
+	// Si le montant est null, c'est que l'adresse n'est pas reconnue -> ne rien ajouter
+	if ( null === $tarif['montant'] ) {
+		return;
+	}
+	
+	// Ajouter les frais au panier
+	if ( 0 === $tarif['montant'] ) {
+		$cart->add_fee( $tarif['libelle'], 0, false );
 	} else {
-		$cart->add_fee( 'Frais de livraison & installation', $fee, false );
+		$cart->add_fee( $tarif['libelle'], $tarif['montant'], true ); // true = taxable si TVA activée
 	}
 }
 
