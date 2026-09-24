@@ -1417,3 +1417,52 @@ body.woocommerce-cart .es-simul{
     position:static !important;
   }
 }
+
+
+
+/* ===================================================================== */
+/*  v27 — BANDEAU « PAIEMENT EN LIGNE OU APRES LIVRAISON »               */
+/*  S'affiche sur la boutique, la fiche produit, le panier et la page de */
+/*  commande. Genere par la section 20 du snippet.                       */
+/* ===================================================================== */
+.es-pay{
+  clear:both; box-sizing:border-box; width:100%;
+  display:flex; align-items:flex-start; gap:14px;
+  margin:18px 0 22px; padding:16px 20px;
+  background:linear-gradient(135deg,#ecfdf5 0%,#eaf3fb 100%);
+  border:1.5px solid #a7e8c8; border-left:5px solid #22b573;
+  border-radius:16px;
+  font-family:'Manrope',system-ui,-apple-system,sans-serif;
+  box-shadow:0 10px 26px rgba(10,41,66,.08);
+}
+.es-pay .es-pay-ico{
+  flex:0 0 auto; font-size:24px; line-height:1.1;
+}
+.es-pay .es-pay-txt{ flex:1 1 auto; min-width:0; }
+.es-pay .es-pay-t{
+  display:block; color:#0a2942 !important; font-size:15px; font-weight:800;
+  line-height:1.35; margin:0 0 5px;
+}
+.es-pay .es-pay-d{
+  display:block; color:#40566e; font-size:13.5px; line-height:1.6;
+}
+.es-pay .es-pay-d strong{ color:#12855a; }
+
+/* Sur la page de commande, le bandeau est dans la colonne de droite :   */
+/* on resserre un peu pour ne pas pousser le bouton de paiement trop bas.*/
+body.woocommerce-checkout #order_review .es-pay,
+body.woocommerce-checkout .woocommerce-checkout-review-order .es-pay{
+  margin:0 0 14px; padding:13px 16px; border-radius:13px;
+}
+body.woocommerce-checkout #order_review .es-pay .es-pay-t{ font-size:14px; }
+body.woocommerce-checkout #order_review .es-pay .es-pay-d{ font-size:12.5px; }
+
+/* Sur la fiche produit, le bandeau suit le bouton d'ajout au panier.    */
+body.single-product .es-pay{ margin:16px 0 0; }
+
+@media(max-width:600px){
+  .es-pay{ padding:14px 16px; border-radius:13px; gap:11px; }
+  .es-pay .es-pay-ico{ font-size:20px; }
+  .es-pay .es-pay-t{ font-size:14px; }
+  .es-pay .es-pay-d{ font-size:13px; }
+}

@@ -496,6 +496,7 @@ function eauservice_shop_intro() {
 			<span>Devis sous 24h</span>
 			<span>Matériel professionnel</span>
 			<span>Reprise après l'événement</span>
+			<span>Paiement après livraison possible</span>
 		</div>
 	</section>
 
@@ -547,6 +548,10 @@ function eauservice_shop_outro() {
 			<div class="es-faq-a">Oui. Nous livrons et installons votre matériel directement sur votre stand ou lieu d'événement, notamment au Palais des Festivals de Cannes, au Grimaldi Forum de Monaco, au Palais des Congrès de Nice et sur tous les sites de la région (Antibes, Juan-les-Pins, Menton…). Nous récupérons également le matériel à la fin de votre événement.</div>
 		</details>
 		<details>
+			<summary>Peut-on payer après la livraison, ou faut-il régler par carte immédiatement&nbsp;?</summary>
+			<div class="es-faq-a">Vous avez le choix. Vous pouvez régler en ligne par carte bancaire au moment de la commande, ou bien <strong>payer après la livraison et l'installation du matériel</strong>. Le mode de règlement se choisit à l'étape du paiement, lors de la validation de la commande. Pour les entreprises, les collectivités et les agences événementielles, le règlement par virement sur facture après la prestation est également possible&nbsp;: indiquez-le dans les notes de votre commande ou demandez un devis.</div>
+		</details>
+		<details>
 			<summary>Quel est le délai pour obtenir un devis&nbsp;?</summary>
 			<div class="es-faq-a">Nous répondons à toute demande de devis sous 24h ouvrées. Pour les événements urgents, contactez-nous directement&nbsp;: nous faisons notre maximum pour nous adapter à votre calendrier.</div>
 		</details>
@@ -592,27 +597,60 @@ function eauservice_local_business_schema() {
 	$code_postal= '06600';
 	$ville      = 'Antibes';
 	$lien_maps  = 'https://maps.app.goo.gl/FqH9hm9FLBDLpN6F6'; // fiche Google Business
+	$instagram  = 'https://www.instagram.com/eventscafe_paca';
 	$image      = 'https://eau-service-events.fr/wp-content/uploads/2024/12/logo-eauservice-blanc.png';
+	$latitude   = '43.5847';
+	$longitude  = '7.1250';
 	// -------------------------------------------------------------------
 
 	$data = array(
 		'@context'    => 'https://schema.org',
 		'@type'       => 'LocalBusiness',
+		// Identifiant stable : permet a Google de relier toutes les mentions
+		// du site a UNE SEULE fiche etablissement.
+		'@id'         => 'https://eau-service-events.fr/#etablissement',
 		'name'        => $nom,
-		'description' => 'Location de matériel événementiel sur la Côte d\'Azur : machines à café, fontaines à eau, réfrigération et mobilier pour salons, congrès et événements professionnels.',
+		'description' => 'Location de matériel événementiel sur la Côte d\'Azur : machines à café, fontaines à eau, réfrigération et mobilier pour salons, congrès et événements professionnels. Livraison, installation et reprise incluses. Paiement en ligne ou après livraison.',
 		'url'         => 'https://eau-service-events.fr/',
 		'telephone'   => $telephone,
+		'email'       => eauservice_email_contact(),
 		'image'       => $image,
+		'logo'        => $image,
 		'priceRange'  => '€€',
 		'address'     => array(
 			'@type'           => 'PostalAddress',
 			'streetAddress'   => $rue,
 			'postalCode'      => $code_postal,
 			'addressLocality' => $ville,
+			'addressRegion'   => 'Provence-Alpes-Côte d\'Azur',
 			'addressCountry'  => 'FR',
 		),
-		'areaServed'  => array( 'Cannes', 'Nice', 'Monaco', 'Antibes', 'Grasse', 'Menton', 'Côte d\'Azur' ),
-		'sameAs'      => array_filter( array( $lien_maps ) ),
+		// Coordonnees GPS : aide au positionnement dans Google Maps.
+		'geo'         => array(
+			'@type'     => 'GeoCoordinates',
+			'latitude'  => $latitude,
+			'longitude' => $longitude,
+		),
+		// Villes desservies, reprises de l ancien bloc de l accueil.
+		'areaServed'  => array(
+			'Antibes', 'Juan-les-Pins', 'Cannes', 'Le Cannet', 'Mougins', 'Nice',
+			'Monaco', 'Menton', 'Grasse', 'Sophia Antipolis', 'Valbonne', 'Biot',
+			'Villeneuve-Loubet', 'Cagnes-sur-Mer', 'Saint-Laurent-du-Var',
+			'Saint-Tropez', 'Côte d\'Azur',
+		),
+		// Moyens de paiement : le client peut regler en ligne OU apres la
+		// livraison et l installation du materiel.
+		'paymentAccepted'     => 'Carte bancaire, virement bancaire, paiement après livraison',
+		'currenciesAccepted'  => 'EUR',
+		'openingHoursSpecification' => array(
+			array(
+				'@type'     => 'OpeningHoursSpecification',
+				'dayOfWeek' => array( 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ),
+				'opens'     => '08:00',
+				'closes'    => '20:00',
+			),
+		),
+		'sameAs'      => array_filter( array( $lien_maps, $instagram ) ),
 	);
 
 	echo "\n<script type=\"application/ld+json\">" . wp_json_encode( $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . "</script>\n";
@@ -629,6 +667,9 @@ function eauservice_organization_schema() {
 	$data = array(
 		'@context' => 'https://schema.org',
 		'@type' => 'Organization',
+		// Identifiant distinct de celui de la fiche etablissement (section 9),
+		// pour que Google traite proprement les deux entites sans les confondre.
+		'@id' => 'https://eau-service-events.fr/#organisation',
 		'name' => 'EauService by Events Café',
 		'legalName' => 'EauService',
 		'url' => 'https://eau-service-events.fr',
@@ -879,6 +920,8 @@ function eauservice_faq_schema() {
 	$faq = array(
 		'Livrez-vous le matériel sur les salons et congrès de la Côte d\'Azur ?' =>
 			'Oui. Nous livrons et installons votre matériel directement sur votre stand ou lieu d\'événement, notamment au Palais des Festivals de Cannes, au Grimaldi Forum de Monaco et au Palais des Congrès de Nice, et nous le récupérons à la fin de votre événement.',
+		'Peut-on payer après la livraison, ou faut-il régler par carte immédiatement ?' =>
+			'Vous avez le choix. Vous pouvez régler en ligne par carte bancaire au moment de la commande, ou payer après la livraison et l\'installation du matériel. Le mode de règlement se choisit à l\'étape du paiement. Pour les entreprises, les collectivités et les agences événementielles, le règlement par virement sur facture après la prestation est également possible.',
 		'Quel est le délai pour obtenir un devis ?' =>
 			'Nous répondons à toute demande de devis sous 24h ouvrées. Pour les événements urgents, contactez-nous directement.',
 		'L\'installation et la reprise sont-elles incluses ?' =>
@@ -1441,4 +1484,62 @@ function eauservice_expediteur_woocommerce( $adresse ) {
 add_filter( 'woocommerce_email_from_name', 'eauservice_nom_expediteur_woocommerce', 20 );
 function eauservice_nom_expediteur_woocommerce( $nom ) {
 	return 'EauService';
+}
+
+
+/* ===========================================================================
+ * 20) BANDEAU « PAIEMENT EN LIGNE OU APRÈS LIVRAISON »
+ *     ------------------------------------------------------------------
+ *     Beaucoup de visiteurs renoncent a commander en croyant qu il faut
+ *     payer par carte immediatement. Ce bandeau leve le doute aux trois
+ *     endroits ou la question se pose :
+ *       - la boutique, avant meme le choix des produits ;
+ *       - le panier, au moment de se decider ;
+ *       - la page de commande, juste au-dessus du choix du moyen de paiement.
+ *
+ *     >>> PREREQUIS COTE WOOCOMMERCE <<<
+ *     Ce bandeau annonce une possibilite : encore faut-il que le moyen de
+ *     paiement correspondant soit actif. Verifiez dans
+ *     WooCommerce > Reglages > Paiements que « Paiement a la livraison »
+ *     (parfois nomme « Paiement a la remise ») est bien active. Sinon le
+ *     client lira le message sans trouver l option, ce qui serait pire que
+ *     de ne rien annoncer.
+ * =========================================================================== */
+
+/** Le texte du bandeau, defini une seule fois. */
+function eauservice_bandeau_paiement() {
+	$html  = '<aside class="es-pay" aria-label="Moyens de paiement">';
+	$html .= '<div class="es-pay-ico">&#128179;</div>';
+	$html .= '<div class="es-pay-txt">';
+	$html .= '<strong class="es-pay-t">Payez en ligne ou après la livraison, c\'est vous qui choisissez</strong>';
+	$html .= '<span class="es-pay-d">Réglez par carte bancaire au moment de la commande, ou <strong>après la livraison et l\'installation</strong> de votre matériel. Le choix se fait à l\'étape du paiement. Entreprises, collectivités et agences&nbsp;: règlement par virement sur facture également possible.</span>';
+	$html .= '</div></aside>';
+	return $html;
+}
+
+// 20a. Sur la boutique, juste sous les blocs de reassurance.
+add_action( 'woocommerce_before_shop_loop', 'eauservice_pay_boutique', 8 );
+function eauservice_pay_boutique() {
+	if ( ! ( function_exists( 'is_shop' ) && is_shop() ) ) { return; }
+	if ( function_exists( 'is_paged' ) && is_paged() ) { return; }
+	echo eauservice_bandeau_paiement();
+}
+
+// 20b. Sur la fiche produit, sous le bouton d ajout au panier.
+add_action( 'woocommerce_after_add_to_cart_form', 'eauservice_pay_produit', 20 );
+function eauservice_pay_produit() {
+	echo eauservice_bandeau_paiement();
+}
+
+// 20c. En haut du panier.
+add_action( 'woocommerce_before_cart', 'eauservice_pay_panier', 8 );
+function eauservice_pay_panier() {
+	echo eauservice_bandeau_paiement();
+}
+
+// 20d. Sur la page de commande, juste avant le choix du moyen de paiement.
+//      C est l endroit le plus utile : le client y prend sa decision.
+add_action( 'woocommerce_review_order_before_payment', 'eauservice_pay_commande', 5 );
+function eauservice_pay_commande() {
+	echo eauservice_bandeau_paiement();
 }
