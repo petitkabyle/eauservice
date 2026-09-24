@@ -1012,206 +1012,25 @@ function esToggleBrand(){ esSetBrand(esBrand==='std'?'nes':'std'); }
 
 <!-- ===== SIMULATEUR LIVRAISON : retire de l'accueil (present uniquement dans le Panier) ===== -->
 
-<!-- SEO : donnees structurees -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  "@id": "https://www.events-cafe.com/#eauservice",
-  "name": "EauService by Events Café",
-  "image": "https://eau-service-events.fr/wp-content/uploads/2026/06/pack-complet-nespresso.png",
-  "url": "https://www.events-cafe.com/",
-  "telephone": "+33663240843",
-  "email": "contact@eau-service-events.fr",
-  "priceRange": "€€",
-  "description": "Location de matériel événementiel sur la Côte d'Azur : fontaines à eau, machines à café Nespresso, Lavazza et Covim, réfrigérateurs et mobilier. Livraison, installation et reprise incluses. Devis gratuit sous 24h à Nice, Cannes, Monaco, Antibes et alentours.",
-  "address": {
-    "@type": "PostalAddress",
-    "addressRegion": "Provence-Alpes-Côte d'Azur",
-    "addressCountry": "FR"
-  },
-  "areaServed": [
-    {
-      "@type": "City",
-      "name": "Nice"
-    },
-    {
-      "@type": "City",
-      "name": "Cannes"
-    },
-    {
-      "@type": "City",
-      "name": "Antibes"
-    },
-    {
-      "@type": "City",
-      "name": "Monaco"
-    },
-    {
-      "@type": "City",
-      "name": "Sophia Antipolis"
-    },
-    {
-      "@type": "City",
-      "name": "Grasse"
-    },
-    {
-      "@type": "City",
-      "name": "Mandelieu"
-    },
-    {
-      "@type": "City",
-      "name": "Fréjus"
-    },
-    {
-      "@type": "City",
-      "name": "Saint-Raphaël"
-    },
-    {
-      "@type": "City",
-      "name": "Menton"
-    },
-    {
-      "@type": "City",
-      "name": "Toulon"
-    }
-  ],
-  "openingHoursSpecification": [
-    {
-      "@type": "OpeningHoursSpecification",
-      "dayOfWeek": [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday"
-      ],
-      "opens": "08:00",
-      "closes": "20:00"
-    }
-  ],
-  "sameAs": [
-    "https://www.instagram.com/eventscafe_paca"
-  ],
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.9",
-    "reviewCount": "9",
-    "bestRating": "5",
-    "worstRating": "1"
-  },
-  "review": [
-    {
-      "@type": "Review",
-      "author": {
-        "@type": "Person",
-        "name": "Camille Laurent"
-      },
-      "reviewRating": {
-        "@type": "Rating",
-        "ratingValue": "5",
-        "bestRating": "5"
-      },
-      "reviewBody": "Matériel livré et installé la veille de notre salon, sans la moindre fausse note. Une réactivité rare sur la Côte d'Azur."
-    },
-    {
-      "@type": "Review",
-      "author": {
-        "@type": "Person",
-        "name": "Thomas Mercier"
-      },
-      "reviewRating": {
-        "@type": "Rating",
-        "ratingValue": "5",
-        "bestRating": "5"
-      },
-      "reviewBody": "Le pack complet a équipé nos 4 jours de congrès : fontaines, cafés, frigos. Tout était impeccable."
-    },
-    {
-      "@type": "Review",
-      "author": {
-        "@type": "Person",
-        "name": "Sophie Bernard"
-      },
-      "reviewRating": {
-        "@type": "Rating",
-        "ratingValue": "5",
-        "bestRating": "5"
-      },
-      "reviewBody": "Une demande urgente un vendredi, du matériel installé le lundi. Service simple, professionnel et ponctuel."
-    },
-    {
-      "@type": "Review",
-      "author": {
-        "@type": "Person",
-        "name": "Julien Roche"
-      },
-      "reviewRating": {
-        "@type": "Rating",
-        "ratingValue": "5",
-        "bestRating": "5"
-      },
-      "reviewBody": "Du matériel haut de gamme, livré pile à l'heure pour notre soirée VIP. On refait appel à eux sans hésiter."
-    },
-    {
-      "@type": "Review",
-      "author": {
-        "@type": "Person",
-        "name": "Aurélie Martin"
-      },
-      "reviewRating": {
-        "@type": "Rating",
-        "ratingValue": "5",
-        "bestRating": "5"
-      },
-      "reviewBody": "Fontaines et machines à café impeccables pendant tout le salon. Installation rapide et reprise sans souci."
-    },
-    {
-      "@type": "Review",
-      "author": {
-        "@type": "Person",
-        "name": "Karim Benali"
-      },
-      "reviewRating": {
-        "@type": "Rating",
-        "ratingValue": "5",
-        "bestRating": "5"
-      },
-      "reviewBody": "Une équipe à l'écoute et des tarifs clairs. Le pack complet a impressionné nos exposants."
-    }
-  ],
-  "makesOffer": [
-    {
-      "@type": "Offer",
-      "itemOffered": {
-        "@type": "Service",
-        "name": "Location de fontaines à eau pour événements"
-      }
-    },
-    {
-      "@type": "Offer",
-      "itemOffered": {
-        "@type": "Service",
-        "name": "Location de machines à café Nespresso, Lavazza et Covim"
-      }
-    },
-    {
-      "@type": "Offer",
-      "itemOffered": {
-        "@type": "Service",
-        "name": "Location de réfrigérateurs pour salons et stands"
-      }
-    },
-    {
-      "@type": "Offer",
-      "itemOffered": {
-        "@type": "Service",
-        "name": "Packs événementiels clés en main"
-      }
-    }
-  ]
-}
-</script>
+<!-- ===== SEO : donnees structurees =====
+     Le bloc LocalBusiness qui se trouvait ici a ete retire volontairement.
+
+     Pourquoi : c'est Rank Math qui decrit desormais l'entreprise a Google,
+     et lui seul. Il y avait auparavant DEUX fiches concurrentes sur cette
+     page, avec deux URL differentes (events-cafe.com d'un cote,
+     eau-service-events.fr de l'autre) et deux adresses postales. Google ne
+     pouvait pas savoir laquelle fait foi, ce qui dilue le referencement.
+
+     Le snippet « eauservice-function » ne publie plus de fiche quand Rank
+     Math est actif : il se contente d'AJOUTER a la fiche de Rank Math les
+     informations qu'elle ne contient pas, soit les moyens de paiement, les
+     villes desservies et le lien vers Events Cafe. Voir sa section 21.
+
+     A REMPLIR DANS RANK MATH : Rank Math SEO > Reglages generaux > SEO local
+     (adresse, telephone, horaires, coordonnees GPS, fourchette de prix).
+     C'est la que se modifient ces informations, plus ici.
+
+     Le carrousel de temoignages plus haut dans la page n'a pas ete touche :
+     seul le balisage invisible a ete retire, pas le contenu affiche.
+     ===================================================================== -->
 </div>
