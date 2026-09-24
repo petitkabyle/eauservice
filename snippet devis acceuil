@@ -1,6 +1,56 @@
+/**
+ * ============================================================================
+ *  EAUSERVICE — Traitement du formulaire « Demander un devis » (accueil)
+ *  ---------------------------------------------------------------------------
+ *  À COLLER DANS : Code Snippets > Ajouter un snippet
+ *  Type « Functions (PHP) » + « Exécuter partout », sans balise d ouverture PHP.
+ *
+ *  POUR CHANGER LES ADRESSES QUI RECOIVENT LES DEVIS :
+ *  une seule chose à modifier, la liste dans eauservice_devis_destinataires().
+ * ============================================================================
+ */
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
-if ( ! defined( 'EAUSERVICE_DEVIS_TO' ) ) {
-	define( 'EAUSERVICE_DEVIS_TO', 'contact@events-cafe.fr' ); // <<< TON adresse de réception
+
+/**
+ * Adresses qui recoivent les demandes de devis.
+ *
+ * Chaque adresse recoit son PROPRE e-mail : si l une des boites est en panne,
+ * pleine ou mal orthographiee, les autres sont livrees quand meme.
+ *
+ * Pour retirer une adresse : supprimez simplement sa ligne.
+ * Pour en ajouter une : ajoutez une ligne sur le meme modele.
+ *
+ * Historique : cette liste pointait vers une adresse sur un domaine en .fr
+ * qui n existe pas, sans aucun enregistrement MX. Les journaux YaySMTP
+ * affichaient « Success » parce que le serveur d envoi acceptait le message,
+ * mais celui-ci rebondissait ensuite dans le vide. C est la raison pour
+ * laquelle aucune demande de devis n arrivait, pas meme dans les indesirables.
+ *
+ * @return array Liste d adresses valides, sans doublon.
+ */
+function eauservice_devis_destinataires() {
+	$destinataires = array(
+		'contact@eau-service-events.fr', // boite pro, sur le domaine du site
+		'soane.mansouri@gmail.com',      // copie personnelle
+	);
+
+	// On ecarte les doublons et toute adresse mal formee.
+	$destinataires = array_filter( array_unique( $destinataires ), 'is_email' );
+
+	return array_values( $destinataires );
+}
+
+/**
+ * Journalise les echecs d envoi, tous expediteurs confondus.
+ * Les messages apparaissent dans le journal d erreurs de WordPress
+ * (wp-content/debug.log si WP_DEBUG_LOG est actif).
+ */
+add_action( 'wp_mail_failed', 'eauservice_journaliser_echec_mail' );
+function eauservice_journaliser_echec_mail( $erreur ) {
+	if ( is_wp_error( $erreur ) ) {
+		error_log( 'EauService — envoi e-mail en echec : ' . $erreur->get_error_message() );
+	}
 }
 
 add_action( 'admin_post_eauservice_devis', 'eauservice_devis_handle' );
@@ -8,7 +58,11 @@ add_action( 'admin_post_nopriv_eauservice_devis', 'eauservice_devis_handle' );
 function eauservice_devis_handle() {
 	$home = home_url( '/' );
 	$back = wp_get_referer() ? wp_get_referer() : $home;
+
+	// Piege a robots : le champ cache doit rester vide.
 	if ( ! empty( $_POST['es_website'] ) ) { wp_safe_redirect( add_query_arg( 'es_devis', 'spam', $back ) . '#es-devis' ); exit; }
+
+	// Le formulaire doit venir de ce site.
 	$ref = wp_get_referer();
 	if ( $ref && wp_parse_url( $ref, PHP_URL_HOST ) !== wp_parse_url( $home, PHP_URL_HOST ) ) { wp_safe_redirect( add_query_arg( 'es_devis', 'spam', $home ) . '#es-devis' ); exit; }
 
@@ -30,9 +84,58 @@ function eauservice_devis_handle() {
 	$corps .= '</table><p style="margin:18px 0 6px;font-weight:bold;color:#0F2747;">Besoin / message :</p>';
 	$corps .= '<p style="margin:0;padding:14px;background:#f6f9fc;border-radius:8px;white-space:pre-wrap;line-height:1.6;">' . nl2br( esc_html( $message ) ) . '</p></div></div>';
 
-	$domain  = preg_replace( '/^www\./', '', (string) wp_parse_url( $home, PHP_URL_HOST ) );
-	$headers = array( 'Content-Type: text/html; charset=UTF-8', 'From: ' . $site . ' <no-reply@' . ( $domain ?: 'localhost' ) . '>', 'Reply-To: ' . $nom . ' <' . $email . '>' );
-	$ok = wp_mail( EAUSERVICE_DEVIS_TO, $sujet, $corps, $headers );
+	/*
+	 * EXPÉDITEUR : on ne l impose PAS.
+	 * -------------------------------------------------------------------
+	 * L ancienne version forçait « From: no-reply@<domaine du site> ».
+	 * Quand les e-mails partent par YaySMTP, l expediteur doit correspondre
+	 * au domaine authentifie par le service d envoi (SPF / DKIM / DMARC).
+	 * Un expediteur different est une cause classique de message accepte par
+	 * le serveur, visible dans les journaux, puis rejete silencieusement par
+	 * la boite du destinataire — Gmail en particulier.
+	 *
+	 * En ne mettant pas d en-tete From, c est l adresse configuree dans
+	 * YaySMTP qui est utilisee : celle qui est justement autorisee.
+	 *
+	 * RECOMMANDATION : dans les reglages de YaySMTP, mettez comme expediteur
+	 * une adresse du domaine du site, par exemple contact@eau-service-events.fr
+	 * ou no-reply@eau-service-events.fr. Un expediteur et un destinataire sur
+	 * un domaine reellement existant, c est ce qui garantit la delivrabilite.
+	 *
+	 * Si vous voulez imposer l expediteur depuis ce code plutot que depuis
+	 * YaySMTP, definissez la constante EAUSERVICE_DEVIS_FROM avec une adresse
+	 * de votre domaine d envoi.
+	 */
+	// On retire des caracteres qui ont un sens dans un en-tete e-mail, pour que
+	// le nom du prospect ne puisse ni creer une ligne d en-tete (retour chariot)
+	// ni ressembler a une directive du type « Bcc: ».
+	$nom_entete = trim( preg_replace( '/[\r\n,<>";:]+/', ' ', $nom ) );
+	$nom_entete = trim( preg_replace( '/\s+/', ' ', $nom_entete ) );
+	$headers    = array(
+		'Content-Type: text/html; charset=UTF-8',
+		'Reply-To: "' . $nom_entete . '" <' . $email . '>',
+	);
+	if ( defined( 'EAUSERVICE_DEVIS_FROM' ) && is_email( EAUSERVICE_DEVIS_FROM ) ) {
+		$headers[] = 'From: ' . $site . ' <' . EAUSERVICE_DEVIS_FROM . '>';
+	}
+
+	// Un envoi par destinataire : un echec n empeche pas les autres.
+	$destinataires = eauservice_devis_destinataires();
+	if ( empty( $destinataires ) ) {
+		error_log( 'EauService — demande de devis de ' . $email . ' NON envoyee : aucune adresse de reception valide.' );
+		wp_safe_redirect( add_query_arg( 'es_devis', 'err', $back ) . '#es-devis' );
+		exit;
+	}
+
+	$ok = false;
+	foreach ( $destinataires as $destinataire ) {
+		if ( wp_mail( $destinataire, $sujet, $corps, $headers ) ) {
+			$ok = true;
+		} else {
+			error_log( 'EauService — devis non envoye a ' . $destinataire . ' (demande de ' . $email . ').' );
+		}
+	}
+
 	wp_safe_redirect( add_query_arg( 'es_devis', $ok ? 'ok' : 'err', $back ) . '#es-devis' );
 	exit;
 }

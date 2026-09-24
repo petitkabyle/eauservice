@@ -1387,26 +1387,10 @@ body.woocommerce-cart .es-simul-devis{
 
 
 /* ===================================================================== */
-/*  v26 — PAGE PANIER : UN SEUL SIMULATEUR + BULLE TOTAL QUI NE RECOUVRE */
-/*        PLUS RIEN                                                      */
+/*  v26 — PAGE PANIER : MISE EN PAGE DU SIMULATEUR ET DE LA BULLE TOTAL  */
 /* ===================================================================== */
 
-/* --- 1) On masque l'ancien simulateur colle dans Elementor ------------ */
-/*     Le script PHP (section 19 du snippet) le retire ensuite du DOM.    */
-/*     Le masquer en CSS evite qu'il apparaisse une fraction de seconde.  */
-#es-simulateur,
-body.woocommerce-cart #es-simulateur,
-body.woocommerce-checkout #es-simulateur{
-  display:none !important;
-}
-/* Filet de securite : le bloc Elementor qui contient le champ code postal */
-/* de l'ancien simulateur, au cas ou son identifiant aurait ete change.    */
-body.woocommerce-cart .elementor-widget-html:has(#es-sim-cp),
-body.woocommerce-cart .elementor-widget-text-editor:has(#es-sim-cp){
-  display:none !important;
-}
-
-/* --- 2) Le nouveau simulateur occupe sa propre ligne, pleine largeur -- */
+/* --- 1) Le simulateur occupe sa propre ligne, pleine largeur ---------- */
 /*     Sans cela il devient un element flex de la grille 2 colonnes de la */
 /*     v20 et vient se glisser a cote du recapitulatif.                   */
 body.woocommerce-cart .woocommerce .es-simul,
@@ -1417,7 +1401,7 @@ body.woocommerce-cart .es-simul{
   position:relative !important; z-index:1 !important;
 }
 
-/* --- 3) La bulle "Total panier" ne suit plus le defilement ------------ */
+/* --- 2) La bulle "Total panier" ne suit plus le defilement ------------ */
 /*     La v21 la rendait sticky. Comme le simulateur se trouve SOUS les   */
 /*     deux colonnes et que le sticky se deplace dans tout le conteneur   */
 /*     flex, la bulle descendait par-dessus le simulateur et masquait ses */
