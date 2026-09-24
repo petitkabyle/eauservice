@@ -21,17 +21,17 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  * Pour retirer une adresse : supprimez simplement sa ligne.
  * Pour en ajouter une : ajoutez une ligne sur le meme modele.
  *
- * Historique : cette liste contenait « contact@events-cafe.fr », en .fr.
- * Cette boite n existe pas. Les journaux YaySMTP affichaient « Success »
- * parce que le serveur d envoi acceptait le message, mais il rebondissait
- * ensuite dans le vide. C est la raison pour laquelle aucun devis n arrivait.
+ * Historique : cette liste pointait vers une adresse sur un domaine en .fr
+ * qui n existe pas, sans aucun enregistrement MX. Les journaux YaySMTP
+ * affichaient « Success » parce que le serveur d envoi acceptait le message,
+ * mais celui-ci rebondissait ensuite dans le vide. C est la raison pour
+ * laquelle aucune demande de devis n arrivait, pas meme dans les indesirables.
  *
  * @return array Liste d adresses valides, sans doublon.
  */
 function eauservice_devis_destinataires() {
 	$destinataires = array(
-		'contact@eau-service-events.fr', // boite pro sur le domaine du site
-		'contact@events-cafe.com',       // boite historique
+		'contact@eau-service-events.fr', // boite pro, sur le domaine du site
 		'soane.mansouri@gmail.com',      // copie personnelle
 	);
 

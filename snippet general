@@ -637,7 +637,7 @@ function eauservice_organization_schema() {
 		'description' => 'Location de machines à café professionnelles, fontaines à eau et matériel événementiel sur la Côte d\'Azur pour salons, congrès et événements. Livraison sous 24h à Cannes, Nice, Monaco, Antibes.',
 		'slogan' => 'Votre partenaire location événementielle sur la Côte d\'Azur',
 		'telephone' => '+33-6-63-24-08-43',
-		'email' => 'contact@eau-service-events.fr',
+		'email' => eauservice_email_contact(), // voir section 19
 		'address' => array(
 			'@type' => 'PostalAddress',
 			'streetAddress' => '2 chemin des Frères Garberro, Galerie Marchande',
@@ -916,7 +916,7 @@ function eauservice_thankyou_contact( $order_id ) {
 	// ---- À PERSONNALISER ----------------------------------------------
 	$tel       = '+33663240843';                 // numéro au format international (sans espaces) pour le lien
 	$tel_affit = '06 63 24 08 43';               // numéro affiché
-	$email     = 'contact@eau-service-events.fr';
+	$email     = eauservice_email_contact();     // voir section 19
 	$devis_url = '#es-devis';                        // ancre vers section devis
 	// -------------------------------------------------------------------
 	?>
@@ -948,7 +948,7 @@ function eauservice_email_contact_block( $order, $sent_to_admin, $plain_text, $e
 	if ( $sent_to_admin || $plain_text ) { return; }
 	// ---- À PERSONNALISER ----------------------------------------------
 	$tel_affit = '06 63 24 08 43';
-	$email_pro = 'contact@eau-service-events.fr';
+	$email_pro = eauservice_email_contact(); // voir section 19
 	// -------------------------------------------------------------------
 	echo '<div style="margin:24px 0;padding:20px 24px;background:#EAF2FB;border-radius:12px;border-left:4px solid #1E6FD9;">';
 	echo '<p style="margin:0 0 6px;font-weight:bold;color:#0A1628;font-size:15px;">Une question sur votre commande&nbsp;?</p>';
@@ -1384,3 +1384,61 @@ function eauservice_simulateur_livraison() {
 }
 
 
+
+
+/* ===========================================================================
+ * 19) ADRESSE DE CONTACT ET E-MAILS DE COMMANDE WOOCOMMERCE
+ *     ------------------------------------------------------------------
+ *     >>> POUR CHANGER L ADRESSE DE CONTACT DU SITE : une seule ligne,
+ *         celle de eauservice_email_contact() juste en dessous. <<<
+ *
+ *     Cette adresse sert partout : donnees structurees pour Google, page de
+ *     remerciement, bas des e-mails client, et notifications de commande.
+ *     Avant, elle etait recopiee a la main a plusieurs endroits, ce qui a
+ *     deja provoque une divergence. Desormais il n y a qu une source.
+ *
+ *     L adresse DOIT appartenir a un domaine autorise a envoyer et a recevoir
+ *     (MX, SPF et DKIM en place). C est le cas de eau-service-events.fr.
+ * =========================================================================== */
+
+/** L unique adresse de contact du site. */
+function eauservice_email_contact() {
+	return 'contact@eau-service-events.fr';
+}
+
+/**
+ * Adresses averties a chaque nouvelle commande, commande annulee ou echouee.
+ * Ajoutez une ligne pour prevenir quelqu un de plus.
+ */
+function eauservice_email_commandes() {
+	$destinataires = array(
+		eauservice_email_contact(),
+		// 'soane.mansouri@gmail.com', // retirez le // devant pour recevoir une copie
+	);
+	return implode( ',', array_filter( array_unique( $destinataires ), 'is_email' ) );
+}
+
+// 19a. Destinataires des notifications de commande.
+//      Ces filtres remplacent le champ « Destinataire(s) » des reglages
+//      WooCommerce : c est cette liste qui fait foi, pas l interface.
+add_filter( 'woocommerce_email_recipient_new_order',       'eauservice_destinataires_commande', 20 );
+add_filter( 'woocommerce_email_recipient_cancelled_order', 'eauservice_destinataires_commande', 20 );
+add_filter( 'woocommerce_email_recipient_failed_order',    'eauservice_destinataires_commande', 20 );
+function eauservice_destinataires_commande( $destinataire ) {
+	$liste = eauservice_email_commandes();
+	return $liste ? $liste : $destinataire; // en cas de liste vide, on ne casse rien
+}
+
+// 19b. Expediteur des e-mails WooCommerce.
+//      Indispensable pour la delivrabilite : l expediteur doit etre sur un
+//      domaine dont le SPF et le DKIM autorisent votre service d envoi.
+//      Si YaySMTP force son propre expediteur, c est le sien qui s applique.
+add_filter( 'woocommerce_email_from_address', 'eauservice_expediteur_woocommerce', 20 );
+function eauservice_expediteur_woocommerce( $adresse ) {
+	return eauservice_email_contact();
+}
+
+add_filter( 'woocommerce_email_from_name', 'eauservice_nom_expediteur_woocommerce', 20 );
+function eauservice_nom_expediteur_woocommerce( $nom ) {
+	return 'EauService';
+}

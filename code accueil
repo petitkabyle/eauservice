@@ -804,7 +804,7 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
     </div>
     <div class="cta-direct">
       <a href="tel:+33663240843" class="cta-direct-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;display:inline-block;vertical-align:middle"><path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2"></path></svg><span>06 63 24 08 43</span></a>
-      <a href="mailto:contact@events-cafe.com" class="cta-direct-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;display:inline-block;vertical-align:middle"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"></path><path d="M3 7l9 6l9 -6"></path></svg><span>contact@events-cafe.com</span></a>
+      <a href="mailto:contact@eau-service-events.fr" class="cta-direct-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;display:inline-block;vertical-align:middle"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"></path><path d="M3 7l9 6l9 -6"></path></svg><span>contact@eau-service-events.fr</span></a>
     </div>
   </div>
 </section></div>
@@ -818,7 +818,7 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
       <p data-fr="Quelques infos rapides et on vous envoie un devis personnalisé sous 24h. Sans engagement." data-en="A few quick details and we'll send you a custom quote within 24h. No commitment.">Quelques infos rapides et on vous envoie un devis personnalisé sous 24h. Sans engagement.</p>
     </div>
     <div class="esd-alert esd-ok" id="esd-ok" style="display:none" data-fr="✅ Merci ! Votre demande de devis a bien été envoyée. Réponse sous 24h." data-en="✅ Thank you! Your quote request has been sent. We reply within 24h.">✅ Merci ! Votre demande de devis a bien été envoyée. Réponse sous 24h.</div>
-    <div class="esd-alert esd-err" id="esd-err" style="display:none">⚠️ Une erreur est survenue. Réessayez, ou écrivez-nous à <a href="mailto:contact@events-cafe.com">contact@events-cafe.com</a>.</div>
+    <div class="esd-alert esd-err" id="esd-err" style="display:none">⚠️ Une erreur est survenue. Réessayez, ou écrivez-nous à <a href="mailto:contact@eau-service-events.fr">contact@eau-service-events.fr</a>.</div>
     <form class="esd-form" action="/wp-admin/admin-post.php" method="post">
       <input type="hidden" name="action" value="eauservice_devis">
       <div class="esd-hp" aria-hidden="true"><label>Ne pas remplir<input type="text" name="es_website" tabindex="-1" autocomplete="off"></label></div>
@@ -880,7 +880,7 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
     </div>
     <div><div class="foot-ct" data-fr="Nos équipements" data-en="Our equipment">Nos équipements</div><ul class="foot-links"><li><a href="#packs" data-fr="Packs" data-en="Packs">Packs</a></li><li><a href="#produits" data-fr="Machines à café" data-en="Coffee machines">Machines à café</a></li><li><a href="#produits" data-fr="Fontaines à eau" data-en="Water fountains">Fontaines à eau</a></li><li><a href="#produits" data-fr="Réfrigération" data-en="Refrigeration">Réfrigération</a></li></ul></div>
     <div><div class="foot-ct" data-fr="Société" data-en="Company">Société</div><ul class="foot-links"><li><a href="#forces" data-fr="Nos forces" data-en="Our strengths">Nos forces</a></li><li><a href="#contact">Contact</a></li><li><a href="/boutique/" data-fr="Boutique" data-en="Shop">Boutique</a></li></ul></div>
-    <div><div class="foot-ct" data-fr="Contact" data-en="Contact">Contact</div><ul class="foot-links"><li><a href="tel:+33663240843">06 63 24 08 43</a></li><li><a href="mailto:contact@events-cafe.com">contact@events-cafe.com</a></li><li><span data-fr="Monaco · Nice · Cannes · Marseille" data-en="Monaco · Nice · Cannes · Marseille">Monaco · Nice · Cannes · Marseille</span></li></ul></div>
+    <div><div class="foot-ct" data-fr="Contact" data-en="Contact">Contact</div><ul class="foot-links"><li><a href="tel:+33663240843">06 63 24 08 43</a></li><li><a href="mailto:contact@eau-service-events.fr">contact@eau-service-events.fr</a></li><li><span data-fr="Monaco · Nice · Cannes · Marseille" data-en="Monaco · Nice · Cannes · Marseille">Monaco · Nice · Cannes · Marseille</span></li></ul></div>
   </div>
   <div class="foot-bottom" data-fr="© 2025 EauService by Events Café — Tous droits réservés" data-en="© 2025 EauService by Events Café — All rights reserved">© 2025 EauService by Events Café — Tous droits réservés</div>
 </footer>
@@ -1022,7 +1022,7 @@ function esToggleBrand(){ esSetBrand(esBrand==='std'?'nes':'std'); }
   "image": "https://eau-service-events.fr/wp-content/uploads/2026/06/pack-complet-nespresso.png",
   "url": "https://www.events-cafe.com/",
   "telephone": "+33663240843",
-  "email": "contact@events-cafe.com",
+  "email": "contact@eau-service-events.fr",
   "priceRange": "€€",
   "description": "Location de matériel événementiel sur la Côte d'Azur : fontaines à eau, machines à café Nespresso, Lavazza et Covim, réfrigérateurs et mobilier. Livraison, installation et reprise incluses. Devis gratuit sous 24h à Nice, Cannes, Monaco, Antibes et alentours.",
   "address": {
