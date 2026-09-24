@@ -1124,35 +1124,32 @@ function eauservice_appliquer_frais_livraison( $cart ) {
 
 	$c = WC()->customer;
 	
-	// Récupérer le code postal et la ville
-	$cp    = $c->get_billing_postcode();
-	$ville = $c->get_billing_city();
+	// Récupérer le code postal et la ville (priorité FACTURATION)
+	$cp    = trim( $c->get_billing_postcode() );
+	$ville = trim( $c->get_billing_city() );
 	
-	// Essayer l'adresse de livraison si elle existe
-	if ( ! empty( $c->get_shipping_postcode() ) ) {
-		$cp = $c->get_shipping_postcode();
-		$ville = $c->get_shipping_city();
+	// Si l'adresse de livraison est remplie, utiliser celle-ci à la place
+	$cp_shipping = trim( $c->get_shipping_postcode() );
+	if ( ! empty( $cp_shipping ) ) {
+		$cp = $cp_shipping;
+		$ville = trim( $c->get_shipping_city() );
 	}
 	
-	// Si aucun code postal, ne rien faire
-	if ( empty( $cp ) ) {
-		return;
+	// TRÈS IMPORTANT : Si code postal vide OU invalide, N'AJOUTER AUCUN FRAIS
+	if ( empty( $cp ) || strlen( $cp ) < 5 ) {
+		return; // Pas de code postal = pas de frais
 	}
 	
-	// Calculer le tarif
+	// Calculer le tarif selon le code postal
 	$tarif = eauservice_get_tarif_livraison( $cp, $ville );
 	
-	// Si pas de tarif trouvé, ne rien ajouter
+	// Si pas de tarif trouvé (null), ne rien ajouter
 	if ( null === $tarif['montant'] ) {
 		return;
 	}
 	
-	// Ajouter les frais
-	if ( 0 === $tarif['montant'] ) {
-		$cart->add_fee( $tarif['libelle'], 0, false );
-	} else {
-		$cart->add_fee( $tarif['libelle'], $tarif['montant'], false );
-	}
+	// Ajouter les frais calculés
+	$cart->add_fee( $tarif['libelle'], $tarif['montant'], false );
 }
 
 // 15b. Message au checkout : tarif sur mesure + code promo possibles.
@@ -1172,17 +1169,83 @@ function eauservice_note_livraison() {
  * =========================================================================== */
 add_action( 'wp_footer', 'eauservice_force_cart_refresh_checkout' );
 function eauservice_force_cart_refresh_checkout() {
-	if ( ! ( function_exists( 'is_checkout' ) && is_checkout() ) ) { 
-		return; 
-	}
-	?>
-	<script type="text/javascript">
-	jQuery(function($) {
-		$(document.body).on('change', '#billing_postcode, #shipping_postcode', function() {
-			$(document.body).trigger('update_checkout');
+	// Sur la page PANIER
+	if ( function_exists( 'is_cart' ) && is_cart() ) {
+		?>
+		<script type="text/javascript">
+		jQuery(function($) {
+			// Mettre à jour les frais quand on clique sur "Mettre à jour le panier"
+			$('[name="update_cart"]').on('click', function() {
+				setTimeout(function() {
+					$(document.body).trigger('wc_update_cart');
+				}, 100);
+			});
 		});
-	});
-	</script>
+		</script>
+		<?php
+	}
+	
+	// Sur la page CHECKOUT
+	if ( function_exists( 'is_checkout' ) && is_checkout() ) {
+		?>
+		<script type="text/javascript">
+		jQuery(function($) {
+			// Recalculer dès qu'on change le code postal
+			$(document.body).on('change blur', '#billing_postcode, #shipping_postcode', function() {
+				console.log('🚚 Code postal changé → mise à jour checkout');
+				$(document.body).trigger('update_checkout');
+			});
+			
+			// Aussi quand on change la ville (pour les cas ambigus)
+			$(document.body).on('change blur', '#billing_city, #shipping_city', function() {
+				console.log('🏙️ Ville changée → mise à jour checkout');
+				$(document.body).trigger('update_checkout');
+			});
+		});
+		</script>
+		<?php
+	}
+}
+
+// DEBUG : Afficher les informations détectées sur le checkout (TEMPORAIRE)
+add_action( 'woocommerce_review_order_after_order_total', 'eauservice_debug_shipping_info', 1 );
+function eauservice_debug_shipping_info() {
+	if ( ! WC()->customer ) { return; }
+	
+	$c = WC()->customer;
+	$cp_billing  = trim( $c->get_billing_postcode() );
+	$cp_shipping = trim( $c->get_shipping_postcode() );
+	$ville_billing  = trim( $c->get_billing_city() );
+	$ville_shipping = trim( $c->get_shipping_city() );
+	
+	// Code postal utilisé (même logique que la fonction principale)
+	$cp = $cp_billing;
+	$ville = $ville_billing;
+	if ( ! empty( $cp_shipping ) ) {
+		$cp = $cp_shipping;
+		$ville = $ville_shipping;
+	}
+	
+	?>
+	<tr class="eauservice-debug">
+		<td colspan="2" style="background:#fffbcc;border:2px solid #ffa500;padding:12px;font-size:12px;">
+			<strong style="color:#d84315;">🐛 DEBUG (supprimer après test)</strong><br>
+			<small>
+				<strong>Facturation:</strong> CP=<code><?php echo esc_html( $cp_billing ? $cp_billing : '(vide)' ); ?></code> 
+				Ville=<code><?php echo esc_html( $ville_billing ? $ville_billing : '(vide)' ); ?></code><br>
+				<strong>Livraison:</strong> CP=<code><?php echo esc_html( $cp_shipping ? $cp_shipping : '(vide)' ); ?></code> 
+				Ville=<code><?php echo esc_html( $ville_shipping ? $ville_shipping : '(vide)' ); ?></code><br>
+				<strong style="color:#388e3c;">→ UTILISÉ:</strong> CP=<strong><?php echo esc_html( $cp ? $cp : '❌ AUCUN' ); ?></strong> 
+				Ville=<strong><?php echo esc_html( $ville ? $ville : '❌ AUCUNE' ); ?></strong>
+				<?php if ( ! empty( $cp ) && strlen( $cp ) >= 5 ) : 
+					$tarif = eauservice_get_tarif_livraison( $cp, $ville );
+				?>
+				<br><strong style="color:#1976d2;">💰 Tarif calculé:</strong> 
+				<?php echo esc_html( $tarif['montant'] ); ?> € - <?php echo esc_html( $tarif['libelle'] ); ?>
+				<?php endif; ?>
+			</small>
+		</td>
+	</tr>
 	<?php
 }
 
