@@ -1261,3 +1261,175 @@ html::before{
   animation:esWaterReveal .95s cubic-bezier(.76,0,.24,1) .05s forwards;
 }
 @media(prefers-reduced-motion:reduce){html::before{display:none !important}}
+
+
+
+/* ===================================================================== */
+/*  v25 — MENU "ZONE DE LIVRAISON" (checkout)                            */
+/*  Meme probleme que le menu Pays corrige en v24 : le select heritait    */
+/*  d'une hauteur trop faible, le texte de l'option apparaissait coupe    */
+/*  en deux. La section v19 stylait input et textarea mais pas select.    */
+/* ===================================================================== */
+body.woocommerce-checkout .es-event-section select,
+body.woocommerce-checkout select#es_delivery_zone{
+  -webkit-appearance:none !important; -moz-appearance:none !important; appearance:none !important;
+  width:100% !important; box-sizing:border-box !important;
+  height:52px !important; min-height:52px !important; max-height:none !important;
+  line-height:normal !important;
+  padding:0 42px 0 14px !important; margin:0 !important;
+  background-color:#fff !important;
+  border:1.5px solid #dde5ec !important; border-radius:11px !important;
+  color:#0a2942 !important; font-size:14.5px !important; font-weight:600 !important;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  transition:border-color .2s, box-shadow .2s;
+  /* chevron dessine en SVG, puisque la fleche native est desactivee */
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%231b9fd1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-repeat:no-repeat !important;
+  background-position:right 15px center !important;
+  background-size:14px 9px !important;
+}
+body.woocommerce-checkout .es-event-section select:focus,
+body.woocommerce-checkout select#es_delivery_zone:focus{
+  outline:none !important; border-color:#1b9fd1 !important;
+  box-shadow:0 0 0 4px rgba(46,182,230,.12) !important;
+}
+/* la liste ouverte : on rend la main au navigateur pour que les options  */
+/* s'affichent en entier, sans hauteur imposee ni texte rogne.            */
+body.woocommerce-checkout .es-event-section select option{
+  height:auto !important; line-height:1.5 !important;
+  padding:8px 10px !important; color:#0a2942 !important; background:#fff !important;
+  white-space:normal !important;
+}
+/* l'option vide (placeholder) en gris, pour bien marquer le choix a faire */
+body.woocommerce-checkout .es-event-section select option[value=""]{
+  color:#8ba6c2 !important;
+}
+/* la ligne du select ne doit jamais ecraser son contenu */
+body.woocommerce-checkout .es-event-section #es_delivery_zone_field{
+  overflow:visible !important;
+}
+
+/* ===================================================================== */
+/*  v25b — SIMULATEUR DE FRAIS DE LIVRAISON (bas de la page Panier)      */
+/*  Genere par le snippet PHP, tarifs synchronises avec le checkout.     */
+/* ===================================================================== */
+body.woocommerce-cart .es-simul{
+  clear:both; width:100%; box-sizing:border-box;
+  margin:34px 0 10px; padding:28px 30px 26px;
+  background:linear-gradient(180deg,#FFFFFF 0%,#eaf3fb 100%);
+  border:1.5px solid #C5D9F6; border-radius:24px;
+  box-shadow:0 24px 54px rgba(10,41,66,.16), inset 0 5px 0 #1b9fd1;
+  font-family:'Manrope',system-ui,-apple-system,sans-serif;
+}
+body.woocommerce-cart .es-simul h2{
+  display:inline-block; margin:0 0 10px; padding:11px 22px;
+  background:linear-gradient(135deg,#0a2942,#1b9fd1);
+  color:#fff !important; -webkit-text-fill-color:#fff;
+  border-radius:30px; font-size:16px; font-weight:900; letter-spacing:.3px;
+  box-shadow:0 10px 24px rgba(46,182,230,.28);
+}
+body.woocommerce-cart .es-simul h2::before{ display:none !important; content:none !important; }
+body.woocommerce-cart .es-simul .es-simul-intro{
+  color:#5b6b7d; font-size:13.5px; line-height:1.6; margin:8px 0 18px;
+}
+body.woocommerce-cart .es-simul label{
+  display:block; color:#0a2942; font-weight:700; font-size:13.5px; margin:0 0 6px;
+}
+body.woocommerce-cart .es-simul select{
+  -webkit-appearance:none; -moz-appearance:none; appearance:none;
+  width:100%; box-sizing:border-box; height:52px; line-height:normal;
+  padding:0 42px 0 14px; margin:0;
+  background-color:#fff; border:1.5px solid #dde5ec; border-radius:11px;
+  color:#0a2942; font-size:14.5px; font-weight:600;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  transition:border-color .2s, box-shadow .2s;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%231b9fd1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 15px center; background-size:14px 9px;
+}
+body.woocommerce-cart .es-simul select:focus{
+  outline:none; border-color:#1b9fd1; box-shadow:0 0 0 4px rgba(46,182,230,.12);
+}
+body.woocommerce-cart .es-simul-result{
+  margin:16px 0 0; padding:15px 18px; border-radius:14px;
+  background:#e7f7fe; border:1px solid #c7ebfa;
+  color:#0a2942; font-size:15px; line-height:1.55;
+}
+body.woocommerce-cart .es-simul-result strong{ color:#0f6f99; }
+body.woocommerce-cart .es-simul-result .es-simul-amount{
+  font-family:'Sora',system-ui,sans-serif; font-size:23px; font-weight:800; color:#0a2942;
+}
+body.woocommerce-cart .es-simul-actions{
+  display:flex; flex-wrap:wrap; gap:11px; margin:18px 0 0;
+}
+body.woocommerce-cart .es-simul-actions a{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:12px 20px; border-radius:11px;
+  font-size:14px; font-weight:700; text-decoration:none; line-height:1.2;
+  transition:transform .15s, box-shadow .15s;
+}
+body.woocommerce-cart .es-simul-actions a:hover{ transform:translateY(-1px); }
+body.woocommerce-cart .es-simul-tel{
+  background:linear-gradient(135deg,#1b9fd1,#2eb6e6); color:#fff !important;
+  box-shadow:0 8px 20px rgba(46,182,230,.32);
+}
+body.woocommerce-cart .es-simul-wa{
+  background:#25D366; color:#fff !important;
+  box-shadow:0 8px 20px rgba(37,211,102,.3);
+}
+body.woocommerce-cart .es-simul-devis{
+  background:#fff; color:#1b9fd1 !important; border:1.5px solid #1b9fd1;
+}
+@media(max-width:600px){
+  body.woocommerce-cart .es-simul{ padding:22px 18px; border-radius:18px; }
+  body.woocommerce-cart .es-simul-actions a{ flex:1 1 100%; justify-content:center; }
+}
+
+
+
+/* ===================================================================== */
+/*  v26 — PAGE PANIER : UN SEUL SIMULATEUR + BULLE TOTAL QUI NE RECOUVRE */
+/*        PLUS RIEN                                                      */
+/* ===================================================================== */
+
+/* --- 1) On masque l'ancien simulateur colle dans Elementor ------------ */
+/*     Le script PHP (section 19 du snippet) le retire ensuite du DOM.    */
+/*     Le masquer en CSS evite qu'il apparaisse une fraction de seconde.  */
+#es-simulateur,
+body.woocommerce-cart #es-simulateur,
+body.woocommerce-checkout #es-simulateur{
+  display:none !important;
+}
+/* Filet de securite : le bloc Elementor qui contient le champ code postal */
+/* de l'ancien simulateur, au cas ou son identifiant aurait ete change.    */
+body.woocommerce-cart .elementor-widget-html:has(#es-sim-cp),
+body.woocommerce-cart .elementor-widget-text-editor:has(#es-sim-cp){
+  display:none !important;
+}
+
+/* --- 2) Le nouveau simulateur occupe sa propre ligne, pleine largeur -- */
+/*     Sans cela il devient un element flex de la grille 2 colonnes de la */
+/*     v20 et vient se glisser a cote du recapitulatif.                   */
+body.woocommerce-cart .woocommerce .es-simul,
+body.woocommerce-cart .es-simul{
+  flex:0 0 100% !important; max-width:100% !important; width:100% !important;
+  order:99 !important;          /* toujours en dernier, tout en bas */
+  align-self:stretch !important;
+  position:relative !important; z-index:1 !important;
+}
+
+/* --- 3) La bulle "Total panier" ne suit plus le defilement ------------ */
+/*     La v21 la rendait sticky. Comme le simulateur se trouve SOUS les   */
+/*     deux colonnes et que le sticky se deplace dans tout le conteneur   */
+/*     flex, la bulle descendait par-dessus le simulateur et masquait ses */
+/*     informations. On la remet dans le flux : elle reste en haut a       */
+/*     droite, bien visible, et ne recouvre plus rien.                    */
+@media(min-width:993px){
+  body.woocommerce-cart .woocommerce .cart-collaterals{
+    position:static !important;
+    top:auto !important;
+    align-self:flex-start !important;
+  }
+  body.woocommerce-cart .woocommerce .cart-collaterals .cart_totals{
+    position:static !important;
+  }
+}
