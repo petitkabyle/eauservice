@@ -1089,10 +1089,11 @@ function eauservice_auto_alt( $attr, $attachment ) {
  *       Antibes (06600, 06160) = GRATUIT
  *       Cannes (06400, 06150, 06110, 06210, 06220, 06590) = 30 €
  *       Nice (06000, 06100, 06200, 06300) = 50 €
- *       Monaco (98000, 98xxx) = 50 €
+ *       Monaco (98000, 98xxx) = 100 €
+ *       Saint-Tropez (83990, 83350, 83580) = 150 €
  *       Autres villes Alpes-Maritimes (06xxx) = 80 €
  *       Var (83xxx) = 100 €
- *       Autres départements = 200 €
+ *       Autres départements = 150 €
  *     
  *     Le système reconnaît automatiquement la ville via le code postal.
  *     Si besoin d'ajuster : modifiez la fonction eauservice_get_tarif_livraison()
