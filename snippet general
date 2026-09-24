@@ -5,10 +5,10 @@
  *  OÙ COLLER CE CODE ?
  *  Option A (recommandée) : installer l'extension gratuite « Code Snippets »,
  *    créer un nouveau snippet, coller TOUT le contenu ci-dessous (SANS la
- *    premiere ligne <?php), choisir « Exécuter partout » et activer.
+ *    premiere ligne d ouverture PHP), choisir « Exécuter partout » et activer.
  *  Option B : coller dans le fichier functions.php de votre THEME ENFANT
  *    (Apparence > Editeur de fichiers > functions.php), à la fin du fichier,
- *    cette fois EN GARDANT tout y compris après <?php.
+ *    cette fois EN GARDANT tout le contenu du fichier.
  *
  *  Ce fichier gère 3 choses :
  *   1) L'ORDRE des produits dans la boutique (packs en premier, dans l'ordre).
@@ -190,92 +190,122 @@ function eauservice_uncrop_thumbnail( $size ) {
 
 
 /* ===========================================================================
- * 6) LIVRAISON ÉVÉNEMENTIELLE — FRAIS AUTOMATIQUES BASÉS SUR LA ZONE
- *    Menu déroulant avec calcul automatique des frais de livraison
- *    selon la zone sélectionnée (Antibes gratuit, Cannes +30€, etc.)
+ * 6) LIVRAISON ÉVÉNEMENTIELLE — champs personnalisés sur la commande
+ *    ---------------------------------------------------------------------
+ *    RÈGLE IMPORTANTE : les frais de livraison sont pilotés UNIQUEMENT par
+ *    le menu déroulant « Zone de livraison » ci-dessous (voir section 15).
+ *    L adresse de FACTURATION n a plus aucun effet sur les frais.
+ *
+ *    Champs obligatoires : zone, adresse exacte, contact sur place (nom +
+ *    téléphone), date de livraison, date de reprise.
+ *    Champs facultatifs : créneaux horaires, instructions d accès, notes.
  * =========================================================================== */
 
-// Liste des champs essentiels
+/**
+ * Zones de livraison et tarifs associés.
+ * C est LA SEULE source de vérité : modifiez les montants ici et ils sont
+ * répercutés partout (menu déroulant, calcul des frais, e-mails, admin).
+ */
+function eauservice_delivery_zones() {
+	return array(
+		'antibes'      => array(
+			'label'   => 'Antibes / Juan-les-Pins',
+			'montant' => 0,
+			'libelle' => 'Livraison offerte (Antibes)',
+		),
+		'cannes'       => array(
+			'label'   => 'Cannes et alentours',
+			'montant' => 30,
+			'libelle' => 'Frais de livraison & installation (Cannes)',
+		),
+		'nice'         => array(
+			'label'   => 'Nice et alentours',
+			'montant' => 50,
+			'libelle' => 'Frais de livraison & installation (Nice)',
+		),
+		'monaco'       => array(
+			'label'   => 'Monaco et alentours',
+			'montant' => 100,
+			'libelle' => 'Frais de livraison & installation (Monaco)',
+		),
+		'saint_tropez' => array(
+			'label'   => 'Saint-Tropez et alentours',
+			'montant' => 150,
+			'libelle' => 'Frais de livraison & installation (Saint-Tropez)',
+		),
+		'var'          => array(
+			'label'   => 'Autre ville du Var (83)',
+			'montant' => 100,
+			'libelle' => 'Frais de livraison & installation (Var)',
+		),
+	);
+}
+
+/** Construit les options du menu déroulant à partir des zones ci-dessus. */
+function eauservice_delivery_zone_options() {
+	$options = array( '' => 'Sélectionnez votre zone de livraison' );
+	foreach ( eauservice_delivery_zones() as $key => $zone ) {
+		$suffix          = ( 0 == $zone['montant'] ) ? 'livraison offerte' : '+ ' . $zone['montant'] . ' €';
+		$options[ $key ] = $zone['label'] . ' — ' . $suffix;
+	}
+	return $options;
+}
+
+/** Liste centralisée des champs (clé => libellé) pour admin + e-mails. */
 function eauservice_event_fields_list() {
 	return array(
 		'es_delivery_zone'  => 'Zone de livraison',
-		'es_venue_address'  => 'Adresse complète',
+		'es_venue_address'  => 'Adresse exacte de livraison',
 		'es_onsite_contact' => 'Contact sur place (nom)',
-		'es_onsite_phone'   => 'Téléphone',
+		'es_onsite_phone'   => 'Téléphone du contact sur place',
 		'es_delivery_date'  => 'Date de livraison',
-		'es_delivery_time'  => 'Créneau horaire livraison',
+		'es_delivery_time'  => 'Créneau horaire de livraison',
 		'es_pickup_date'    => 'Date de reprise',
-		'es_pickup_time'    => 'Créneau horaire reprise',
-		'es_access_notes'   => 'Instructions d'accès (facultatif)',
+		'es_pickup_time'    => 'Créneau horaire de reprise',
+		'es_access_notes'   => 'Instructions d\'accès',
+		'es_extra_notes'    => 'Notes complémentaires',
 	);
 }
 
-// Tarifs par zone (utilisé pour le calcul ET l'affichage)
-function eauservice_delivery_zones() {
-	return array(
-		''            => '-- Sélectionnez une zone --',
-		'antibes'     => 'Antibes / Juan-les-Pins (GRATUIT)',
-		'cannes'      => 'Alentours de Cannes (+30€)',
-		'nice'        => 'Alentours de Nice (+50€)',
-		'monaco'      => 'Alentours de Monaco (+100€)',
-		'saint_tropez'=> 'Alentours de Saint-Tropez (+150€)',
-		'var'         => 'Autre ville du Var (+100€)',
-	);
-}
-
-// Conversion zone → prix
-function eauservice_zone_to_price( $zone ) {
-	$prices = array(
-		'antibes'      => 0,
-		'cannes'       => 30,
-		'nice'         => 50,
-		'monaco'       => 100,
-		'saint_tropez' => 150,
-		'var'          => 100,
-	);
-	return isset( $prices[ $zone ] ) ? $prices[ $zone ] : 0;
-}
-
-// 6a. Affichage des champs sur le checkout
-add_action( 'woocommerce_after_order_notes', 'eauservice_event_delivery_fields', 5 );
+// 6a. Affichage de la section sur la page de commande.
+add_action( 'woocommerce_after_order_notes', 'eauservice_event_delivery_fields' );
 function eauservice_event_delivery_fields( $checkout ) {
 	echo '<div id="eauservice_event_delivery" class="es-event-section">';
-	echo '<h3>📍 Informations de livraison</h3>';
+	echo '<h3>Informations de livraison</h3>';
+	echo '<p class="es-event-intro">Choisissez votre zone de livraison : les frais sont calculés automatiquement et ajoutés au total.</p>';
 
-	// MENU DÉROULANT ZONE (déclenche le calcul des frais)
 	woocommerce_form_field( 'es_delivery_zone', array(
 		'type'     => 'select',
 		'class'    => array( 'form-row-wide', 'update_totals_on_change' ),
 		'required' => true,
-		'label'    => 'Zone de livraison *',
-		'options'  => eauservice_delivery_zones(),
+		'label'    => 'Zone de livraison',
+		'options'  => eauservice_delivery_zone_options(),
 	), $checkout->get_value( 'es_delivery_zone' ) );
 
-	// Adresse complète
 	woocommerce_form_field( 'es_venue_address', array(
 		'type'        => 'text',
 		'class'       => array( 'form-row-wide' ),
 		'required'    => true,
-		'label'       => 'Adresse complète de livraison',
-		'placeholder' => 'Numéro, rue, code postal, ville',
+		'label'       => 'Adresse exacte de livraison',
+		'placeholder' => 'N°, rue, code postal, ville, hall / stand si besoin',
 	), $checkout->get_value( 'es_venue_address' ) );
 
-	// Contact sur place
 	woocommerce_form_field( 'es_onsite_contact', array(
-		'type'     => 'text',
-		'class'    => array( 'form-row-first' ),
-		'required' => true,
-		'label'    => 'Contact sur place (nom)',
+		'type'        => 'text',
+		'class'       => array( 'form-row-first' ),
+		'required'    => true,
+		'label'       => 'Contact sur place (nom)',
+		'placeholder' => 'Prénom et nom',
 	), $checkout->get_value( 'es_onsite_contact' ) );
 
 	woocommerce_form_field( 'es_onsite_phone', array(
-		'type'     => 'tel',
-		'class'    => array( 'form-row-last' ),
-		'required' => true,
-		'label'    => 'Téléphone',
+		'type'        => 'tel',
+		'class'       => array( 'form-row-last' ),
+		'required'    => true,
+		'label'       => 'Téléphone du contact sur place',
+		'placeholder' => '06 12 34 56 78',
 	), $checkout->get_value( 'es_onsite_phone' ) );
 
-	// Dates et créneaux
 	woocommerce_form_field( 'es_delivery_date', array(
 		'type'     => 'date',
 		'class'    => array( 'form-row-first' ),
@@ -286,84 +316,72 @@ function eauservice_event_delivery_fields( $checkout ) {
 	woocommerce_form_field( 'es_delivery_time', array(
 		'type'        => 'text',
 		'class'       => array( 'form-row-last' ),
-		'label'       => 'Créneau horaire livraison',
-		'placeholder' => 'Ex : 9h - 12h',
+		'label'       => 'Créneau horaire de livraison',
+		'placeholder' => 'Ex : 8h - 10h',
 	), $checkout->get_value( 'es_delivery_time' ) );
 
 	woocommerce_form_field( 'es_pickup_date', array(
-		'type'  => 'date',
-		'class' => array( 'form-row-first' ),
-		'label' => 'Date de reprise',
+		'type'     => 'date',
+		'class'    => array( 'form-row-first' ),
+		'required' => true,
+		'label'    => 'Date de reprise',
 	), $checkout->get_value( 'es_pickup_date' ) );
 
 	woocommerce_form_field( 'es_pickup_time', array(
 		'type'        => 'text',
 		'class'       => array( 'form-row-last' ),
-		'label'       => 'Créneau horaire reprise',
+		'label'       => 'Créneau horaire de reprise',
 		'placeholder' => 'Ex : 18h - 20h',
 	), $checkout->get_value( 'es_pickup_time' ) );
 
-	// Instructions d'accès (facultatif)
 	woocommerce_form_field( 'es_access_notes', array(
 		'type'        => 'textarea',
 		'class'       => array( 'form-row-wide' ),
-		'label'       => 'Instructions d'accès (facultatif)',
-		'placeholder' => 'Hall, stand, badges nécessaires, contraintes d\'accès...',
+		'label'       => 'Instructions d\'accès',
+		'placeholder' => 'Quai de livraison, badges / accréditations, horaires de montage, restrictions véhicules...',
 	), $checkout->get_value( 'es_access_notes' ) );
+
+	woocommerce_form_field( 'es_extra_notes', array(
+		'type'        => 'textarea',
+		'class'       => array( 'form-row-wide' ),
+		'label'       => 'Notes complémentaires',
+		'placeholder' => 'Toute autre précision utile pour votre commande.',
+	), $checkout->get_value( 'es_extra_notes' ) );
 
 	echo '</div>';
 }
 
-// 6b. Validation
+// 6b. Validation des champs obligatoires.
 add_action( 'woocommerce_checkout_process', 'eauservice_validate_event_fields' );
 function eauservice_validate_event_fields() {
-	if ( empty( $_POST['es_delivery_zone'] ) ) {
-		wc_add_notice( 'Veuillez sélectionner une zone de livraison.', 'error' );
-	}
-	if ( empty( $_POST['es_venue_address'] ) ) {
-		wc_add_notice( 'Veuillez renseigner l\'adresse de livraison.', 'error' );
-	}
-	if ( empty( $_POST['es_onsite_contact'] ) ) {
-		wc_add_notice( 'Veuillez renseigner le contact sur place.', 'error' );
-	}
-	if ( empty( $_POST['es_onsite_phone'] ) ) {
-		wc_add_notice( 'Veuillez renseigner le téléphone du contact.', 'error' );
-	}
-	if ( empty( $_POST['es_delivery_date'] ) ) {
-		wc_add_notice( 'Veuillez renseigner la date de livraison.', 'error' );
-	}
-}
+	$zones = eauservice_delivery_zones();
+	$zone  = isset( $_POST['es_delivery_zone'] ) ? sanitize_text_field( wp_unslash( $_POST['es_delivery_zone'] ) ) : '';
 
-// 6c. CALCUL AUTOMATIQUE DES FRAIS DE LIVRAISON (basé sur la ZONE sélectionnée)
-add_action( 'woocommerce_cart_calculate_fees', 'eauservice_add_delivery_fee' );
-function eauservice_add_delivery_fee( $cart ) {
-	if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
-		return;
+	if ( '' === $zone || ! isset( $zones[ $zone ] ) ) {
+		wc_add_notice( 'Merci de choisir votre zone de livraison.', 'error' );
 	}
 
-	// Récupère la zone depuis la session (stockée par WooCommerce)
-	$zone = WC()->session->get( 'es_delivery_zone' );
-	if ( empty( $zone ) && ! empty( $_POST['post_data'] ) ) {
-		parse_str( $_POST['post_data'], $post_data );
-		$zone = isset( $post_data['es_delivery_zone'] ) ? sanitize_text_field( $post_data['es_delivery_zone'] ) : '';
-		WC()->session->set( 'es_delivery_zone', $zone );
-	}
-
-	// Calcule et ajoute les frais
-	if ( ! empty( $zone ) ) {
-		$fee = eauservice_zone_to_price( $zone );
-		if ( $fee > 0 ) {
-			$cart->add_fee( 'Frais de livraison', $fee );
+	$required = array(
+		'es_venue_address'  => 'Adresse exacte de livraison',
+		'es_onsite_contact' => 'Contact sur place (nom)',
+		'es_onsite_phone'   => 'Téléphone du contact sur place',
+		'es_delivery_date'  => 'Date de livraison',
+		'es_pickup_date'    => 'Date de reprise',
+	);
+	foreach ( $required as $key => $label ) {
+		if ( empty( $_POST[ $key ] ) ) {
+			wc_add_notice( sprintf( 'Merci de renseigner : %s.', $label ), 'error' );
 		}
 	}
 }
 
-// 6d. Enregistrement dans la commande
+// 6c. Enregistrement dans la commande (compatible stockage classique + HPOS).
 add_action( 'woocommerce_checkout_create_order', 'eauservice_save_event_fields', 20, 2 );
 function eauservice_save_event_fields( $order, $data ) {
+	$textareas = array( 'es_access_notes', 'es_extra_notes' );
 	foreach ( array_keys( eauservice_event_fields_list() ) as $key ) {
 		if ( ! empty( $_POST[ $key ] ) ) {
-			$value = ( 'es_access_notes' === $key )
+			$value = in_array( $key, $textareas, true )
 				? sanitize_textarea_field( wp_unslash( $_POST[ $key ] ) )
 				: sanitize_text_field( wp_unslash( $_POST[ $key ] ) );
 			$order->update_meta_data( '_' . $key, $value );
@@ -371,36 +389,42 @@ function eauservice_save_event_fields( $order, $data ) {
 	}
 }
 
-// 6e. Affichage dans le back-office
+/** Transforme la clé de zone en libellé lisible pour l affichage. */
+function eauservice_format_event_field_value( $key, $value ) {
+	if ( 'es_delivery_zone' !== $key ) {
+		return $value;
+	}
+	$zones = eauservice_delivery_zones();
+	if ( ! isset( $zones[ $value ] ) ) {
+		return $value;
+	}
+	$zone   = $zones[ $value ];
+	$suffix = ( 0 == $zone['montant'] ) ? 'livraison offerte' : $zone['montant'] . ' €';
+	return $zone['label'] . ' (' . $suffix . ')';
+}
+
+// 6d. Affichage dans le back-office (sous l'adresse de livraison).
 add_action( 'woocommerce_admin_order_data_after_shipping_address', 'eauservice_show_event_fields_admin' );
 function eauservice_show_event_fields_admin( $order ) {
 	echo '<div class="es-admin-event"><h3 style="margin-top:14px;">Livraison événementielle</h3>';
 	foreach ( eauservice_event_fields_list() as $key => $label ) {
 		$val = $order->get_meta( '_' . $key );
 		if ( $val ) {
-			// Affichage spécial pour la zone (avec le libellé complet)
-			if ( 'es_delivery_zone' === $key ) {
-				$zones = eauservice_delivery_zones();
-				$val = isset( $zones[ $val ] ) ? $zones[ $val ] : $val;
-			}
+			$val = eauservice_format_event_field_value( $key, $val );
 			echo '<p style="margin:2px 0;"><strong>' . esc_html( $label ) . ' :</strong> ' . esc_html( $val ) . '</p>';
 		}
 	}
 	echo '</div>';
 }
 
-// 6f. Affichage dans les e-mails
+// 6e. Affichage dans les e-mails de commande + page de confirmation.
 add_action( 'woocommerce_email_after_order_table', 'eauservice_show_event_fields_email', 20, 4 );
 function eauservice_show_event_fields_email( $order, $sent_to_admin, $plain_text, $email ) {
 	$rows = '';
 	foreach ( eauservice_event_fields_list() as $key => $label ) {
 		$val = $order->get_meta( '_' . $key );
 		if ( $val ) {
-			// Affichage spécial pour la zone
-			if ( 'es_delivery_zone' === $key ) {
-				$zones = eauservice_delivery_zones();
-				$val = isset( $zones[ $val ] ) ? $zones[ $val ] : $val;
-			}
+			$val   = eauservice_format_event_field_value( $key, $val );
 			$rows .= '<tr><td style="padding:6px 10px;border:1px solid #e5e5e5;"><strong>' . esc_html( $label ) . '</strong></td><td style="padding:6px 10px;border:1px solid #e5e5e5;">' . esc_html( $val ) . '</td></tr>';
 		}
 	}
@@ -410,6 +434,42 @@ function eauservice_show_event_fields_email( $order, $sent_to_admin, $plain_text
 	}
 }
 
+// 6f. On retire les champs natifs redondants : « Notes de commande » et le
+//     bloc « Identification du client » (nos propres champs les remplacent).
+//     ATTENTION : on masque UNIQUEMENT le sous-bloc des notes, jamais le
+//     conteneur .woocommerce-additional-fields qui contient NOS champs.
+add_filter( 'woocommerce_enable_order_notes_field', '__return_false' );
+
+add_action( 'wp_head', 'eauservice_hide_checkout_noise' );
+function eauservice_hide_checkout_noise() {
+	if ( ! ( function_exists( 'is_checkout' ) && is_checkout() ) ) {
+		return;
+	}
+	echo '<style>'
+		. '.woocommerce-additional-fields__field-wrapper{display:none !important;}'
+		. '.woocommerce-account-fields{display:none !important;}'
+		. '</style>';
+}
+/* ===========================================================================
+ * 7) ADRESSE DE LIVRAISON NATIVE — DÉSACTIVÉE VOLONTAIREMENT
+ *    ---------------------------------------------------------------------
+ *    Le fichier CSS masque le bloc natif « Livrer à une adresse différente »
+ *    (.woocommerce-shipping-fields). Si on FORÇAIT son affichage côté PHP,
+ *    WooCommerce rendrait ses champs obligatoires alors qu ils sont
+ *    invisibles : la commande serait bloquée par des erreurs que le client
+ *    ne peut pas corriger. C était un conflit réel entre le CSS et le PHP.
+ *
+ *    L adresse de livraison est donc collectée par NOS champs (section 6) :
+ *    « Zone de livraison » + « Adresse exacte de livraison ».
+ *    WooCommerce ne gère plus que l adresse de facturation.
+ * =========================================================================== */
+add_filter( 'woocommerce_cart_needs_shipping_address', '__return_false' );
+add_filter( 'woocommerce_ship_to_different_address_checked', '__return_false' );
+
+
+
+/* ===========================================================================
+ * 8) CONTENU VITRINE + SEO INJECTÉ SUR LA PAGE BOUTIQUE (archive auto)
  *    La page Boutique est une archive WooCommerce : pas de zone pour coller
  *    des blocs. On injecte donc le contenu par hooks, automatiquement :
  *      - AVANT la grille : hero SEO + réassurance + titre catalogue
@@ -1060,240 +1120,135 @@ function eauservice_auto_alt( $attr, $attachment ) {
 }
 
 /* ===========================================================================
- * 15) FRAIS DE LIVRAISON PAR CODE POSTAL (tarifs fixes par ville)
- *     Applique des tarifs fixes selon le code postal / la ville :
- *     >>> TARIFS PAR VILLE :
- *       Antibes (06600, 06160) = GRATUIT
- *       Cannes (06400, 06150, 06110, 06210, 06220, 06590) = 30 €
- *       Nice (06000, 06100, 06200, 06300) = 50 €
- *       Monaco (98000, 98xxx) = 50 €
- *       Autres villes Alpes-Maritimes (06xxx) = 80 €
- *       Var (83xxx) = 100 €
- *       Autres départements = 200 €
- *     
- *     Le système reconnaît automatiquement la ville via le code postal.
- *     Si besoin d'ajuster : modifiez la fonction eauservice_get_tarif_livraison()
+ * 15) FRAIS DE LIVRAISON — PILOTÉS PAR LA ZONE CHOISIE AU CHECKOUT
+ *     ------------------------------------------------------------------
+ *     Les frais dépendent UNIQUEMENT du menu déroulant « Zone de livraison »
+ *     (section 6). Le code postal et la ville de FACTURATION ne sont plus
+ *     lus du tout : changer l adresse de facturation ne modifie plus rien.
+ *
+ *     Pour ajuster un tarif : modifiez eauservice_delivery_zones() (section 6).
  * =========================================================================== */
 
 /**
- * Détermine les frais de livraison selon le code postal
- * @param string $cp Code postal du client
- * @param string $ville Ville du client (utilisée comme secours si code postal ambigu)
- * @return array ['montant' => float, 'libelle' => string]
+ * Récupère la zone choisie par le client.
+ * Ordre de lecture : POST direct (validation) > post_data (AJAX du checkout)
+ * > session WooCommerce (mémorisation entre deux rafraîchissements).
  */
-function eauservice_get_tarif_livraison( $cp, $ville = '' ) {
-	// Normaliser le code postal (retirer espaces, garder que les chiffres)
-	$cp_clean = preg_replace( '/\D/', '', (string) $cp );
-	$cp5 = substr( $cp_clean, 0, 5 );
-	
-	// Normaliser la ville pour comparaison
-	$ville_lower = function_exists('mb_strtolower') ? mb_strtolower( trim( $ville ) ) : strtolower( trim( $ville ) );
-	
-	// ===== ANTIBES = GRATUIT =====
-	$codes_antibes = array( '06600', '06160' );
-	if ( in_array( $cp5, $codes_antibes, true ) ) {
-		return array( 'montant' => 0, 'libelle' => 'Livraison offerte (Antibes)' );
+function eauservice_get_selected_delivery_zone() {
+	$zone  = '';
+	$found = false;
+
+	if ( isset( $_POST['es_delivery_zone'] ) ) {
+		$zone  = sanitize_text_field( wp_unslash( $_POST['es_delivery_zone'] ) );
+		$found = true;
+	} elseif ( isset( $_POST['post_data'] ) ) {
+		$parsed = array();
+		parse_str( wp_unslash( $_POST['post_data'] ), $parsed );
+		if ( isset( $parsed['es_delivery_zone'] ) ) {
+			$zone  = sanitize_text_field( $parsed['es_delivery_zone'] );
+			$found = true;
+		}
 	}
-	if ( false !== strpos( $ville_lower, 'antibes' ) || false !== strpos( $ville_lower, 'juan' ) ) {
-		return array( 'montant' => 0, 'libelle' => 'Livraison offerte (Antibes)' );
+
+	// Le client vient de choisir (ou de vider) la zone : on mémorise son choix.
+	if ( $found ) {
+		if ( function_exists( 'WC' ) && WC()->session ) {
+			WC()->session->set( 'es_delivery_zone', $zone );
+		}
+		return $zone;
 	}
-	
-	// ===== CANNES = 30 € =====
-	$codes_cannes = array( '06400', '06150', '06110', '06210', '06220', '06590' );
-	if ( in_array( $cp5, $codes_cannes, true ) ) {
-		return array( 'montant' => 30, 'libelle' => 'Frais de livraison & installation (Cannes)' );
+
+	// Sinon on relit le dernier choix mémorisé.
+	if ( function_exists( 'WC' ) && WC()->session ) {
+		$stored = WC()->session->get( 'es_delivery_zone' );
+		if ( ! empty( $stored ) ) {
+			return (string) $stored;
+		}
 	}
-	if ( false !== strpos( $ville_lower, 'cannes' ) || false !== strpos( $ville_lower, 'croisette' ) || 
-	     false !== strpos( $ville_lower, 'mougins' ) || false !== strpos( $ville_lower, 'mandelieu' ) ) {
-		return array( 'montant' => 30, 'libelle' => 'Frais de livraison & installation (Cannes)' );
-	}
-	
-	// ===== NICE = 50 € =====
-	$codes_nice = array( '06000', '06100', '06200', '06300' );
-	if ( in_array( $cp5, $codes_nice, true ) ) {
-		return array( 'montant' => 50, 'libelle' => 'Frais de livraison & installation (Nice)' );
-	}
-	if ( false !== strpos( $ville_lower, 'nice' ) || false !== strpos( $ville_lower, 'nissa' ) ) {
-		return array( 'montant' => 50, 'libelle' => 'Frais de livraison & installation (Nice)' );
-	}
-	
-	// ===== MONACO = 100 € (MODIFIÉ) =====
-	if ( '98' === substr( $cp5, 0, 2 ) || '98000' === $cp5 ) {
-		return array( 'montant' => 100, 'libelle' => 'Frais de livraison & installation (Monaco)' );
-	}
-	if ( false !== strpos( $ville_lower, 'monaco' ) || false !== strpos( $ville_lower, 'monte' ) || 
-	     false !== strpos( $ville_lower, 'carlo' ) ) {
-		return array( 'montant' => 100, 'libelle' => 'Frais de livraison & installation (Monaco)' );
-	}
-	
-	// ===== SAINT-TROPEZ = 150 € (AJOUTÉ) =====
-	$codes_st_tropez = array( '83990', '83350', '83580' );
-	if ( in_array( $cp5, $codes_st_tropez, true ) ) {
-		return array( 'montant' => 150, 'libelle' => 'Frais de livraison & installation (Saint-Tropez)' );
-	}
-	if ( false !== strpos( $ville_lower, 'tropez' ) || false !== strpos( $ville_lower, 'st-tropez' ) ||
-	     false !== strpos( $ville_lower, 'saint-tropez' ) || false !== strpos( $ville_lower, 'ramatuelle' ) ||
-	     false !== strpos( $ville_lower, 'gassin' ) ) {
-		return array( 'montant' => 150, 'libelle' => 'Frais de livraison & installation (Saint-Tropez)' );
-	}
-	
-	// ===== AUTRES VILLES ALPES-MARITIMES (06) = 80 € =====
-	if ( '06' === substr( $cp5, 0, 2 ) ) {
-		return array( 'montant' => 80, 'libelle' => 'Frais de livraison & installation (Alpes-Maritimes)' );
-	}
-	
-	// ===== VAR (83) = 100 € =====
-	if ( '83' === substr( $cp5, 0, 2 ) ) {
-		return array( 'montant' => 100, 'libelle' => 'Frais de livraison & installation (Var)' );
-	}
-	
-	// ===== AUTRES DÉPARTEMENTS = 150 € (MODIFIÉ - MAX) =====
-	if ( strlen( $cp5 ) === 5 ) {
-		return array( 'montant' => 150, 'libelle' => 'Frais de livraison & installation' );
-	}
-	
-	// ===== AUCUN CODE POSTAL VALIDE = PAS DE FRAIS (sera calculé au checkout) =====
-	return array( 'montant' => null, 'libelle' => '' );
+
+	return '';
 }
 
 // 15a. Application automatique des frais au panier / checkout.
-add_action( 'woocommerce_cart_calculate_fees', 'eauservice_appliquer_frais_livraison', 10 );
+add_action( 'woocommerce_cart_calculate_fees', 'eauservice_appliquer_frais_livraison', 20 );
 function eauservice_appliquer_frais_livraison( $cart ) {
-	if ( is_admin() && ! defined( 'DOING_AJAX' ) ) { 
-		return; 
-	}
-	
-	if ( ! function_exists( 'WC' ) || ! WC()->customer ) { 
-		return; 
-	}
-
-	$c = WC()->customer;
-	
-	// PRIORITÉ INVERSÉE : TOUJOURS utiliser FACTURATION (c'est ce que l'utilisateur remplit)
-	// L'adresse de livraison peut contenir des vieilles données cachées
-	$cp    = trim( $c->get_billing_postcode() );
-	$ville = trim( $c->get_billing_city() );
-	
-	// Si facturation vide, alors seulement essayer livraison
-	if ( empty( $cp ) ) {
-		$cp = trim( $c->get_shipping_postcode() );
-		$ville = trim( $c->get_shipping_city() );
-	}
-	
-	// TRÈS IMPORTANT : Si code postal vide OU invalide, N'AJOUTER AUCUN FRAIS
-	if ( empty( $cp ) || strlen( $cp ) < 5 ) {
-		return; // Pas de code postal = pas de frais
-	}
-	
-	// Calculer le tarif selon le code postal
-	$tarif = eauservice_get_tarif_livraison( $cp, $ville );
-	
-	// Si pas de tarif trouvé (null), ne rien ajouter
-	if ( null === $tarif['montant'] ) {
+	if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
 		return;
 	}
-	
-	// Ajouter les frais calculés
-	$cart->add_fee( $tarif['libelle'], $tarif['montant'], false );
+	if ( ! function_exists( 'WC' ) ) {
+		return;
+	}
+
+	$zone_key = eauservice_get_selected_delivery_zone();
+	if ( '' === $zone_key ) {
+		return; // Aucune zone choisie : aucun frais ajouté.
+	}
+
+	$zones = eauservice_delivery_zones();
+	if ( ! isset( $zones[ $zone_key ] ) ) {
+		return;
+	}
+
+	$zone = $zones[ $zone_key ];
+	if ( 0 == $zone['montant'] ) {
+		return; // Antibes : livraison offerte, rien à ajouter au total.
+	}
+
+	// WooCommerce vide les frais avant chaque appel de ce hook : pas de doublon.
+	$cart->add_fee( $zone['libelle'], (float) $zone['montant'], false );
 }
 
-// 15b. Message au checkout : tarif sur mesure + code promo possibles.
+// 15b. Rappel au checkout : zone retenue + contact pour les cas particuliers.
 add_action( 'woocommerce_review_order_before_payment', 'eauservice_note_livraison' );
 function eauservice_note_livraison() {
+	$zone_key = eauservice_get_selected_delivery_zone();
+	$zones    = eauservice_delivery_zones();
+
+	if ( '' !== $zone_key && isset( $zones[ $zone_key ] ) ) {
+		$zone    = $zones[ $zone_key ];
+		$montant = ( 0 == $zone['montant'] ) ? 'livraison offerte' : $zone['montant'] . ' €';
+		$info    = 'Zone retenue : <strong>' . esc_html( $zone['label'] ) . '</strong> — ' . esc_html( $montant ) . '.';
+	} else {
+		$info = 'Choisissez votre <strong>zone de livraison</strong> ci-dessus pour calculer les frais.';
+	}
+
 	echo '<p style="font-size:13px;line-height:1.6;color:#34465a;margin:0 0 16px;padding:13px 15px;background:#e7f7fe;border:1px solid #c7ebfa;border-radius:13px;">'
-		. '💧 Frais de livraison calculés selon la distance depuis Antibes. '
-		. 'Zone éloignée, besoin particulier ou code promo ? '
+		. $info
+		. ' Zone éloignée, besoin particulier ou code promo ? '
 		. '<a href="tel:0663240843" style="color:#1b86bc;font-weight:700;">06 63 24 08 43</a> ou '
 		. '<a href="' . esc_url( home_url( '/#es-devis' ) ) . '" style="color:#1b86bc;font-weight:700;">demandez un devis</a>.</p>';
 }
 
 /* ===========================================================================
- * 16) FORCER LE RECALCUL DES FRAIS AU CHECKOUT
- *     Force WooCommerce à recalculer les frais quand le client modifie
- *     son code postal sur la page de validation de commande.
+ * 16) RECALCUL DES FRAIS QUAND LE CLIENT CHANGE DE ZONE
+ *     Le champ porte déjà la classe update_totals_on_change ; ce script est
+ *     un filet de sécurité si le thème charge son propre JS de checkout.
  * =========================================================================== */
 add_action( 'wp_footer', 'eauservice_force_cart_refresh_checkout' );
 function eauservice_force_cart_refresh_checkout() {
-	// Sur la page PANIER
-	if ( function_exists( 'is_cart' ) && is_cart() ) {
-		?>
-		<script type="text/javascript">
-		jQuery(function($) {
-			// Mettre à jour les frais quand on clique sur "Mettre à jour le panier"
-			$('[name="update_cart"]').on('click', function() {
-				setTimeout(function() {
-					$(document.body).trigger('wc_update_cart');
-				}, 100);
-			});
-		});
-		</script>
-		<?php
+	if ( ! ( function_exists( 'is_checkout' ) && is_checkout() ) ) {
+		return;
 	}
-	
-	// Sur la page CHECKOUT
-	if ( function_exists( 'is_checkout' ) && is_checkout() ) {
-		?>
-		<script type="text/javascript">
-		jQuery(function($) {
-			// Recalculer dès qu'on change le code postal
-			$(document.body).on('change blur', '#billing_postcode, #shipping_postcode', function() {
-				console.log('🚚 Code postal changé → mise à jour checkout');
-				$(document.body).trigger('update_checkout');
-			});
-			
-			// Aussi quand on change la ville (pour les cas ambigus)
-			$(document.body).on('change blur', '#billing_city, #shipping_city', function() {
-				console.log('🏙️ Ville changée → mise à jour checkout');
-				$(document.body).trigger('update_checkout');
-			});
-		});
-		</script>
-		<?php
-	}
-}
-
-// DEBUG : Afficher les informations détectées sur le checkout (TEMPORAIRE)
-add_action( 'woocommerce_review_order_after_order_total', 'eauservice_debug_shipping_info', 1 );
-function eauservice_debug_shipping_info() {
-	if ( ! WC()->customer ) { return; }
-	
-	$c = WC()->customer;
-	$cp_billing  = trim( $c->get_billing_postcode() );
-	$cp_shipping = trim( $c->get_shipping_postcode() );
-	$ville_billing  = trim( $c->get_billing_city() );
-	$ville_shipping = trim( $c->get_shipping_city() );
-	
-	// Code postal utilisé (FACTURATION en priorité - NOUVELLE LOGIQUE)
-	$cp = $cp_billing;
-	$ville = $ville_billing;
-	if ( empty( $cp ) ) {
-		$cp = $cp_shipping;
-		$ville = $ville_shipping;
-	}
-	
 	?>
-	<tr class="eauservice-debug">
-		<td colspan="2" style="background:#fffbcc;border:2px solid #ffa500;padding:12px;font-size:12px;">
-			<strong style="color:#d84315;">🐛 DEBUG (supprimer après test)</strong><br>
-			<small>
-				<strong>Facturation:</strong> CP=<code><?php echo esc_html( $cp_billing ? $cp_billing : '(vide)' ); ?></code> 
-				Ville=<code><?php echo esc_html( $ville_billing ? $ville_billing : '(vide)' ); ?></code><br>
-				<strong>Livraison:</strong> CP=<code><?php echo esc_html( $cp_shipping ? $cp_shipping : '(vide)' ); ?></code> 
-				Ville=<code><?php echo esc_html( $ville_shipping ? $ville_shipping : '(vide)' ); ?></code><br>
-				<strong style="color:#388e3c;">→ UTILISÉ (FACTURATION prioritaire):</strong> CP=<strong><?php echo esc_html( $cp ? $cp : '❌ AUCUN' ); ?></strong> 
-				Ville=<strong><?php echo esc_html( $ville ? $ville : '❌ AUCUNE' ); ?></strong>
-				<?php if ( ! empty( $cp ) && strlen( $cp ) >= 5 ) : 
-					$tarif = eauservice_get_tarif_livraison( $cp, $ville );
-				?>
-				<br><strong style="color:#1976d2;">💰 Tarif calculé:</strong> 
-				<?php echo esc_html( $tarif['montant'] ); ?> € - <?php echo esc_html( $tarif['libelle'] ); ?>
-				<?php endif; ?>
-			</small>
-		</td>
-	</tr>
+	<script type="text/javascript">
+	jQuery(function($) {
+		$(document.body).on('change', '#es_delivery_zone', function() {
+			$(document.body).trigger('update_checkout');
+		});
+	});
+	</script>
 	<?php
 }
 
+
+// 16b. Une fois la commande passée, on oublie la zone mémorisée pour que la
+//      commande suivante reparte d une ardoise vierge.
+add_action( 'woocommerce_checkout_order_processed', 'eauservice_clear_delivery_zone_session' );
+function eauservice_clear_delivery_zone_session( $order_id ) {
+	if ( function_exists( 'WC' ) && WC()->session ) {
+		WC()->session->set( 'es_delivery_zone', '' );
+	}
+}
 /* ===========================================================================
  * 17) BOUTONS BOUTIQUE : "Demander un devis" et "Calculer frais de livraison"
  *     Ajoutés en bas de la page boutique pour guider le client.
@@ -1312,7 +1267,7 @@ function eauservice_boutique_boutons_bas() {
 			<strong style="color:#0a2942;">Besoin d'aide ?</strong> Calculez vos frais de livraison ou demandez un devis personnalisé.
 		</p>
 		<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-			<a href="<?php echo esc_url( $cart_url ); ?>" style="display:inline-block;padding:11px 20px;background:linear-gradient(135deg,#1b9fd1,#2eb6e6);color:#fff;text-decoration:none;border-radius:10px;font-size:14px;font-weight:700;box-shadow:0 4px 12px rgba(46,182,230,.3);transition:all .2s;">
+			<a href="<?php echo esc_url( $cart_url . '#es-simul' ); ?>" style="display:inline-block;padding:11px 20px;background:linear-gradient(135deg,#1b9fd1,#2eb6e6);color:#fff;text-decoration:none;border-radius:10px;font-size:14px;font-weight:700;box-shadow:0 4px 12px rgba(46,182,230,.3);transition:all .2s;">
 				🚚 Calculer les frais de livraison
 			</a>
 			<a href="<?php echo esc_url( $devis_url ); ?>" style="display:inline-block;padding:11px 20px;background:#fff;color:#1b9fd1;text-decoration:none;border:1.5px solid #1b9fd1;border-radius:10px;font-size:14px;font-weight:700;transition:all .2s;">
@@ -1324,41 +1279,170 @@ function eauservice_boutique_boutons_bas() {
 }
 
 
-
 /* ===========================================================================
- * 10) MASQUER CHAMPS INUTILES AU CHECKOUT
- *     On enlève : notes de commande, identification client
+ * 18) SIMULATEUR DE FRAIS DE LIVRAISON (bas de la page Panier)
+ *     ------------------------------------------------------------------
+ *     Remplace l ancien simulateur construit dans Elementor, qui affichait
+ *     120 € pour Monaco alors que le tarif reel est 100 €, et qui pointait
+ *     vers un mauvais numero WhatsApp.
+ *
+ *     Ce simulateur lit ses tarifs dans eauservice_delivery_zones()
+ *     (section 6) : il ne peut donc plus jamais afficher un montant
+ *     different de celui facture au moment de la commande.
+ *
+ *     >>> IMPORTANT : supprimez le bloc simulateur dans Elementor sur la
+ *         page Panier, sinon les deux simulateurs s afficheront.
  * =========================================================================== */
 
-// Masquer le champ "Notes de commande" (order_comments)
-add_filter( 'woocommerce_enable_order_notes_field', '__return_false' );
+// Coordonnees utilisees par le simulateur (un seul endroit a modifier).
+function eauservice_contact_infos() {
+	return array(
+		'tel_affiche'  => '06 63 24 08 43',
+		'tel_lien'     => 'tel:0663240843',
+		'whatsapp'     => 'https://wa.me/33663240843',
+		'devis'        => home_url( '/#es-devis' ),
+	);
+}
 
-// Masquer "Créer un compte" si affiché
-add_filter( 'woocommerce_checkout_show_terms', '__return_true' ); // garde CGV
-remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_login_form', 10 );
-remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10 );
+add_action( 'woocommerce_after_cart', 'eauservice_simulateur_livraison', 20 );
+function eauservice_simulateur_livraison() {
+	if ( ! ( function_exists( 'is_cart' ) && is_cart() ) ) {
+		return;
+	}
 
-// CSS pour masquer complètement les blocs inutiles
-add_action( 'wp_head', 'eauservice_hide_checkout_fields_css' );
-function eauservice_hide_checkout_fields_css() {
-	if ( ! is_checkout() ) { return; }
+	$contact = eauservice_contact_infos();
+
+	// Tarifs transmis au JavaScript : meme source que le checkout.
+	$tarifs = array();
+	foreach ( eauservice_delivery_zones() as $key => $zone ) {
+		$tarifs[ $key ] = array(
+			'montant' => (float) $zone['montant'],
+			'label'   => $zone['label'],
+		);
+	}
 	?>
-	<style>
-		/* Masque le bloc notes de commande (ordre) */
-		.woocommerce-additional-fields { display: none !important; }
-		
-		/* Masque création de compte si visible */
-		.woocommerce-account-fields { display: none !important; }
-		
-		/* Masque "Identification du client" */
-		#customer_login { display: none !important; }
-		
-		/* Garde seulement le formulaire essentiel propre */
-		.woocommerce-checkout .col2-set .col-1,
-		.woocommerce-checkout .col2-set .col-2 {
-			float: none;
-			width: 100%;
+	<section class="es-simul" id="es-simul">
+		<h2>Estimez vos frais de livraison</h2>
+		<p class="es-simul-intro">
+			Choisissez votre zone : le montant affiché est exactement celui qui sera
+			ajouté à votre commande lors de la validation.
+		</p>
+
+		<label for="es-simul-zone">Zone de livraison</label>
+		<select id="es-simul-zone">
+			<?php foreach ( eauservice_delivery_zone_options() as $value => $texte ) : ?>
+				<option value="<?php echo esc_attr( $value ); ?>"><?php echo esc_html( $texte ); ?></option>
+			<?php endforeach; ?>
+		</select>
+
+		<p class="es-simul-result" id="es-simul-result" role="status" aria-live="polite">
+			Choisissez une zone pour afficher le montant.
+		</p>
+
+		<div class="es-simul-actions">
+			<a class="es-simul-tel" href="<?php echo esc_url( $contact['tel_lien'] ); ?>">
+				&#128222; <?php echo esc_html( $contact['tel_affiche'] ); ?>
+			</a>
+			<a class="es-simul-wa" href="<?php echo esc_url( $contact['whatsapp'] ); ?>" target="_blank" rel="noopener">
+				&#128172; WhatsApp
+			</a>
+			<a class="es-simul-devis" href="<?php echo esc_url( $contact['devis'] ); ?>">
+				&#128203; Demander un devis
+			</a>
+		</div>
+	</section>
+
+	<script type="text/javascript">
+	(function () {
+		var tarifs = <?php echo wp_json_encode( $tarifs ); ?>;
+		var select = document.getElementById( 'es-simul-zone' );
+		var sortie = document.getElementById( 'es-simul-result' );
+		if ( ! select || ! sortie ) { return; }
+
+		function afficher() {
+			var cle = select.value;
+			if ( ! cle || ! tarifs[ cle ] ) {
+				sortie.innerHTML = 'Choisissez une zone pour afficher le montant.';
+				return;
+			}
+			var zone = tarifs[ cle ];
+			if ( zone.montant === 0 ) {
+				sortie.innerHTML = '<strong>' + zone.label + '</strong> : '
+					+ '<span class="es-simul-amount">livraison offerte</span>';
+			} else {
+				sortie.innerHTML = '<strong>' + zone.label + '</strong> : '
+					+ '<span class="es-simul-amount">' + zone.montant + ' €</span>'
+					+ ' de frais de livraison et installation.';
+			}
 		}
-	</style>
+
+		select.addEventListener( 'change', afficher );
+		afficher();
+	})();
+	</script>
+	<?php
+}
+
+
+/* ===========================================================================
+ * 19) SUPPRESSION DE L ANCIEN SIMULATEUR (bloc Elementor)
+ *     ------------------------------------------------------------------
+ *     L ancienne version du simulateur avait ete collee dans un bloc HTML
+ *     Elementor sur la page Panier. Son balisage, retrouve dans l historique
+ *     du depot, est reconnaissable a coup sur :
+ *
+ *       <div id="es-simulateur">  avec les champs  #es-sim-cp  et  #es-sim-ville
+ *
+ *     Ses tarifs etaient saisis a la main (Monaco a 120 € au lieu de 100 €) et
+ *     son bouton WhatsApp pointait vers un mauvais numero. Comme le contenu
+ *     Elementor n est pas modifiable depuis le code, on le retire du rendu :
+ *       - le CSS le masque immediatement, sans clignotement ;
+ *       - ce script le retire ensuite de la page, ainsi que le bloc Elementor
+ *         qui l enveloppe s il devient vide.
+ *
+ *     Seul le simulateur de la section 18 reste visible.
+ * =========================================================================== */
+add_action( 'wp_footer', 'eauservice_retirer_ancien_simulateur', 999 );
+function eauservice_retirer_ancien_simulateur() {
+	if ( ! ( function_exists( 'is_cart' ) && ( is_cart() || is_checkout() ) ) ) {
+		return;
+	}
+	?>
+	<script type="text/javascript">
+	(function () {
+		function retirer() {
+			// 1) Le conteneur de l ancien simulateur, repere par son identifiant.
+			var anciens = document.querySelectorAll( '#es-simulateur' );
+
+			// 2) Filet de securite : tout bloc contenant le champ code postal de
+			//    l ancien simulateur, meme si son identifiant a ete modifie.
+			var champCp = document.getElementById( 'es-sim-cp' );
+			var liste   = Array.prototype.slice.call( anciens );
+			if ( champCp ) {
+				var parent = champCp.closest( '#es-simulateur, .elementor-widget-html, .elementor-widget-text-editor' );
+				if ( parent && liste.indexOf( parent ) === -1 ) { liste.push( parent ); }
+			}
+
+			liste.forEach( function ( bloc ) {
+				if ( ! bloc || ! bloc.parentNode ) { return; }
+				// On remonte au bloc Elementor englobant s il ne contient que ca.
+				var enveloppe = bloc.closest( '.elementor-widget-html, .elementor-widget-text-editor' );
+				var aSupprimer = bloc;
+				if ( enveloppe && enveloppe.textContent.trim() === bloc.textContent.trim() ) {
+					aSupprimer = enveloppe;
+				}
+				aSupprimer.parentNode.removeChild( aSupprimer );
+			} );
+		}
+
+		if ( document.readyState === 'loading' ) {
+			document.addEventListener( 'DOMContentLoaded', retirer );
+		} else {
+			retirer();
+		}
+		// Elementor peut injecter son contenu apres coup : on repasse une fois.
+		window.addEventListener( 'load', function () { setTimeout( retirer, 300 ); } );
+	})();
+	</script>
 	<?php
 }
