@@ -15,15 +15,24 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 /**
  * Adresses qui recoivent les demandes de devis.
  *
- * Chaque adresse recoit son propre e-mail : si l une des adresses est en
- * panne ou mal orthographiee, les autres sont livrees quand meme.
+ * Chaque adresse recoit son PROPRE e-mail : si l une des boites est en panne,
+ * pleine ou mal orthographiee, les autres sont livrees quand meme.
  *
- * @return array Liste d adresses valides.
+ * Pour retirer une adresse : supprimez simplement sa ligne.
+ * Pour en ajouter une : ajoutez une ligne sur le meme modele.
+ *
+ * Historique : cette liste contenait « contact@events-cafe.fr », en .fr.
+ * Cette boite n existe pas. Les journaux YaySMTP affichaient « Success »
+ * parce que le serveur d envoi acceptait le message, mais il rebondissait
+ * ensuite dans le vide. C est la raison pour laquelle aucun devis n arrivait.
+ *
+ * @return array Liste d adresses valides, sans doublon.
  */
 function eauservice_devis_destinataires() {
 	$destinataires = array(
-		'contact@events-cafe.com',
-		'soane.mansouri@gmail.com',
+		'contact@eau-service-events.fr', // boite pro sur le domaine du site
+		'contact@events-cafe.com',       // boite historique
+		'soane.mansouri@gmail.com',      // copie personnelle
 	);
 
 	// On ecarte les doublons et toute adresse mal formee.
@@ -88,8 +97,14 @@ function eauservice_devis_handle() {
 	 * En ne mettant pas d en-tete From, c est l adresse configuree dans
 	 * YaySMTP qui est utilisee : celle qui est justement autorisee.
 	 *
-	 * Si vous voulez malgre tout imposer une adresse, definissez la constante
-	 * EAUSERVICE_DEVIS_FROM avec une adresse de VOTRE domaine d envoi.
+	 * RECOMMANDATION : dans les reglages de YaySMTP, mettez comme expediteur
+	 * une adresse du domaine du site, par exemple contact@eau-service-events.fr
+	 * ou no-reply@eau-service-events.fr. Un expediteur et un destinataire sur
+	 * un domaine reellement existant, c est ce qui garantit la delivrabilite.
+	 *
+	 * Si vous voulez imposer l expediteur depuis ce code plutot que depuis
+	 * YaySMTP, definissez la constante EAUSERVICE_DEVIS_FROM avec une adresse
+	 * de votre domaine d envoi.
 	 */
 	// On retire des caracteres qui ont un sens dans un en-tete e-mail, pour que
 	// le nom du prospect ne puisse ni creer une ligne d en-tete (retour chariot)
