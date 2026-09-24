@@ -593,18 +593,11 @@ function eauservice_local_business_schema() {
 	// Rank Math publie deja une fiche etablissement : on ne double pas. Voir
 	// la section 21, qui enrichit la fiche de Rank Math au lieu de la copier.
 	if ( eauservice_rank_math_actif() ) { return; }
-	// ---- À PERSONNALISER ----------------------------------------------
-	$nom        = 'EauService';
-	$telephone  = '+33 6 63 24 08 43';                  // numéro de contact principal
-	$rue        = '2 chemin des Frères Garberro, Galerie Marchande';
-	$code_postal= '06600';
-	$ville      = 'Antibes';
-	$lien_maps  = 'https://maps.app.goo.gl/FqH9hm9FLBDLpN6F6'; // fiche Google Business
-	$instagram  = 'https://www.instagram.com/eventscafe_paca';
-	$image      = 'https://eau-service-events.fr/wp-content/uploads/2024/12/logo-eauservice-blanc.png';
-	$latitude   = '43.5847';
-	$longitude  = '7.1250';
-	// -------------------------------------------------------------------
+	// Les coordonnees viennent de eauservice_infos_etablissement(), section 21.
+	// C est le SEUL endroit a modifier pour changer l adresse, le telephone,
+	// les horaires ou les coordonnees GPS.
+	$nom   = 'EauService';
+	$infos = eauservice_infos_etablissement();
 
 	$data = array(
 		'@context'    => 'https://schema.org',
@@ -615,25 +608,14 @@ function eauservice_local_business_schema() {
 		'name'        => $nom,
 		'description' => 'Location de matériel événementiel sur la Côte d\'Azur : machines à café, fontaines à eau, réfrigération et mobilier pour salons, congrès et événements professionnels. Livraison, installation et reprise incluses. Paiement en ligne ou après livraison.',
 		'url'         => 'https://eau-service-events.fr/',
-		'telephone'   => $telephone,
+		'telephone'   => $infos['telephone'],
 		'email'       => eauservice_email_contact(),
-		'image'       => $image,
-		'logo'        => $image,
-		'priceRange'  => '€€',
-		'address'     => array(
-			'@type'           => 'PostalAddress',
-			'streetAddress'   => $rue,
-			'postalCode'      => $code_postal,
-			'addressLocality' => $ville,
-			'addressRegion'   => 'Provence-Alpes-Côte d\'Azur',
-			'addressCountry'  => 'FR',
-		),
+		'image'       => $infos['logo'],
+		'logo'        => $infos['logo'],
+		'priceRange'  => $infos['prix'],
+		'address'     => eauservice_adresse_schema(),
 		// Coordonnees GPS : aide au positionnement dans Google Maps.
-		'geo'         => array(
-			'@type'     => 'GeoCoordinates',
-			'latitude'  => $latitude,
-			'longitude' => $longitude,
-		),
+		'geo'         => eauservice_geo_schema(),
 		// Villes desservies, reprises de l ancien bloc de l accueil.
 		'areaServed'  => eauservice_villes_desservies(),
 		// Moyens de paiement : le client peut regler en ligne OU apres la
@@ -651,7 +633,7 @@ function eauservice_local_business_schema() {
 				'closes'    => '20:00',
 			),
 		),
-		'sameAs'      => array_filter( array( $lien_maps, $instagram ) ),
+		'sameAs'      => array_filter( array( $infos['maps'], $infos['instagram'] ) ),
 	);
 
 	echo "\n<script type=\"application/ld+json\">" . wp_json_encode( $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . "</script>\n";
@@ -1615,6 +1597,70 @@ function eauservice_organisation_mere() {
 }
 
 /**
+ * Les coordonnees de l etablissement, definies une seule fois.
+ *
+ * Elles servent a la fois a notre propre fiche (quand Rank Math est absent)
+ * et a completer celle de Rank Math. Vous pouvez donc les renseigner ICI
+ * plutot que dans Rank Math : le resultat est le meme, il n y aura toujours
+ * qu une seule fiche. Si vous remplissez Rank Math, ce sont SES valeurs qui
+ * seront retenues, celles-ci ne servant qu a combler les manques.
+ */
+function eauservice_infos_etablissement() {
+	return array(
+		'telephone'  => '+33663240843',
+		'rue'        => '2 chemin des Frères Garberro, Galerie Marchande',
+		'code_postal'=> '06600',
+		'ville'      => 'Antibes',
+		'region'     => 'Provence-Alpes-Côte d\'Azur',
+		'pays'       => 'FR',
+		'latitude'   => '43.5847',
+		'longitude'  => '7.1250',
+		'ouverture'  => '08:00',
+		'fermeture'  => '20:00',
+		'prix'       => '€€',
+		'logo'       => 'https://eau-service-events.fr/wp-content/uploads/2024/12/logo-eauservice-blanc.png',
+		'maps'       => 'https://maps.app.goo.gl/FqH9hm9FLBDLpN6F6',
+		'instagram'  => 'https://www.instagram.com/eventscafe_paca',
+	);
+}
+
+/** L adresse postale au format Schema.org. */
+function eauservice_adresse_schema() {
+	$i = eauservice_infos_etablissement();
+	return array(
+		'@type'           => 'PostalAddress',
+		'streetAddress'   => $i['rue'],
+		'postalCode'      => $i['code_postal'],
+		'addressLocality' => $i['ville'],
+		'addressRegion'   => $i['region'],
+		'addressCountry'  => $i['pays'],
+	);
+}
+
+/** Les coordonnees GPS au format Schema.org. */
+function eauservice_geo_schema() {
+	$i = eauservice_infos_etablissement();
+	return array(
+		'@type'     => 'GeoCoordinates',
+		'latitude'  => $i['latitude'],
+		'longitude' => $i['longitude'],
+	);
+}
+
+/** Les horaires au format Schema.org. */
+function eauservice_horaires_schema() {
+	$i = eauservice_infos_etablissement();
+	return array(
+		array(
+			'@type'     => 'OpeningHoursSpecification',
+			'dayOfWeek' => array( 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ),
+			'opens'     => $i['ouverture'],
+			'closes'    => $i['fermeture'],
+		),
+	);
+}
+
+/**
  * Enrichit le schema publie par Rank Math.
  *
  * On n ecrase rien : chaque propriete n est ajoutee que si Rank Math ne l a
@@ -1641,21 +1687,38 @@ function eauservice_enrichir_schema_rank_math( $data, $jsonld = null ) {
 		}
 		if ( ! $est_entreprise ) { continue; }
 
-		if ( empty( $noeud['paymentAccepted'] ) ) {
-			$data[ $cle ]['paymentAccepted'] = eauservice_moyens_paiement();
+		$infos = eauservice_infos_etablissement();
+
+		// Chaque propriete n est ajoutee QUE si Rank Math ne l a pas remplie.
+		// Vous pouvez donc soit renseigner le module SEO local de Rank Math,
+		// soit ne rien faire et laisser ces valeurs s appliquer : dans les deux
+		// cas il n y a qu une seule fiche, et elle est complete.
+		$ajouts = array(
+			'paymentAccepted'           => eauservice_moyens_paiement(),
+			'currenciesAccepted'        => 'EUR',
+			'areaServed'                => eauservice_villes_desservies(),
+			'parentOrganization'        => eauservice_organisation_mere(),
+			'email'                     => eauservice_email_contact(),
+			'address'                   => eauservice_adresse_schema(),
+			'geo'                       => eauservice_geo_schema(),
+			'openingHoursSpecification' => eauservice_horaires_schema(),
+			'telephone'                 => $infos['telephone'],
+			'priceRange'                => $infos['prix'],
+		);
+
+		foreach ( $ajouts as $propriete => $valeur ) {
+			if ( empty( $noeud[ $propriete ] ) ) {
+				$data[ $cle ][ $propriete ] = $valeur;
+			}
 		}
-		if ( empty( $noeud['currenciesAccepted'] ) ) {
-			$data[ $cle ]['currenciesAccepted'] = 'EUR';
+
+		// Les profils externes sont fusionnes sans doublon plutot que remplaces.
+		$profils = array( $infos['maps'], $infos['instagram'] );
+		$actuels = array();
+		if ( ! empty( $noeud['sameAs'] ) ) {
+			$actuels = is_array( $noeud['sameAs'] ) ? $noeud['sameAs'] : array( $noeud['sameAs'] );
 		}
-		if ( empty( $noeud['areaServed'] ) ) {
-			$data[ $cle ]['areaServed'] = eauservice_villes_desservies();
-		}
-		if ( empty( $noeud['parentOrganization'] ) ) {
-			$data[ $cle ]['parentOrganization'] = eauservice_organisation_mere();
-		}
-		if ( empty( $noeud['email'] ) ) {
-			$data[ $cle ]['email'] = eauservice_email_contact();
-		}
+		$data[ $cle ]['sameAs'] = array_values( array_unique( array_merge( $actuels, $profils ) ) );
 	}
 
 	return $data;
