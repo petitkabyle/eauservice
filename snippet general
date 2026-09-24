@@ -189,125 +189,128 @@ function eauservice_uncrop_thumbnail( $size ) {
 }
 
 
+
 /* ===========================================================================
- * 6) LIVRAISON ÉVÉNEMENTIELLE — champs personnalisés sur la commande
- *    Secteur événementiel : livraison sur salons, congrès, événements.
- *    On ajoute une section dédiée avec un maximum d'infos logistiques.
- *    Ces champs sont enregistrés dans la commande, affichés en back-office
- *    ET dans les e-mails de commande.
+ * 6) CHAMPS DE LIVRAISON SIMPLIFIÉS
+ *    CODE POSTAL + VILLE DE LIVRAISON pour calculer les frais automatiquement
  * =========================================================================== */
 
-// Liste centralisée des champs (clé => libellé) pour réutilisation.
+// Liste des champs
 function eauservice_event_fields_list() {
 	return array(
-		'es_event_name'    => 'Nom de l’événement / salon / congrès',
-		'es_venue_name'    => 'Lieu / site (parc expo, palais des congrès…)',
-		'es_venue_address' => 'Adresse complète du lieu de livraison',
-		'es_hall'          => 'Hall / Pavillon',
-		'es_stand'         => 'N° de stand / emplacement',
-		'es_delivery_date' => 'Date de livraison souhaitée',
-		'es_delivery_time' => 'Créneau horaire de livraison',
-		'es_pickup_date'   => 'Date de reprise / fin de location',
-		'es_pickup_time'   => 'Créneau horaire de reprise',
-		'es_onsite_contact'=> 'Contact sur place (nom)',
-		'es_onsite_phone'  => 'Téléphone du contact sur place',
-		'es_access_notes'  => 'Instructions d’accès / logistique',
+		'es_delivery_postcode' => 'Code postal de livraison',
+		'es_delivery_city'     => 'Ville de livraison',
+		'es_venue_address'     => 'Adresse complète',
+		'es_delivery_date'     => 'Date de livraison',
+		'es_delivery_time'     => 'Créneau horaire',
+		'es_onsite_contact'    => 'Contact sur place',
+		'es_onsite_phone'      => 'Téléphone',
+		'es_access_notes'      => 'Informations complémentaires',
 	);
 }
 
-// 6a. Affichage de la section sur la page de commande.
+// 6a. Affichage sur le checkout
 add_action( 'woocommerce_after_order_notes', 'eauservice_event_delivery_fields' );
 function eauservice_event_delivery_fields( $checkout ) {
 	echo '<div id="eauservice_event_delivery" class="es-event-section">';
-	echo '<h3>' . esc_html__( 'Informations de livraison événementielle', 'woocommerce' ) . '</h3>';
-	echo '<p class="es-event-intro">Indiquez les détails du lieu (salon, congrès, événement) pour une livraison et une reprise parfaitement organisées.</p>';
+	echo '<h3>Informations de livraison</h3>';
+	echo '<p style="color:#d32f2f;font-weight:bold;margin-bottom:16px;">★ Remplissez le code postal et la ville ci-dessous pour calculer automatiquement les frais de livraison.</p>';
 
-	woocommerce_form_field( 'es_event_name', array(
-		'type' => 'text', 'class' => array( 'form-row-wide' ), 'required' => true,
-		'label' => 'Nom de l’événement / salon / congrès',
-		'placeholder' => 'Ex : Monaco Yacht Show 2026',
-	), $checkout->get_value( 'es_event_name' ) );
+	// CODE POSTAL ET VILLE - ESSENTIELS POUR LE CALCUL
+	woocommerce_form_field( 'es_delivery_postcode', array(
+		'type' => 'text',
+		'class' => array( 'form-row-first', 'update_totals_on_change' ),
+		'required' => true,
+		'label' => '★ Code postal de livraison',
+		'placeholder' => '06400',
+		'custom_attributes' => array( 'maxlength' => '5' ),
+	), $checkout->get_value( 'es_delivery_postcode' ) );
 
-	woocommerce_form_field( 'es_venue_name', array(
-		'type' => 'text', 'class' => array( 'form-row-wide' ), 'required' => true,
-		'label' => 'Lieu / site',
-		'placeholder' => 'Ex : Palais des Festivals, Cannes',
-	), $checkout->get_value( 'es_venue_name' ) );
+	woocommerce_form_field( 'es_delivery_city', array(
+		'type' => 'text',
+		'class' => array( 'form-row-last', 'update_totals_on_change' ),
+		'required' => true,
+		'label' => '★ Ville de livraison',
+		'placeholder' => 'Cannes',
+	), $checkout->get_value( 'es_delivery_city' ) );
 
 	woocommerce_form_field( 'es_venue_address', array(
-		'type' => 'text', 'class' => array( 'form-row-wide' ), 'required' => true,
-		'label' => 'Adresse complète du lieu de livraison',
-		'placeholder' => 'N°, rue, code postal, ville',
+		'type' => 'text',
+		'class' => array( 'form-row-wide' ),
+		'required' => true,
+		'label' => 'Adresse complète',
+		'placeholder' => 'Numéro, rue, bâtiment...',
 	), $checkout->get_value( 'es_venue_address' ) );
 
-	woocommerce_form_field( 'es_hall', array(
-		'type' => 'text', 'class' => array( 'form-row-first' ),
-		'label' => 'Hall / Pavillon', 'placeholder' => 'Ex : Hall 3',
-	), $checkout->get_value( 'es_hall' ) );
-
-	woocommerce_form_field( 'es_stand', array(
-		'type' => 'text', 'class' => array( 'form-row-last' ),
-		'label' => 'N° de stand / emplacement', 'placeholder' => 'Ex : Stand B12',
-	), $checkout->get_value( 'es_stand' ) );
-
 	woocommerce_form_field( 'es_delivery_date', array(
-		'type' => 'date', 'class' => array( 'form-row-first' ), 'required' => true,
-		'label' => 'Date de livraison souhaitée',
+		'type' => 'date',
+		'class' => array( 'form-row-first' ),
+		'required' => true,
+		'label' => 'Date de livraison',
 	), $checkout->get_value( 'es_delivery_date' ) );
 
 	woocommerce_form_field( 'es_delivery_time', array(
-		'type' => 'text', 'class' => array( 'form-row-last' ),
-		'label' => 'Créneau horaire de livraison', 'placeholder' => 'Ex : 8h - 10h',
+		'type' => 'text',
+		'class' => array( 'form-row-last' ),
+		'label' => 'Créneau horaire',
+		'placeholder' => '9h - 12h',
 	), $checkout->get_value( 'es_delivery_time' ) );
 
-	woocommerce_form_field( 'es_pickup_date', array(
-		'type' => 'date', 'class' => array( 'form-row-first' ),
-		'label' => 'Date de reprise / fin de location',
-	), $checkout->get_value( 'es_pickup_date' ) );
-
-	woocommerce_form_field( 'es_pickup_time', array(
-		'type' => 'text', 'class' => array( 'form-row-last' ),
-		'label' => 'Créneau horaire de reprise', 'placeholder' => 'Ex : 18h - 20h',
-	), $checkout->get_value( 'es_pickup_time' ) );
-
 	woocommerce_form_field( 'es_onsite_contact', array(
-		'type' => 'text', 'class' => array( 'form-row-first' ), 'required' => true,
-		'label' => 'Contact sur place (nom)',
+		'type' => 'text',
+		'class' => array( 'form-row-first' ),
+		'required' => true,
+		'label' => 'Contact sur place',
 	), $checkout->get_value( 'es_onsite_contact' ) );
 
 	woocommerce_form_field( 'es_onsite_phone', array(
-		'type' => 'tel', 'class' => array( 'form-row-last' ), 'required' => true,
-		'label' => 'Téléphone du contact sur place',
+		'type' => 'tel',
+		'class' => array( 'form-row-last' ),
+		'required' => true,
+		'label' => 'Téléphone',
 	), $checkout->get_value( 'es_onsite_phone' ) );
 
 	woocommerce_form_field( 'es_access_notes', array(
-		'type' => 'textarea', 'class' => array( 'form-row-wide' ),
-		'label' => 'Instructions d’accès / logistique',
-		'placeholder' => 'Quai de livraison, badges / accréditations nécessaires, horaires de montage, restrictions véhicules, contraintes d’accès…',
+		'type' => 'textarea',
+		'class' => array( 'form-row-wide' ),
+		'label' => 'Informations complémentaires (optionnel)',
+		'placeholder' => 'Nom événement, hall, stand, accès spéciaux...',
 	), $checkout->get_value( 'es_access_notes' ) );
 
 	echo '</div>';
 }
 
-// 6b. Validation des champs obligatoires.
+// 6b. Validation
 add_action( 'woocommerce_checkout_process', 'eauservice_validate_event_fields' );
 function eauservice_validate_event_fields() {
-	$required = array(
-		'es_event_name'    => 'Nom de l’événement',
-		'es_venue_name'    => 'Lieu / site',
-		'es_venue_address' => 'Adresse du lieu de livraison',
-		'es_delivery_date' => 'Date de livraison',
-		'es_onsite_contact'=> 'Contact sur place',
-		'es_onsite_phone'  => 'Téléphone du contact sur place',
-	);
-	foreach ( $required as $key => $label ) {
-		if ( empty( $_POST[ $key ] ) ) {
-			wc_add_notice( sprintf( 'Merci de renseigner : %s (livraison événementielle).', $label ), 'error' );
-		}
+	if ( empty( $_POST['es_delivery_postcode'] ) ) {
+		wc_add_notice( 'Le code postal de livraison est obligatoire', 'error' );
+	} elseif ( ! preg_match( '/^[0-9]{5}$/', $_POST['es_delivery_postcode'] ) ) {
+		wc_add_notice( 'Le code postal doit contenir 5 chiffres', 'error' );
+	}
+	
+	if ( empty( $_POST['es_delivery_city'] ) ) {
+		wc_add_notice( 'La ville de livraison est obligatoire', 'error' );
+	}
+	
+	if ( empty( $_POST['es_venue_address'] ) ) {
+		wc_add_notice( 'L\'adresse est obligatoire', 'error' );
+	}
+	
+	if ( empty( $_POST['es_delivery_date'] ) ) {
+		wc_add_notice( 'La date de livraison est obligatoire', 'error' );
+	}
+	
+	if ( empty( $_POST['es_onsite_contact'] ) ) {
+		wc_add_notice( 'Le contact sur place est obligatoire', 'error' );
+	}
+	
+	if ( empty( $_POST['es_onsite_phone'] ) ) {
+		wc_add_notice( 'Le téléphone est obligatoire', 'error' );
 	}
 }
 
-// 6c. Enregistrement dans la commande (compatible stockage classique + HPOS).
+// 6c. Enregistrement
 add_action( 'woocommerce_checkout_create_order', 'eauservice_save_event_fields', 20, 2 );
 function eauservice_save_event_fields( $order, $data ) {
 	foreach ( array_keys( eauservice_event_fields_list() ) as $key ) {
@@ -320,20 +323,20 @@ function eauservice_save_event_fields( $order, $data ) {
 	}
 }
 
-// 6d. Affichage dans le back-office (sous l'adresse de livraison).
+// 6d. Affichage admin
 add_action( 'woocommerce_admin_order_data_after_shipping_address', 'eauservice_show_event_fields_admin' );
 function eauservice_show_event_fields_admin( $order ) {
-	echo '<div class="es-admin-event"><h3 style="margin-top:14px;">Livraison événementielle</h3>';
+	echo '<div class="es-admin-event"><h3>Livraison</h3>';
 	foreach ( eauservice_event_fields_list() as $key => $label ) {
 		$val = $order->get_meta( '_' . $key );
 		if ( $val ) {
-			echo '<p style="margin:2px 0;"><strong>' . esc_html( $label ) . ' :</strong> ' . esc_html( $val ) . '</p>';
+			echo '<p><strong>' . esc_html( $label ) . ':</strong> ' . esc_html( $val ) . '</p>';
 		}
 	}
 	echo '</div>';
 }
 
-// 6e. Affichage dans les e-mails de commande + page de confirmation.
+// 6e. Affichage email
 add_action( 'woocommerce_email_after_order_table', 'eauservice_show_event_fields_email', 20, 4 );
 function eauservice_show_event_fields_email( $order, $sent_to_admin, $plain_text, $email ) {
 	$rows = '';
@@ -344,11 +347,10 @@ function eauservice_show_event_fields_email( $order, $sent_to_admin, $plain_text
 		}
 	}
 	if ( $rows ) {
-		echo '<h2 style="color:#1E6FD9;">Livraison événementielle</h2>';
+		echo '<h2>Livraison</h2>';
 		echo '<table cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;margin-bottom:20px;">' . $rows . '</table>';
 	}
 }
-
 
 /* ===========================================================================
  * 7) FORCER L'AFFICHAGE DE L'ADRESSE DE LIVRAISON
@@ -1112,32 +1114,21 @@ function eauservice_get_tarif_livraison( $cp, $ville = '' ) {
 }
 
 // 15a. Application automatique des frais au panier / checkout.
+// UTILISE LES CHAMPS PERSONNALISÉS es_delivery_postcode et es_delivery_city
 add_action( 'woocommerce_cart_calculate_fees', 'eauservice_appliquer_frais_livraison', 10 );
 function eauservice_appliquer_frais_livraison( $cart ) {
 	if ( is_admin() && ! defined( 'DOING_AJAX' ) ) { 
 		return; 
 	}
 	
-	if ( ! function_exists( 'WC' ) || ! WC()->customer ) { 
-		return; 
-	}
-
-	$c = WC()->customer;
+	// Récupérer le code postal et la ville depuis les champs personnalisés
+	// Ces champs sont remplis dans la section "Informations de livraison"
+	$cp    = isset( $_POST['es_delivery_postcode'] ) ? trim( sanitize_text_field( $_POST['es_delivery_postcode'] ) ) : '';
+	$ville = isset( $_POST['es_delivery_city'] ) ? trim( sanitize_text_field( $_POST['es_delivery_city'] ) ) : '';
 	
-	// PRIORITÉ INVERSÉE : TOUJOURS utiliser FACTURATION (c'est ce que l'utilisateur remplit)
-	// L'adresse de livraison peut contenir des vieilles données cachées
-	$cp    = trim( $c->get_billing_postcode() );
-	$ville = trim( $c->get_billing_city() );
-	
-	// Si facturation vide, alors seulement essayer livraison
-	if ( empty( $cp ) ) {
-		$cp = trim( $c->get_shipping_postcode() );
-		$ville = trim( $c->get_shipping_city() );
-	}
-	
-	// TRÈS IMPORTANT : Si code postal vide OU invalide, N'AJOUTER AUCUN FRAIS
+	// Si vides, ne rien faire (pas de frais)
 	if ( empty( $cp ) || strlen( $cp ) < 5 ) {
-		return; // Pas de code postal = pas de frais
+		return;
 	}
 	
 	// Calculer le tarif selon le code postal
@@ -1190,15 +1181,9 @@ function eauservice_force_cart_refresh_checkout() {
 		?>
 		<script type="text/javascript">
 		jQuery(function($) {
-			// Recalculer dès qu'on change le code postal
-			$(document.body).on('change blur', '#billing_postcode, #shipping_postcode', function() {
-				console.log('🚚 Code postal changé → mise à jour checkout');
-				$(document.body).trigger('update_checkout');
-			});
-			
-			// Aussi quand on change la ville (pour les cas ambigus)
-			$(document.body).on('change blur', '#billing_city, #shipping_city', function() {
-				console.log('🏙️ Ville changée → mise à jour checkout');
+			// NOUVEAU : Recalculer quand on remplit les champs PERSONNALISÉS
+			$(document.body).on('change blur keyup', '#es_delivery_postcode, #es_delivery_city', function() {
+				console.log('🚚 Code postal/ville livraison changé → mise à jour');
 				$(document.body).trigger('update_checkout');
 			});
 		});
@@ -1207,41 +1192,27 @@ function eauservice_force_cart_refresh_checkout() {
 	}
 }
 
-// DEBUG : Afficher les informations détectées sur le checkout (TEMPORAIRE)
+// DEBUG : Afficher les champs personnalisés détectés
 add_action( 'woocommerce_review_order_after_order_total', 'eauservice_debug_shipping_info', 1 );
 function eauservice_debug_shipping_info() {
-	if ( ! WC()->customer ) { return; }
-	
-	$c = WC()->customer;
-	$cp_billing  = trim( $c->get_billing_postcode() );
-	$cp_shipping = trim( $c->get_shipping_postcode() );
-	$ville_billing  = trim( $c->get_billing_city() );
-	$ville_shipping = trim( $c->get_shipping_city() );
-	
-	// Code postal utilisé (FACTURATION en priorité - NOUVELLE LOGIQUE)
-	$cp = $cp_billing;
-	$ville = $ville_billing;
-	if ( empty( $cp ) ) {
-		$cp = $cp_shipping;
-		$ville = $ville_shipping;
-	}
+	// Récupérer les valeurs des champs personnalisés
+	$cp_delivery = isset( $_POST['es_delivery_postcode'] ) ? sanitize_text_field( $_POST['es_delivery_postcode'] ) : '';
+	$ville_delivery = isset( $_POST['es_delivery_city'] ) ? sanitize_text_field( $_POST['es_delivery_city'] ) : '';
 	
 	?>
 	<tr class="eauservice-debug">
 		<td colspan="2" style="background:#fffbcc;border:2px solid #ffa500;padding:12px;font-size:12px;">
 			<strong style="color:#d84315;">🐛 DEBUG (supprimer après test)</strong><br>
 			<small>
-				<strong>Facturation:</strong> CP=<code><?php echo esc_html( $cp_billing ? $cp_billing : '(vide)' ); ?></code> 
-				Ville=<code><?php echo esc_html( $ville_billing ? $ville_billing : '(vide)' ); ?></code><br>
-				<strong>Livraison:</strong> CP=<code><?php echo esc_html( $cp_shipping ? $cp_shipping : '(vide)' ); ?></code> 
-				Ville=<code><?php echo esc_html( $ville_shipping ? $ville_shipping : '(vide)' ); ?></code><br>
-				<strong style="color:#388e3c;">→ UTILISÉ (FACTURATION prioritaire):</strong> CP=<strong><?php echo esc_html( $cp ? $cp : '❌ AUCUN' ); ?></strong> 
-				Ville=<strong><?php echo esc_html( $ville ? $ville : '❌ AUCUNE' ); ?></strong>
-				<?php if ( ! empty( $cp ) && strlen( $cp ) >= 5 ) : 
-					$tarif = eauservice_get_tarif_livraison( $cp, $ville );
+				<strong>Code postal livraison:</strong> <code><?php echo esc_html( $cp_delivery ? $cp_delivery : '(vide - remplissez le champ ci-dessus)' ); ?></code><br>
+				<strong>Ville livraison:</strong> <code><?php echo esc_html( $ville_delivery ? $ville_delivery : '(vide - remplissez le champ ci-dessus)' ); ?></code><br>
+				<?php if ( ! empty( $cp_delivery ) && strlen( $cp_delivery ) >= 5 ) : 
+					$tarif = eauservice_get_tarif_livraison( $cp_delivery, $ville_delivery );
 				?>
 				<br><strong style="color:#1976d2;">💰 Tarif calculé:</strong> 
 				<?php echo esc_html( $tarif['montant'] ); ?> € - <?php echo esc_html( $tarif['libelle'] ); ?>
+				<?php else: ?>
+				<br><strong style="color:#d32f2f;">⚠️ Remplissez le code postal et la ville dans la section "Informations de livraison" ci-dessus !</strong>
 				<?php endif; ?>
 			</small>
 		</td>
