@@ -213,36 +213,66 @@ function eauservice_event_fields_list() {
 add_action( 'woocommerce_after_order_notes', 'eauservice_event_delivery_fields' );
 function eauservice_event_delivery_fields( $checkout ) {
 	echo '<div id="eauservice_event_delivery" class="es-event-section">';
-	echo '<h3 style="background:#ff6b00;color:white;padding:12px;margin:-10px -10px 15px;border-radius:8px;">🔥 INFORMATIONS DE LIVRAISON OBLIGATOIRES 🔥</h3>';
-	echo '<p style="color:#d32f2f;font-weight:bold;margin-bottom:16px;font-size:16px;background:#fff3cd;padding:10px;border-left:4px solid #ff6b00;">★★★ REMPLISSEZ LE CODE POSTAL ET LA VILLE CI-DESSOUS POUR CALCULER LES FRAIS DE LIVRAISON ★★★</p>';
+	echo '<h3>Informations de livraison</h3>';
 
-	// CODE POSTAL ET VILLE - ESSENTIELS POUR LE CALCUL
+	// LISTE DÉROULANTE DES VILLES
+	$villes = array(
+		'' => 'Sélectionnez votre ville',
+		// GRATUIT - Antibes
+		'06600' => 'Antibes (06600) - Gratuit',
+		'06160' => 'Juan-les-Pins (06160) - Gratuit',
+		// 30€ - Cannes
+		'06400' => 'Cannes (06400) - 30€',
+		'06150' => 'Cannes La Bocca (06150) - 30€',
+		'06110' => 'Le Cannet (06110) - 30€',
+		'06210' => 'Mandelieu-la-Napoule (06210) - 30€',
+		'06220' => 'Vallauris / Golfe-Juan (06220) - 30€',
+		'06590' => 'Théoule-sur-Mer (06590) - 30€',
+		// 50€ - Nice
+		'06000' => 'Nice Centre (06000) - 50€',
+		'06100' => 'Nice Cimiez / Libération (06100) - 50€',
+		'06200' => 'Nice Gambetta / Mont-Boron (06200) - 50€',
+		'06300' => 'Nice Arenas / Aéroport (06300) - 50€',
+		'06700' => 'Saint-Laurent-du-Var (06700) - 50€',
+		'06800' => 'Cagnes-sur-Mer (06800) - 50€',
+		'06270' => 'Villeneuve-Loubet (06270) - 50€',
+		'06560' => 'Valbonne / Sophia Antipolis (06560) - 50€',
+		'06410' => 'Biot (06410) - 50€',
+		// 100€ - Monaco
+		'98000' => 'Monaco (98000) - 100€',
+		'06190' => 'Roquebrune-Cap-Martin (06190) - 100€',
+		'06320' => 'Cap-d\'Ail (06320) - 100€',
+		'06500' => 'Menton (06500) - 100€',
+		'06360' => 'Èze (06360) - 100€',
+		// 150€ - Saint-Tropez
+		'83990' => 'Saint-Tropez (83990) - 150€',
+		'83350' => 'Ramatuelle (83350) - 150€',
+		'83580' => 'Gassin (83580) - 150€',
+		// Autres
+		'autre_06' => 'Autre ville Alpes-Maritimes (06) - 80€',
+		'autre_83' => 'Autre ville du Var (83) - 100€',
+	);
+
+	woocommerce_form_field( 'es_delivery_city', array(
+		'type' => 'select',
+		'class' => array( 'form-row-wide', 'update_totals_on_change' ),
+		'required' => true,
+		'label' => 'Ville de livraison *',
+		'options' => $villes,
+	), $checkout->get_value( 'es_delivery_city' ) );
+
 	woocommerce_form_field( 'es_delivery_postcode', array(
 		'type' => 'text',
 		'class' => array( 'form-row-first', 'update_totals_on_change' ),
 		'required' => true,
-		'label' => '🎯 CODE POSTAL DE LIVRAISON (OBLIGATOIRE)',
+		'label' => 'Code postal',
 		'placeholder' => '06400',
-		'custom_attributes' => array( 
-			'maxlength' => '5',
-			'style' => 'border: 3px solid #ff6b00 !important; background: #fffbf0 !important; font-size: 18px !important;'
-		),
+		'custom_attributes' => array( 'maxlength' => '5' ),
 	), $checkout->get_value( 'es_delivery_postcode' ) );
-
-	woocommerce_form_field( 'es_delivery_city', array(
-		'type' => 'text',
-		'class' => array( 'form-row-last', 'update_totals_on_change' ),
-		'required' => true,
-		'label' => '🎯 VILLE DE LIVRAISON (OBLIGATOIRE)',
-		'placeholder' => 'Cannes',
-		'custom_attributes' => array(
-			'style' => 'border: 3px solid #ff6b00 !important; background: #fffbf0 !important; font-size: 18px !important;'
-		),
-	), $checkout->get_value( 'es_delivery_city' ) );
 
 	woocommerce_form_field( 'es_venue_address', array(
 		'type' => 'text',
-		'class' => array( 'form-row-wide' ),
+		'class' => array( 'form-row-last' ),
 		'required' => true,
 		'label' => 'Adresse complète',
 		'placeholder' => 'Numéro, rue, bâtiment...',
@@ -284,6 +314,19 @@ function eauservice_event_delivery_fields( $checkout ) {
 	), $checkout->get_value( 'es_access_notes' ) );
 
 	echo '</div>';
+	?>
+	<script type="text/javascript">
+	jQuery(function($) {
+		// Auto-remplir le code postal quand on sélectionne la ville
+		$('#es_delivery_city').on('change', function() {
+			var selected = $(this).val();
+			if (selected && selected !== 'autre_06' && selected !== 'autre_83') {
+				$('#es_delivery_postcode').val(selected).trigger('change');
+			}
+		});
+	});
+	</script>
+	<?php
 }
 
 // 6b. Validation
@@ -1072,13 +1115,78 @@ function eauservice_get_tarif_livraison( $cp, $ville = '' ) {
 	}
 	
 	// ===== NICE = 50 € =====
-	$codes_nice = array( '06000', '06100', '06200', '06300' );
+	// TOUS les codes postaux de Nice + villes proches
+	$codes_nice = array( 
+		'06000', '06100', '06200', '06300', '06050',  // Nice centre et quartiers
+		'06088', '06101', '06201', '06202', '06203', '06204', '06205', '06206', // Nice CEDEX
+		'06700', // Saint-Laurent-du-Var
+		'06800', // Cagnes-sur-Mer
+		'06270', // Villeneuve-Loubet
+		'06560', '06410', '06650', '06130', '06220'  // Valbonne, Biot, Le Rouret, Grasse (proche)
+	);
 	if ( in_array( $cp5, $codes_nice, true ) ) {
 		return array( 'montant' => 50, 'libelle' => 'Frais de livraison & installation (Nice)' );
 	}
-	if ( false !== strpos( $ville_lower, 'nice' ) || false !== strpos( $ville_lower, 'nissa' ) ) {
+	if ( false !== strpos( $ville_lower, 'nice' ) || false !== strpos( $ville_lower, 'nissa' ) ||
+	     false !== strpos( $ville_lower, 'st-laurent' ) || false !== strpos( $ville_lower, 'saint-laurent' ) ||
+	     false !== strpos( $ville_lower, 'cagnes' ) || false !== strpos( $ville_lower, 'villeneuve' ) ||
+	     false !== strpos( $ville_lower, 'valbonne' ) || false !== strpos( $ville_lower, 'sophia' ) ||
+	     false !== strpos( $ville_lower, 'biot' ) ) {
 		return array( 'montant' => 50, 'libelle' => 'Frais de livraison & installation (Nice)' );
 	}
+	
+	// ===== MONACO = 100 € =====
+	$codes_monaco = array(
+		'98000', '98001', '98002', '98003', '98004', '98005', '98006', '98007', '98008', '98009', // Monaco
+		'06190', // Roquebrune-Cap-Martin
+		'06320', // Cap-d'Ail
+		'06500', // Menton
+		'06360'  // Èze
+	);
+	if ( in_array( $cp5, $codes_monaco, true ) || '98' === substr( $cp5, 0, 2 ) ) {
+		return array( 'montant' => 100, 'libelle' => 'Frais de livraison & installation (Monaco)' );
+	}
+	if ( false !== strpos( $ville_lower, 'monaco' ) || false !== strpos( $ville_lower, 'monte' ) || 
+	     false !== strpos( $ville_lower, 'carlo' ) || false !== strpos( $ville_lower, 'roquebrune' ) ||
+	     false !== strpos( $ville_lower, 'cap d\'ail' ) || false !== strpos( $ville_lower, 'cap-d\'ail' ) ||
+	     false !== strpos( $ville_lower, 'menton' ) || false !== strpos( $ville_lower, 'eze' ) ||
+	     false !== strpos( $ville_lower, 'èze' ) ) {
+		return array( 'montant' => 100, 'libelle' => 'Frais de livraison & installation (Monaco)' );
+	}
+	
+	// ===== SAINT-TROPEZ = 150 € (MAX) =====
+	$codes_st_tropez = array( 
+		'83990', // Saint-Tropez
+		'83350', // Ramatuelle
+		'83580'  // Gassin
+	);
+	if ( in_array( $cp5, $codes_st_tropez, true ) ) {
+		return array( 'montant' => 150, 'libelle' => 'Frais de livraison & installation (Saint-Tropez)' );
+	}
+	if ( false !== strpos( $ville_lower, 'tropez' ) || false !== strpos( $ville_lower, 'st-tropez' ) ||
+	     false !== strpos( $ville_lower, 'saint-tropez' ) || false !== strpos( $ville_lower, 'ramatuelle' ) ||
+	     false !== strpos( $ville_lower, 'gassin' ) ) {
+		return array( 'montant' => 150, 'libelle' => 'Frais de livraison & installation (Saint-Tropez)' );
+	}
+	
+	// ===== AUTRES VILLES ALPES-MARITIMES (06) = 80 € =====
+	if ( '06' === substr( $cp5, 0, 2 ) ) {
+		return array( 'montant' => 80, 'libelle' => 'Frais de livraison & installation (Alpes-Maritimes)' );
+	}
+	
+	// ===== VAR (83) = 100 € =====
+	if ( '83' === substr( $cp5, 0, 2 ) ) {
+		return array( 'montant' => 100, 'libelle' => 'Frais de livraison & installation (Var)' );
+	}
+	
+	// ===== AUTRES DÉPARTEMENTS = 150 € (MAX) =====
+	if ( strlen( $cp5 ) === 5 ) {
+		return array( 'montant' => 150, 'libelle' => 'Frais de livraison & installation' );
+	}
+	
+	// ===== AUCUN CODE POSTAL VALIDE = PAS DE FRAIS =====
+	return array( 'montant' => null, 'libelle' => '' );
+}
 	
 	// ===== MONACO = 100 € (MODIFIÉ) =====
 	if ( '98' === substr( $cp5, 0, 2 ) || '98000' === $cp5 ) {
@@ -1193,8 +1301,27 @@ function eauservice_pass_delivery_fields_to_ajax( $fragments ) {
 	// Stocker les valeurs en session pour qu'elles soient disponibles lors du calcul des frais
 	if ( isset( $_POST['post_data'] ) ) {
 		parse_str( $_POST['post_data'], $post_data );
-		if ( isset( $post_data['es_delivery_postcode'] ) ) {
-			WC()->session->set( 'es_delivery_postcode', sanitize_text_field( $post_data['es_delivery_postcode'] ) );
+		
+		// Extraire le code postal de la sélection ville (format: "06400" ou "autre_06")
+		$city_value = isset( $post_data['es_delivery_city'] ) ? $post_data['es_delivery_city'] : '';
+		$cp_from_select = '';
+		
+		if ( $city_value && $city_value !== 'autre_06' && $city_value !== 'autre_83' && strlen( $city_value ) === 5 ) {
+			// C'est un code postal directement
+			$cp_from_select = $city_value;
+		}
+		
+		// Priorité 1: Code postal du champ texte
+		// Priorité 2: Code postal extrait du select ville
+		$final_cp = '';
+		if ( isset( $post_data['es_delivery_postcode'] ) && ! empty( $post_data['es_delivery_postcode'] ) ) {
+			$final_cp = sanitize_text_field( $post_data['es_delivery_postcode'] );
+		} elseif ( $cp_from_select ) {
+			$final_cp = $cp_from_select;
+		}
+		
+		if ( $final_cp ) {
+			WC()->session->set( 'es_delivery_postcode', $final_cp );
 		}
 		if ( isset( $post_data['es_delivery_city'] ) ) {
 			WC()->session->set( 'es_delivery_city', sanitize_text_field( $post_data['es_delivery_city'] ) );
@@ -1226,18 +1353,8 @@ function eauservice_force_cart_refresh_checkout() {
 		?>
 		<script type="text/javascript">
 		jQuery(function($) {
-			console.log('🔥🔥🔥 SCRIPT FRAIS DE LIVRAISON CHARGÉ 🔥🔥🔥');
-			console.log('Champ code postal existe?', $('#es_delivery_postcode').length);
-			console.log('Champ ville existe?', $('#es_delivery_city').length);
-			
-			// NOUVEAU : Recalculer quand on remplit les champs PERSONNALISÉS
-			$(document.body).on('change blur keyup', '#es_delivery_postcode, #es_delivery_city', function() {
-				var cp = $('#es_delivery_postcode').val();
-				var ville = $('#es_delivery_city').val();
-				console.log('🚚🚚🚚 CHAMP MODIFIÉ 🚚🚚🚚');
-				console.log('Code postal saisi:', cp);
-				console.log('Ville saisie:', ville);
-				console.log('Déclenchement de update_checkout...');
+			// Recalculer quand on remplit les champs de livraison
+			$(document.body).on('change blur', '#es_delivery_postcode, #es_delivery_city', function() {
 				$(document.body).trigger('update_checkout');
 			});
 		});
@@ -1246,62 +1363,7 @@ function eauservice_force_cart_refresh_checkout() {
 	}
 }
 
-// DEBUG : Afficher les champs personnalisés détectés
-add_action( 'woocommerce_review_order_after_order_total', 'eauservice_debug_shipping_info', 1 );
-function eauservice_debug_shipping_info() {
-	// Récupérer depuis SESSION (priorité pour AJAX)
-	$cp_session = WC()->session->get( 'es_delivery_postcode' );
-	$ville_session = WC()->session->get( 'es_delivery_city' );
-	
-	// Récupérer depuis POST (soumission finale)
-	$cp_post = isset( $_POST['es_delivery_postcode'] ) ? sanitize_text_field( $_POST['es_delivery_postcode'] ) : '';
-	$ville_post = isset( $_POST['es_delivery_city'] ) ? sanitize_text_field( $_POST['es_delivery_city'] ) : '';
-	
-	// Valeur finale utilisée
-	$cp_delivery = $cp_session ? $cp_session : $cp_post;
-	$ville_delivery = $ville_session ? $ville_session : $ville_post;
-	
-	?>
-	<tr class="eauservice-debug">
-		<td colspan="2" style="background:#fffbcc;border:2px solid #ffa500;padding:12px;font-size:12px;">
-			<strong style="color:#d84315;">🐛 DEBUG (supprimer après test)</strong><br>
-			<small>
-				<strong>SESSION Code postal:</strong> <code><?php echo esc_html( $cp_session ? $cp_session : '(vide)' ); ?></code><br>
-				<strong>SESSION Ville:</strong> <code><?php echo esc_html( $ville_session ? $ville_session : '(vide)' ); ?></code><br>
-				<strong>POST Code postal:</strong> <code><?php echo esc_html( $cp_post ? $cp_post : '(vide)' ); ?></code><br>
-				<strong>POST Ville:</strong> <code><?php echo esc_html( $ville_post ? $ville_post : '(vide)' ); ?></code><br>
-				<hr style="border:1px solid #ffa500;margin:8px 0;">
-				<strong style="color:#1976d2;">→ VALEUR UTILISÉE:</strong><br>
-				<strong>Code postal livraison:</strong> <code style="background:#4caf50;color:white;padding:2px 6px;border-radius:3px;"><?php echo esc_html( $cp_delivery ? $cp_delivery : '(VIDE - remplissez ci-dessus)' ); ?></code><br>
-				<strong>Ville livraison:</strong> <code style="background:#4caf50;color:white;padding:2px 6px;border-radius:3px;"><?php echo esc_html( $ville_delivery ? $ville_delivery : '(VIDE - remplissez ci-dessus)' ); ?></code><br>
-				<?php if ( ! empty( $cp_delivery ) && strlen( $cp_delivery ) >= 5 ) : 
-					$tarif = eauservice_get_tarif_livraison( $cp_delivery, $ville_delivery );
-				?>
-				<br><strong style="color:#1976d2;">💰 Tarif calculé:</strong> 
-				<span style="background:#1976d2;color:white;padding:4px 10px;border-radius:5px;font-weight:bold;font-size:16px;">
-					<?php echo esc_html( $tarif['montant'] ); ?> € - <?php echo esc_html( $tarif['libelle'] ); ?>
-				</span>
-				<?php else: ?>
-				<br><strong style="color:#d32f2f;">⚠️ Remplissez le code postal et la ville dans la section "Informations de livraison" ci-dessus !</strong>
-				<?php endif; ?>
-				<br><br>
-				<button type="button" onclick="console.log('=== VALEURS ACTUELLES ==='); console.log('CP:', document.getElementById('es_delivery_postcode') ? document.getElementById('es_delivery_postcode').value : 'CHAMP INTROUVABLE'); console.log('Ville:', document.getElementById('es_delivery_city') ? document.getElementById('es_delivery_city').value : 'CHAMP INTROUVABLE'); alert('Voir la console (F12)');" style="background:#ff6b00;color:white;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;font-weight:bold;">
-					🔍 Vérifier les champs dans la console
-				</button>
-			</small>
-		</td>
-	</tr>
-	<script>
-	jQuery(document).ready(function($) {
-		console.log('🐛 DEBUG - Valeurs actuelles:');
-		console.log('es_delivery_postcode existe?', $('#es_delivery_postcode').length);
-		console.log('es_delivery_city existe?', $('#es_delivery_city').length);
-		console.log('Valeur CP:', $('#es_delivery_postcode').val());
-		console.log('Valeur Ville:', $('#es_delivery_city').val());
-	});
-	</script>
-	<?php
-}
+// DEBUG SUPPRIMÉ - Le système fonctionne
 
 /* ===========================================================================
  * 17) BOUTONS BOUTIQUE : "Demander un devis" et "Calculer frais de livraison"
