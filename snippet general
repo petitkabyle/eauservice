@@ -332,14 +332,20 @@ function eauservice_event_delivery_fields( $checkout ) {
 // 6b. Validation
 add_action( 'woocommerce_checkout_process', 'eauservice_validate_event_fields' );
 function eauservice_validate_event_fields() {
-	if ( empty( $_POST['es_delivery_postcode'] ) ) {
-		wc_add_notice( 'Le code postal de livraison est obligatoire', 'error' );
-	} elseif ( ! preg_match( '/^[0-9]{5}$/', $_POST['es_delivery_postcode'] ) ) {
-		wc_add_notice( 'Le code postal doit contenir 5 chiffres', 'error' );
-	}
-	
+	// Ville (SELECT)
 	if ( empty( $_POST['es_delivery_city'] ) ) {
 		wc_add_notice( 'La ville de livraison est obligatoire', 'error' );
+	}
+	
+	// Code postal (facultatif si ville sélectionnée dans la liste)
+	$city_value = isset( $_POST['es_delivery_city'] ) ? $_POST['es_delivery_city'] : '';
+	if ( $city_value === 'autre_06' || $city_value === 'autre_83' ) {
+		// Si "Autre ville", le code postal est obligatoire
+		if ( empty( $_POST['es_delivery_postcode'] ) ) {
+			wc_add_notice( 'Le code postal est obligatoire pour "Autre ville"', 'error' );
+		} elseif ( ! preg_match( '/^[0-9]{5}$/', $_POST['es_delivery_postcode'] ) ) {
+			wc_add_notice( 'Le code postal doit contenir 5 chiffres', 'error' );
+		}
 	}
 	
 	if ( empty( $_POST['es_venue_address'] ) ) {
@@ -362,6 +368,17 @@ function eauservice_validate_event_fields() {
 // 6c. Enregistrement
 add_action( 'woocommerce_checkout_create_order', 'eauservice_save_event_fields', 20, 2 );
 function eauservice_save_event_fields( $order, $data ) {
+	// Récupérer la ville depuis le SELECT
+	$city_value = isset( $_POST['es_delivery_city'] ) ? sanitize_text_field( $_POST['es_delivery_city'] ) : '';
+	
+	// Si c'est un code postal (format: "06400"), extraire le nom de la ville
+	$city_label = $city_value;
+	if ( isset( $_POST['es_delivery_city'] ) ) {
+		// On garde la valeur du SELECT (ex: "06400" ou "Cannes (06400) - 30€")
+		// Pour l'affichage dans l'admin, on peut récupérer le texte visible
+		$city_label = $city_value;
+	}
+	
 	foreach ( array_keys( eauservice_event_fields_list() ) as $key ) {
 		if ( ! empty( $_POST[ $key ] ) ) {
 			$value = ( 'es_access_notes' === $key )
