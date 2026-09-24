@@ -1072,13 +1072,24 @@ function eauservice_get_tarif_livraison( $cp, $ville = '' ) {
 		return array( 'montant' => 50, 'libelle' => 'Frais de livraison & installation (Nice)' );
 	}
 	
-	// ===== MONACO = 50 € =====
+	// ===== MONACO = 100 € (MODIFIÉ) =====
 	if ( '98' === substr( $cp5, 0, 2 ) || '98000' === $cp5 ) {
-		return array( 'montant' => 50, 'libelle' => 'Frais de livraison & installation (Monaco)' );
+		return array( 'montant' => 100, 'libelle' => 'Frais de livraison & installation (Monaco)' );
 	}
 	if ( false !== strpos( $ville_lower, 'monaco' ) || false !== strpos( $ville_lower, 'monte' ) || 
 	     false !== strpos( $ville_lower, 'carlo' ) ) {
-		return array( 'montant' => 50, 'libelle' => 'Frais de livraison & installation (Monaco)' );
+		return array( 'montant' => 100, 'libelle' => 'Frais de livraison & installation (Monaco)' );
+	}
+	
+	// ===== SAINT-TROPEZ = 150 € (AJOUTÉ) =====
+	$codes_st_tropez = array( '83990', '83350', '83580' );
+	if ( in_array( $cp5, $codes_st_tropez, true ) ) {
+		return array( 'montant' => 150, 'libelle' => 'Frais de livraison & installation (Saint-Tropez)' );
+	}
+	if ( false !== strpos( $ville_lower, 'tropez' ) || false !== strpos( $ville_lower, 'st-tropez' ) ||
+	     false !== strpos( $ville_lower, 'saint-tropez' ) || false !== strpos( $ville_lower, 'ramatuelle' ) ||
+	     false !== strpos( $ville_lower, 'gassin' ) ) {
+		return array( 'montant' => 150, 'libelle' => 'Frais de livraison & installation (Saint-Tropez)' );
 	}
 	
 	// ===== AUTRES VILLES ALPES-MARITIMES (06) = 80 € =====
@@ -1091,9 +1102,9 @@ function eauservice_get_tarif_livraison( $cp, $ville = '' ) {
 		return array( 'montant' => 100, 'libelle' => 'Frais de livraison & installation (Var)' );
 	}
 	
-	// ===== AUTRES DÉPARTEMENTS = 200 € =====
+	// ===== AUTRES DÉPARTEMENTS = 150 € (MODIFIÉ - MAX) =====
 	if ( strlen( $cp5 ) === 5 ) {
-		return array( 'montant' => 200, 'libelle' => 'Frais de livraison & installation' );
+		return array( 'montant' => 150, 'libelle' => 'Frais de livraison & installation' );
 	}
 	
 	// ===== AUCUN CODE POSTAL VALIDE = PAS DE FRAIS (sera calculé au checkout) =====
@@ -1139,6 +1150,233 @@ function eauservice_note_livraison() {
 	echo '<p style="font-size:13px;line-height:1.6;color:#34465a;margin:0 0 16px;padding:13px 15px;background:#e7f7fe;border:1px solid #c7ebfa;border-radius:13px;">'
 		. '💧 Frais de livraison calculés selon la distance depuis Antibes. '
 		. 'Zone éloignée, besoin particulier ou code promo ? '
-		. '<a href="https://api.whatsapp.com/send?phone=33663240843" target="_blank" rel="noopener" style="color:#1b86bc;font-weight:700;">Contactez-nous</a> '
-		. 'avant de valider, on s\'arrange.</p>';
+		. '<a href="tel:0663240843" style="color:#1b86bc;font-weight:700;">06 63 24 08 43</a> ou '
+		. '<a href="' . esc_url( home_url( '/#es-devis' ) ) . '" style="color:#1b86bc;font-weight:700;">demandez un devis</a>.</p>';
+}
+
+/* ===========================================================================
+ * 16) SIMULATEUR FRAIS DE LIVRAISON (pages Panier + Validation de commande)
+ *     Permet au client de calculer ses frais de livraison AVANT de remplir
+ *     toute la commande. Affiché en bas des pages Panier et Checkout.
+ * =========================================================================== */
+
+// 16a. Afficher le simulateur en bas de la page PANIER
+add_action( 'woocommerce_after_cart', 'eauservice_simulateur_livraison_panier', 20 );
+function eauservice_simulateur_livraison_panier() {
+	eauservice_afficher_simulateur();
+}
+
+// 16b. Afficher le simulateur en bas de la page VALIDATION DE COMMANDE
+add_action( 'woocommerce_after_checkout_form', 'eauservice_simulateur_livraison_checkout', 20 );
+function eauservice_simulateur_livraison_checkout() {
+	eauservice_afficher_simulateur();
+}
+
+// 16c. Fonction d'affichage du simulateur (utilisée par les 2 pages)
+function eauservice_afficher_simulateur() {
+	?>
+	<div id="es-simulateur" style="margin:40px 0;padding:30px;background:linear-gradient(135deg,#f8fbff,#eef5fc);border:2px solid #d0e4f7;border-radius:18px;box-shadow:0 8px 24px rgba(46,182,230,.15);">
+		<h3 style="color:#0a2942;font-size:22px;font-weight:800;margin:0 0 10px;letter-spacing:-.4px;">🚚 Calculer vos frais de livraison</h3>
+		<p style="color:#5b6b7d;font-size:14px;line-height:1.6;margin:0 0 20px;">Entrez votre code postal pour estimer les frais de livraison. Livraison gratuite à Antibes !</p>
+		
+		<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:20px;">
+			<div style="flex:1;min-width:200px;">
+				<label for="es-sim-cp" style="display:block;font-size:13px;font-weight:700;color:#0a2942;margin-bottom:6px;">Code postal</label>
+				<input type="text" id="es-sim-cp" placeholder="Ex: 06000" maxlength="5" style="width:100%;padding:12px 14px;border:2px solid #d0e4f7;border-radius:10px;font-size:15px;font-weight:600;color:#0a2942;background:#fff;transition:border-color .2s;">
+			</div>
+			<div style="flex:1;min-width:200px;">
+				<label for="es-sim-ville" style="display:block;font-size:13px;font-weight:700;color:#0a2942;margin-bottom:6px;">Ville (optionnel)</label>
+				<input type="text" id="es-sim-ville" placeholder="Ex: Nice" style="width:100%;padding:12px 14px;border:2px solid #d0e4f7;border-radius:10px;font-size:15px;font-weight:600;color:#0a2942;background:#fff;transition:border-color .2s;">
+			</div>
+			<button id="es-sim-btn" style="padding:12px 28px;background:linear-gradient(135deg,#1b9fd1,#2eb6e6);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(46,182,230,.3);white-space:nowrap;">
+				Calculer
+			</button>
+		</div>
+		
+		<div id="es-sim-result" style="display:none;padding:16px 20px;background:#fff;border:2px solid #6fe0ff;border-radius:12px;margin-bottom:14px;">
+			<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+				<div>
+					<div style="font-size:13px;color:#5b6b7d;font-weight:600;margin-bottom:4px;">Frais de livraison estimés :</div>
+					<div id="es-sim-montant" style="font-size:26px;color:#1b9fd1;font-weight:900;letter-spacing:-.5px;"></div>
+				</div>
+				<div id="es-sim-zone" style="font-size:13px;color:#5b6b7d;font-weight:600;background:#f4f9ff;padding:8px 14px;border-radius:8px;"></div>
+			</div>
+		</div>
+		
+		<p style="font-size:12px;color:#8ba6c2;margin:0;line-height:1.5;">
+			💡 <strong>Besoin d'un devis personnalisé ?</strong><br>
+			Contactez-nous : <a href="tel:0663240843" style="color:#1b9fd1;font-weight:700;text-decoration:none;">06 63 24 08 43</a> 
+			ou <a href="<?php echo esc_url( home_url( '/#es-devis' ) ); ?>" style="color:#1b9fd1;font-weight:700;text-decoration:none;">demandez un devis gratuit</a>
+		</p>
+	</div>
+
+	<script>
+	(function() {
+		var btnCalc = document.getElementById('es-sim-btn');
+		var inputCP = document.getElementById('es-sim-cp');
+		var inputVille = document.getElementById('es-sim-ville');
+		var resultDiv = document.getElementById('es-sim-result');
+		var montantSpan = document.getElementById('es-sim-montant');
+		var zoneSpan = document.getElementById('es-sim-zone');
+		
+		if (!btnCalc || !inputCP || !resultDiv) return;
+		
+		// Tarifs par code postal (synchronisé avec PHP)
+		var tarifs = {
+			// Antibes = GRATUIT
+			'06600': {m: 0, z: 'Antibes'},
+			'06160': {m: 0, z: 'Antibes'},
+			// Cannes = 30€
+			'06400': {m: 30, z: 'Cannes'},
+			'06150': {m: 30, z: 'Cannes'},
+			'06110': {m: 30, z: 'Cannes'},
+			'06210': {m: 30, z: 'Cannes'},
+			'06220': {m: 30, z: 'Cannes'},
+			'06590': {m: 30, z: 'Cannes'},
+			// Nice = 50€
+			'06000': {m: 50, z: 'Nice'},
+			'06100': {m: 50, z: 'Nice'},
+			'06200': {m: 50, z: 'Nice'},
+			'06300': {m: 50, z: 'Nice'},
+			// Monaco = 100€
+			'98000': {m: 100, z: 'Monaco'},
+			// Saint-Tropez = 150€
+			'83990': {m: 150, z: 'Saint-Tropez'},
+			'83350': {m: 150, z: 'Saint-Tropez'},
+			'83580': {m: 150, z: 'Saint-Tropez'}
+		};
+		
+		function calculer() {
+			var cp = inputCP.value.replace(/\D/g, '').substring(0, 5);
+			var ville = inputVille.value.toLowerCase().trim();
+			
+			if (cp.length !== 5) {
+				alert('Veuillez entrer un code postal valide (5 chiffres)');
+				return;
+			}
+			
+			var tarif = null;
+			var zone = '';
+			var montant = 0;
+			
+			// Vérifier si le code postal est dans la table
+			if (tarifs[cp]) {
+				tarif = tarifs[cp];
+				montant = tarif.m;
+				zone = tarif.z;
+			}
+			// Reconnaissance par nom de ville
+			else if (ville.indexOf('antibes') !== -1 || ville.indexOf('juan') !== -1) {
+				montant = 0; zone = 'Antibes';
+			}
+			else if (ville.indexOf('cannes') !== -1 || ville.indexOf('mougins') !== -1) {
+				montant = 30; zone = 'Cannes';
+			}
+			else if (ville.indexOf('nice') !== -1) {
+				montant = 50; zone = 'Nice';
+			}
+			else if (ville.indexOf('monaco') !== -1 || ville.indexOf('monte') !== -1) {
+				montant = 100; zone = 'Monaco';
+			}
+			else if (ville.indexOf('tropez') !== -1 || ville.indexOf('ramatuelle') !== -1) {
+				montant = 150; zone = 'Saint-Tropez';
+			}
+			// Par département
+			else if (cp.substring(0, 2) === '06') {
+				montant = 80; zone = 'Alpes-Maritimes';
+			}
+			else if (cp.substring(0, 2) === '83') {
+				montant = 100; zone = 'Var';
+			}
+			else if (cp.substring(0, 2) === '98') {
+				montant = 100; zone = 'Monaco';
+			}
+			else {
+				montant = 150; zone = 'Hors Côte d\'Azur';
+			}
+			
+			// Afficher le résultat
+			if (montant === 0) {
+				montantSpan.textContent = 'GRATUIT';
+				montantSpan.style.color = '#22c55e';
+			} else {
+				montantSpan.textContent = montant + ' €';
+				montantSpan.style.color = '#1b9fd1';
+			}
+			zoneSpan.textContent = zone;
+			resultDiv.style.display = 'block';
+			
+			// Animation
+			resultDiv.style.opacity = '0';
+			resultDiv.style.transform = 'translateY(10px)';
+			setTimeout(function() {
+				resultDiv.style.transition = 'all 0.3s ease';
+				resultDiv.style.opacity = '1';
+				resultDiv.style.transform = 'translateY(0)';
+			}, 10);
+		}
+		
+		btnCalc.addEventListener('click', calculer);
+		inputCP.addEventListener('keypress', function(e) {
+			if (e.key === 'Enter') calculer();
+		});
+		inputVille.addEventListener('keypress', function(e) {
+			if (e.key === 'Enter') calculer();
+		});
+		
+		// Style focus
+		inputCP.addEventListener('focus', function() {
+			this.style.borderColor = '#1b9fd1';
+		});
+		inputCP.addEventListener('blur', function() {
+			this.style.borderColor = '#d0e4f7';
+		});
+		inputVille.addEventListener('focus', function() {
+			this.style.borderColor = '#1b9fd1';
+		});
+		inputVille.addEventListener('blur', function() {
+			this.style.borderColor = '#d0e4f7';
+		});
+		
+		// Hover bouton
+		btnCalc.addEventListener('mouseenter', function() {
+			this.style.transform = 'translateY(-2px)';
+			this.style.boxShadow = '0 6px 20px rgba(46,182,230,.4)';
+		});
+		btnCalc.addEventListener('mouseleave', function() {
+			this.style.transform = 'translateY(0)';
+			this.style.boxShadow = '0 4px 14px rgba(46,182,230,.3)';
+		});
+	})();
+	</script>
+	<?php
+}
+
+/* ===========================================================================
+ * 17) BOUTONS BOUTIQUE : "Demander un devis" et "Calculer frais de livraison"
+ *     Ajoutés en bas de la page boutique pour guider le client.
+ * =========================================================================== */
+add_action( 'woocommerce_after_main_content', 'eauservice_boutique_boutons_bas', 15 );
+function eauservice_boutique_boutons_bas() {
+	if ( ! ( function_exists( 'is_shop' ) && is_shop() ) ) { return; }
+	if ( function_exists( 'is_paged' ) && is_paged() ) { return; }
+	
+	$cart_url = function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : home_url( '/panier/' );
+	$devis_url = home_url( '/#es-devis' );
+	?>
+	<div style="margin:50px 0 30px;padding:30px;background:linear-gradient(135deg,#f8fbff,#eef5fc);border:2px solid #d0e4f7;border-radius:18px;text-align:center;box-shadow:0 8px 24px rgba(46,182,230,.15);">
+		<h3 style="color:#0a2942;font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-.5px;">Besoin d'aide pour votre commande ?</h3>
+		<p style="color:#5b6b7d;font-size:15px;line-height:1.6;margin:0 0 24px;max-width:600px;margin-left:auto;margin-right:auto;">
+			Calculez vos frais de livraison avant de commander ou demandez un devis personnalisé pour votre événement.
+		</p>
+		<div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+			<a href="<?php echo esc_url( $cart_url . '#es-simulateur' ); ?>" style="display:inline-flex;align-items:center;gap:8px;padding:14px 26px;background:linear-gradient(135deg,#1b9fd1,#2eb6e6);color:#fff;text-decoration:none;border-radius:12px;font-size:16px;font-weight:700;box-shadow:0 6px 18px rgba(46,182,230,.3);transition:all .2s;">
+				🚚 Calculer les frais de livraison
+			</a>
+			<a href="<?php echo esc_url( $devis_url ); ?>" style="display:inline-flex;align-items:center;gap:8px;padding:14px 26px;background:#fff;color:#1b9fd1;text-decoration:none;border:2px solid #1b9fd1;border-radius:12px;font-size:16px;font-weight:700;transition:all .2s;">
+				📋 Demander un devis gratuit
+			</a>
+		</div>
+	</div>
+	<?php
 }
