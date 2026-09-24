@@ -332,14 +332,20 @@ function eauservice_event_delivery_fields( $checkout ) {
 // 6b. Validation
 add_action( 'woocommerce_checkout_process', 'eauservice_validate_event_fields' );
 function eauservice_validate_event_fields() {
-	if ( empty( $_POST['es_delivery_postcode'] ) ) {
-		wc_add_notice( 'Le code postal de livraison est obligatoire', 'error' );
-	} elseif ( ! preg_match( '/^[0-9]{5}$/', $_POST['es_delivery_postcode'] ) ) {
-		wc_add_notice( 'Le code postal doit contenir 5 chiffres', 'error' );
-	}
-	
+	// Ville (SELECT)
 	if ( empty( $_POST['es_delivery_city'] ) ) {
 		wc_add_notice( 'La ville de livraison est obligatoire', 'error' );
+	}
+	
+	// Code postal (facultatif si ville sélectionnée dans la liste)
+	$city_value = isset( $_POST['es_delivery_city'] ) ? $_POST['es_delivery_city'] : '';
+	if ( $city_value === 'autre_06' || $city_value === 'autre_83' ) {
+		// Si "Autre ville", le code postal est obligatoire
+		if ( empty( $_POST['es_delivery_postcode'] ) ) {
+			wc_add_notice( 'Le code postal est obligatoire pour "Autre ville"', 'error' );
+		} elseif ( ! preg_match( '/^[0-9]{5}$/', $_POST['es_delivery_postcode'] ) ) {
+			wc_add_notice( 'Le code postal doit contenir 5 chiffres', 'error' );
+		}
 	}
 	
 	if ( empty( $_POST['es_venue_address'] ) ) {
@@ -362,6 +368,17 @@ function eauservice_validate_event_fields() {
 // 6c. Enregistrement
 add_action( 'woocommerce_checkout_create_order', 'eauservice_save_event_fields', 20, 2 );
 function eauservice_save_event_fields( $order, $data ) {
+	// Récupérer la ville depuis le SELECT
+	$city_value = isset( $_POST['es_delivery_city'] ) ? sanitize_text_field( $_POST['es_delivery_city'] ) : '';
+	
+	// Si c'est un code postal (format: "06400"), extraire le nom de la ville
+	$city_label = $city_value;
+	if ( isset( $_POST['es_delivery_city'] ) ) {
+		// On garde la valeur du SELECT (ex: "06400" ou "Cannes (06400) - 30€")
+		// Pour l'affichage dans l'admin, on peut récupérer le texte visible
+		$city_label = $city_value;
+	}
+	
 	foreach ( array_keys( eauservice_event_fields_list() ) as $key ) {
 		if ( ! empty( $_POST[ $key ] ) ) {
 			$value = ( 'es_access_notes' === $key )
@@ -1072,10 +1089,11 @@ function eauservice_auto_alt( $attr, $attachment ) {
  *       Antibes (06600, 06160) = GRATUIT
  *       Cannes (06400, 06150, 06110, 06210, 06220, 06590) = 30 €
  *       Nice (06000, 06100, 06200, 06300) = 50 €
- *       Monaco (98000, 98xxx) = 50 €
+ *       Monaco (98000, 98xxx) = 100 €
+ *       Saint-Tropez (83990, 83350, 83580) = 150 €
  *       Autres villes Alpes-Maritimes (06xxx) = 80 €
  *       Var (83xxx) = 100 €
- *       Autres départements = 200 €
+ *       Autres départements = 150 €
  *     
  *     Le système reconnaît automatiquement la ville via le code postal.
  *     Si besoin d'ajuster : modifiez la fonction eauservice_get_tarif_livraison()
@@ -1377,14 +1395,22 @@ function eauservice_boutique_boutons_bas() {
 	
 	$cart_url = function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : home_url( '/panier/' );
 	$devis_url = home_url( '/#es-devis' );
+	$whatsapp_url = 'https://wa.me/33663240843';
+	$tel = '06 63 24 08 43';
 	?>
 	<div style="clear:both;margin:30px auto 30px;max-width:800px;padding:24px 20px;background:#f8fbff;border:1px solid #d0e4f7;border-radius:14px;text-align:center;">
 		<p style="color:#5b6b7d;font-size:14px;margin:0 0 16px;line-height:1.5;">
-			<strong style="color:#0a2942;">Besoin d'aide ?</strong> Calculez vos frais de livraison ou demandez un devis personnalisé.
+			<strong style="color:#0a2942;">Besoin d'aide ?</strong> Calculez vos frais de livraison, contactez-nous ou demandez un devis personnalisé.
 		</p>
 		<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
 			<a href="<?php echo esc_url( $cart_url ); ?>" style="display:inline-block;padding:11px 20px;background:linear-gradient(135deg,#1b9fd1,#2eb6e6);color:#fff;text-decoration:none;border-radius:10px;font-size:14px;font-weight:700;box-shadow:0 4px 12px rgba(46,182,230,.3);transition:all .2s;">
 				🚚 Calculer les frais de livraison
+			</a>
+			<a href="tel:0663240843" style="display:inline-block;padding:11px 20px;background:#25D366;color:#fff;text-decoration:none;border-radius:10px;font-size:14px;font-weight:700;box-shadow:0 4px 12px rgba(37,211,102,.3);transition:all .2s;">
+				📞 <?php echo esc_html( $tel ); ?>
+			</a>
+			<a href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener" style="display:inline-block;padding:11px 20px;background:#25D366;color:#fff;text-decoration:none;border-radius:10px;font-size:14px;font-weight:700;box-shadow:0 4px 12px rgba(37,211,102,.3);transition:all .2s;">
+				💬 WhatsApp
 			</a>
 			<a href="<?php echo esc_url( $devis_url ); ?>" style="display:inline-block;padding:11px 20px;background:#fff;color:#1b9fd1;text-decoration:none;border:1.5px solid #1b9fd1;border-radius:10px;font-size:14px;font-weight:700;transition:all .2s;">
 				📋 Demander un devis gratuit
