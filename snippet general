@@ -210,10 +210,13 @@ function eauservice_event_fields_list() {
 }
 
 // 6a. Affichage sur le checkout
-add_action( 'woocommerce_after_order_notes', 'eauservice_event_delivery_fields' );
+add_action( 'woocommerce_after_order_notes', 'eauservice_event_delivery_fields', 10 );
 function eauservice_event_delivery_fields( $checkout ) {
-	echo '<div id="eauservice_event_delivery" class="es-event-section">';
-	echo '<h3>Informations de livraison</h3>';
+	// DEBUG: Vérifier que la fonction s'exécute
+	error_log( '🔥 EAUSERVICE: Fonction eauservice_event_delivery_fields() appelée' );
+	
+	echo '<div id="eauservice_event_delivery" class="es-event-section" style="background:#fffbcc;border:3px solid #ff6b00;padding:20px;margin:20px 0;">';
+	echo '<h3 style="color:#ff6b00;">🔥 INFORMATIONS DE LIVRAISON (si vous voyez ce bloc, le code fonctionne)</h3>';
 
 	// LISTE DÉROULANTE DES VILLES
 	$villes = array(
