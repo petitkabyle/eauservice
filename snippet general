@@ -1124,14 +1124,14 @@ function eauservice_appliquer_frais_livraison( $cart ) {
 
 	$c = WC()->customer;
 	
-	// Récupérer le code postal et la ville (priorité FACTURATION)
+	// PRIORITÉ INVERSÉE : TOUJOURS utiliser FACTURATION (c'est ce que l'utilisateur remplit)
+	// L'adresse de livraison peut contenir des vieilles données cachées
 	$cp    = trim( $c->get_billing_postcode() );
 	$ville = trim( $c->get_billing_city() );
 	
-	// Si l'adresse de livraison est remplie, utiliser celle-ci à la place
-	$cp_shipping = trim( $c->get_shipping_postcode() );
-	if ( ! empty( $cp_shipping ) ) {
-		$cp = $cp_shipping;
+	// Si facturation vide, alors seulement essayer livraison
+	if ( empty( $cp ) ) {
+		$cp = trim( $c->get_shipping_postcode() );
 		$ville = trim( $c->get_shipping_city() );
 	}
 	
