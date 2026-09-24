@@ -1383,3 +1383,53 @@ body.woocommerce-cart .es-simul-devis{
   body.woocommerce-cart .es-simul{ padding:22px 18px; border-radius:18px; }
   body.woocommerce-cart .es-simul-actions a{ flex:1 1 100%; justify-content:center; }
 }
+
+
+
+/* ===================================================================== */
+/*  v26 — PAGE PANIER : UN SEUL SIMULATEUR + BULLE TOTAL QUI NE RECOUVRE */
+/*        PLUS RIEN                                                      */
+/* ===================================================================== */
+
+/* --- 1) On masque l'ancien simulateur colle dans Elementor ------------ */
+/*     Le script PHP (section 19 du snippet) le retire ensuite du DOM.    */
+/*     Le masquer en CSS evite qu'il apparaisse une fraction de seconde.  */
+#es-simulateur,
+body.woocommerce-cart #es-simulateur,
+body.woocommerce-checkout #es-simulateur{
+  display:none !important;
+}
+/* Filet de securite : le bloc Elementor qui contient le champ code postal */
+/* de l'ancien simulateur, au cas ou son identifiant aurait ete change.    */
+body.woocommerce-cart .elementor-widget-html:has(#es-sim-cp),
+body.woocommerce-cart .elementor-widget-text-editor:has(#es-sim-cp){
+  display:none !important;
+}
+
+/* --- 2) Le nouveau simulateur occupe sa propre ligne, pleine largeur -- */
+/*     Sans cela il devient un element flex de la grille 2 colonnes de la */
+/*     v20 et vient se glisser a cote du recapitulatif.                   */
+body.woocommerce-cart .woocommerce .es-simul,
+body.woocommerce-cart .es-simul{
+  flex:0 0 100% !important; max-width:100% !important; width:100% !important;
+  order:99 !important;          /* toujours en dernier, tout en bas */
+  align-self:stretch !important;
+  position:relative !important; z-index:1 !important;
+}
+
+/* --- 3) La bulle "Total panier" ne suit plus le defilement ------------ */
+/*     La v21 la rendait sticky. Comme le simulateur se trouve SOUS les   */
+/*     deux colonnes et que le sticky se deplace dans tout le conteneur   */
+/*     flex, la bulle descendait par-dessus le simulateur et masquait ses */
+/*     informations. On la remet dans le flux : elle reste en haut a       */
+/*     droite, bien visible, et ne recouvre plus rien.                    */
+@media(min-width:993px){
+  body.woocommerce-cart .woocommerce .cart-collaterals{
+    position:static !important;
+    top:auto !important;
+    align-self:flex-start !important;
+  }
+  body.woocommerce-cart .woocommerce .cart-collaterals .cart_totals{
+    position:static !important;
+  }
+}

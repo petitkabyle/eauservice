@@ -1267,7 +1267,7 @@ function eauservice_boutique_boutons_bas() {
 			<strong style="color:#0a2942;">Besoin d'aide ?</strong> Calculez vos frais de livraison ou demandez un devis personnalisé.
 		</p>
 		<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-			<a href="<?php echo esc_url( $cart_url ); ?>" style="display:inline-block;padding:11px 20px;background:linear-gradient(135deg,#1b9fd1,#2eb6e6);color:#fff;text-decoration:none;border-radius:10px;font-size:14px;font-weight:700;box-shadow:0 4px 12px rgba(46,182,230,.3);transition:all .2s;">
+			<a href="<?php echo esc_url( $cart_url . '#es-simul' ); ?>" style="display:inline-block;padding:11px 20px;background:linear-gradient(135deg,#1b9fd1,#2eb6e6);color:#fff;text-decoration:none;border-radius:10px;font-size:14px;font-weight:700;box-shadow:0 4px 12px rgba(46,182,230,.3);transition:all .2s;">
 				🚚 Calculer les frais de livraison
 			</a>
 			<a href="<?php echo esc_url( $devis_url ); ?>" style="display:inline-block;padding:11px 20px;background:#fff;color:#1b9fd1;text-decoration:none;border:1.5px solid #1b9fd1;border-radius:10px;font-size:14px;font-weight:700;transition:all .2s;">
@@ -1378,6 +1378,70 @@ function eauservice_simulateur_livraison() {
 
 		select.addEventListener( 'change', afficher );
 		afficher();
+	})();
+	</script>
+	<?php
+}
+
+
+/* ===========================================================================
+ * 19) SUPPRESSION DE L ANCIEN SIMULATEUR (bloc Elementor)
+ *     ------------------------------------------------------------------
+ *     L ancienne version du simulateur avait ete collee dans un bloc HTML
+ *     Elementor sur la page Panier. Son balisage, retrouve dans l historique
+ *     du depot, est reconnaissable a coup sur :
+ *
+ *       <div id="es-simulateur">  avec les champs  #es-sim-cp  et  #es-sim-ville
+ *
+ *     Ses tarifs etaient saisis a la main (Monaco a 120 € au lieu de 100 €) et
+ *     son bouton WhatsApp pointait vers un mauvais numero. Comme le contenu
+ *     Elementor n est pas modifiable depuis le code, on le retire du rendu :
+ *       - le CSS le masque immediatement, sans clignotement ;
+ *       - ce script le retire ensuite de la page, ainsi que le bloc Elementor
+ *         qui l enveloppe s il devient vide.
+ *
+ *     Seul le simulateur de la section 18 reste visible.
+ * =========================================================================== */
+add_action( 'wp_footer', 'eauservice_retirer_ancien_simulateur', 999 );
+function eauservice_retirer_ancien_simulateur() {
+	if ( ! ( function_exists( 'is_cart' ) && ( is_cart() || is_checkout() ) ) ) {
+		return;
+	}
+	?>
+	<script type="text/javascript">
+	(function () {
+		function retirer() {
+			// 1) Le conteneur de l ancien simulateur, repere par son identifiant.
+			var anciens = document.querySelectorAll( '#es-simulateur' );
+
+			// 2) Filet de securite : tout bloc contenant le champ code postal de
+			//    l ancien simulateur, meme si son identifiant a ete modifie.
+			var champCp = document.getElementById( 'es-sim-cp' );
+			var liste   = Array.prototype.slice.call( anciens );
+			if ( champCp ) {
+				var parent = champCp.closest( '#es-simulateur, .elementor-widget-html, .elementor-widget-text-editor' );
+				if ( parent && liste.indexOf( parent ) === -1 ) { liste.push( parent ); }
+			}
+
+			liste.forEach( function ( bloc ) {
+				if ( ! bloc || ! bloc.parentNode ) { return; }
+				// On remonte au bloc Elementor englobant s il ne contient que ca.
+				var enveloppe = bloc.closest( '.elementor-widget-html, .elementor-widget-text-editor' );
+				var aSupprimer = bloc;
+				if ( enveloppe && enveloppe.textContent.trim() === bloc.textContent.trim() ) {
+					aSupprimer = enveloppe;
+				}
+				aSupprimer.parentNode.removeChild( aSupprimer );
+			} );
+		}
+
+		if ( document.readyState === 'loading' ) {
+			document.addEventListener( 'DOMContentLoaded', retirer );
+		} else {
+			retirer();
+		}
+		// Elementor peut injecter son contenu apres coup : on repasse une fois.
+		window.addEventListener( 'load', function () { setTimeout( retirer, 300 ); } );
 	})();
 	</script>
 	<?php
