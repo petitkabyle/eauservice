@@ -1218,10 +1218,10 @@ function eauservice_debug_shipping_info() {
 	$ville_billing  = trim( $c->get_billing_city() );
 	$ville_shipping = trim( $c->get_shipping_city() );
 	
-	// Code postal utilisé (même logique que la fonction principale)
+	// Code postal utilisé (FACTURATION en priorité - NOUVELLE LOGIQUE)
 	$cp = $cp_billing;
 	$ville = $ville_billing;
-	if ( ! empty( $cp_shipping ) ) {
+	if ( empty( $cp ) ) {
 		$cp = $cp_shipping;
 		$ville = $ville_shipping;
 	}
