@@ -590,6 +590,9 @@ function eauservice_shop_outro() {
  * =========================================================================== */
 add_action( 'wp_head', 'eauservice_local_business_schema' );
 function eauservice_local_business_schema() {
+	// Rank Math publie deja une fiche etablissement : on ne double pas. Voir
+	// la section 21, qui enrichit la fiche de Rank Math au lieu de la copier.
+	if ( eauservice_rank_math_actif() ) { return; }
 	// ---- À PERSONNALISER ----------------------------------------------
 	$nom        = 'EauService';
 	$telephone  = '+33 6 63 24 08 43';                  // numéro de contact principal
@@ -632,16 +635,14 @@ function eauservice_local_business_schema() {
 			'longitude' => $longitude,
 		),
 		// Villes desservies, reprises de l ancien bloc de l accueil.
-		'areaServed'  => array(
-			'Antibes', 'Juan-les-Pins', 'Cannes', 'Le Cannet', 'Mougins', 'Nice',
-			'Monaco', 'Menton', 'Grasse', 'Sophia Antipolis', 'Valbonne', 'Biot',
-			'Villeneuve-Loubet', 'Cagnes-sur-Mer', 'Saint-Laurent-du-Var',
-			'Saint-Tropez', 'Côte d\'Azur',
-		),
+		'areaServed'  => eauservice_villes_desservies(),
 		// Moyens de paiement : le client peut regler en ligne OU apres la
 		// livraison et l installation du materiel.
-		'paymentAccepted'     => 'Carte bancaire, virement bancaire, paiement après livraison',
+		'paymentAccepted'     => eauservice_moyens_paiement(),
 		'currenciesAccepted'  => 'EUR',
+		// Events Café est le site historique du groupe, bien reference. Declarer
+		// le lien de filiation aide Google a relier les deux entites.
+		'parentOrganization'  => eauservice_organisation_mere(),
 		'openingHoursSpecification' => array(
 			array(
 				'@type'     => 'OpeningHoursSpecification',
@@ -664,6 +665,8 @@ function eauservice_local_business_schema() {
 add_action( 'wp_head', 'eauservice_organization_schema', 8 );
 function eauservice_organization_schema() {
 	if ( ! is_front_page() ) { return; }
+	// Rank Math publie deja un schema Organization : on ne double pas.
+	if ( eauservice_rank_math_actif() ) { return; }
 	$data = array(
 		'@context' => 'https://schema.org',
 		'@type' => 'Organization',
@@ -725,8 +728,12 @@ function eauservice_organization_schema() {
 			'Acropolis Nice'
 		),
 		'sameAs' => array(
-			'https://maps.app.goo.gl/FqH9hm9FLBDLpN6F6'
+			'https://maps.app.goo.gl/FqH9hm9FLBDLpN6F6',
+			'https://www.instagram.com/eventscafe_paca'
 		),
+		// Events Café : site historique du groupe, deja bien reference.
+		'parentOrganization' => eauservice_organisation_mere(),
+		'paymentAccepted'    => eauservice_moyens_paiement(),
 		'contactPoint' => array(
 			'@type' => 'ContactPoint',
 			'telephone' => '+33-6-63-24-08-43',
@@ -880,6 +887,8 @@ function eauservice_services_schema() {
 add_action( 'wp_head', 'eauservice_breadcrumb_schema', 10 );
 function eauservice_breadcrumb_schema() {
 	if ( is_front_page() ) { return; }
+	// Rank Math publie deja un fil d Ariane structure : on ne double pas.
+	if ( eauservice_rank_math_actif() ) { return; }
 	
 	$items = array(
 		array('@type' => 'ListItem', 'position' => 1, 'name' => 'Accueil', 'item' => home_url('/'))
@@ -1542,4 +1551,112 @@ function eauservice_pay_panier() {
 add_action( 'woocommerce_review_order_before_payment', 'eauservice_pay_commande', 5 );
 function eauservice_pay_commande() {
 	echo eauservice_bandeau_paiement();
+}
+
+
+/* ===========================================================================
+ * 21) COMPATIBILITÉ RANK MATH — NE JAMAIS PUBLIER DEUX FOIS LA MÊME CHOSE
+ *     ------------------------------------------------------------------
+ *     Rank Math publie deja, de lui-meme, les schemas Organization,
+ *     LocalBusiness, WebPage, BreadcrumbList et FAQPage. Si ce snippet en
+ *     publiait aussi, Google recevrait deux fiches concurrentes pour la meme
+ *     entreprise et ne saurait pas laquelle fait foi : c est exactement le
+ *     probleme que nous venons de supprimer sur la page d accueil.
+ *
+ *     La regle appliquee ici est donc simple :
+ *       - Rank Math reste le SEUL a decrire l entreprise et la navigation ;
+ *       - ce snippet se contente d AJOUTER a la fiche de Rank Math ce qu elle
+ *         ne contient pas : moyens de paiement, villes desservies, et le lien
+ *         vers Events Café.
+ *
+ *     Les schemas Service (section 9c) et FAQ de la boutique (section 10) sont
+ *     conserves : Rank Math ne les genere pas pour ces contenus, qui sont du
+ *     HTML sur mesure. Il n y a donc pas de doublon.
+ *
+ *     >>> SI VOUS DESINSTALLEZ RANK MATH <<<
+ *     Rien a faire : ce snippet detecte son absence et reprend automatiquement
+ *     la publication de la fiche etablissement.
+ * =========================================================================== */
+
+/** Rank Math est-il actif ? */
+function eauservice_rank_math_actif() {
+	// Permet de forcer nos propres schemas si besoin, en definissant
+	// EAUSERVICE_IGNORER_RANK_MATH a true.
+	if ( defined( 'EAUSERVICE_IGNORER_RANK_MATH' ) && EAUSERVICE_IGNORER_RANK_MATH ) {
+		return false;
+	}
+	return defined( 'RANK_MATH_VERSION' )
+		|| class_exists( 'RankMath\Helper' )
+		|| function_exists( 'rank_math' );
+}
+
+/** Les villes desservies, definies une seule fois. */
+function eauservice_villes_desservies() {
+	return array(
+		'Antibes', 'Juan-les-Pins', 'Cannes', 'Le Cannet', 'Mougins', 'Nice',
+		'Monaco', 'Menton', 'Grasse', 'Sophia Antipolis', 'Valbonne', 'Biot',
+		'Villeneuve-Loubet', 'Cagnes-sur-Mer', 'Saint-Laurent-du-Var',
+		'Saint-Tropez', 'Côte d\'Azur',
+	);
+}
+
+/** Les moyens de paiement acceptes, definis une seule fois. */
+function eauservice_moyens_paiement() {
+	return 'Carte bancaire, virement bancaire, paiement après livraison';
+}
+
+/** Events Café : le site historique du groupe, deja bien reference. */
+function eauservice_organisation_mere() {
+	return array(
+		'@type' => 'Organization',
+		'name'  => 'Events Café',
+		'url'   => 'https://www.events-cafe.com/',
+	);
+}
+
+/**
+ * Enrichit le schema publie par Rank Math.
+ *
+ * On n ecrase rien : chaque propriete n est ajoutee que si Rank Math ne l a
+ * pas deja renseignee. Si la structure de Rank Math changeait, ce filtre ne
+ * ferait simplement rien, sans casser le site.
+ */
+add_filter( 'rank_math/json_ld', 'eauservice_enrichir_schema_rank_math', 99, 2 );
+function eauservice_enrichir_schema_rank_math( $data, $jsonld = null ) {
+	if ( ! is_array( $data ) ) { return $data; }
+
+	foreach ( $data as $cle => $noeud ) {
+		if ( ! is_array( $noeud ) || empty( $noeud['@type'] ) ) { continue; }
+
+		// Le noeud decrit-il l entreprise ?
+		$est_entreprise = false;
+		foreach ( (array) $noeud['@type'] as $type ) {
+			if ( ! is_string( $type ) ) { continue; }
+			if ( false !== stripos( $type, 'LocalBusiness' )
+				|| false !== stripos( $type, 'Store' )
+				|| 'Organization' === $type ) {
+				$est_entreprise = true;
+				break;
+			}
+		}
+		if ( ! $est_entreprise ) { continue; }
+
+		if ( empty( $noeud['paymentAccepted'] ) ) {
+			$data[ $cle ]['paymentAccepted'] = eauservice_moyens_paiement();
+		}
+		if ( empty( $noeud['currenciesAccepted'] ) ) {
+			$data[ $cle ]['currenciesAccepted'] = 'EUR';
+		}
+		if ( empty( $noeud['areaServed'] ) ) {
+			$data[ $cle ]['areaServed'] = eauservice_villes_desservies();
+		}
+		if ( empty( $noeud['parentOrganization'] ) ) {
+			$data[ $cle ]['parentOrganization'] = eauservice_organisation_mere();
+		}
+		if ( empty( $noeud['email'] ) ) {
+			$data[ $cle ]['email'] = eauservice_email_contact();
+		}
+	}
+
+	return $data;
 }

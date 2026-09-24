@@ -1015,16 +1015,22 @@ function esToggleBrand(){ esSetBrand(esBrand==='std'?'nes':'std'); }
 <!-- ===== SEO : donnees structurees =====
      Le bloc LocalBusiness qui se trouvait ici a ete retire volontairement.
 
-     Pourquoi : le snippet PHP « eauservice-function » publie deja un
-     LocalBusiness sur toutes les pages du site. Il y en avait donc DEUX sur
-     l'accueil, avec deux URL differentes (events-cafe.com d'un cote,
-     eau-service-events.fr de l'autre). Google ne pouvait pas savoir laquelle
-     est la bonne fiche, ce qui dilue le referencement local.
+     Pourquoi : c'est Rank Math qui decrit desormais l'entreprise a Google,
+     et lui seul. Il y avait auparavant DEUX fiches concurrentes sur cette
+     page, avec deux URL differentes (events-cafe.com d'un cote,
+     eau-service-events.fr de l'autre) et deux adresses postales. Google ne
+     pouvait pas savoir laquelle fait foi, ce qui dilue le referencement.
 
-     Il n'y a plus qu'une seule fiche, dans le snippet PHP, enrichie avec les
-     informations qui n'existaient qu'ici : horaires, coordonnees GPS, lien
-     Instagram et liste complete des villes desservies.
+     Le snippet « eauservice-function » ne publie plus de fiche quand Rank
+     Math est actif : il se contente d'AJOUTER a la fiche de Rank Math les
+     informations qu'elle ne contient pas, soit les moyens de paiement, les
+     villes desservies et le lien vers Events Cafe. Voir sa section 21.
 
-     Pour la modifier : snippet « eauservice-function », section 9.
+     A REMPLIR DANS RANK MATH : Rank Math SEO > Reglages generaux > SEO local
+     (adresse, telephone, horaires, coordonnees GPS, fourchette de prix).
+     C'est la que se modifient ces informations, plus ici.
+
+     Le carrousel de temoignages plus haut dans la page n'a pas ete touche :
+     seul le balisage invisible a ete retire, pas le contenu affiche.
      ===================================================================== -->
 </div>
