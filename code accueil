@@ -1021,7 +1021,7 @@ function esToggleBrand(){ esSetBrand(esBrand==='std'?'nes':'std'); }
   "name": "EauService by Events Café",
   "image": "https://eau-service-events.fr/wp-content/uploads/2026/06/pack-complet-nespresso.png",
   "url": "https://www.events-cafe.com/",
-  "telephone": "+33761465720",
+  "telephone": "+33663240843",
   "email": "contact@events-cafe.com",
   "priceRange": "€€",
   "description": "Location de matériel événementiel sur la Côte d'Azur : fontaines à eau, machines à café Nespresso, Lavazza et Covim, réfrigérateurs et mobilier. Livraison, installation et reprise incluses. Devis gratuit sous 24h à Nice, Cannes, Monaco, Antibes et alentours.",

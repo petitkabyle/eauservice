@@ -337,14 +337,14 @@ function eauservice_event_delivery_fields( $checkout ) {
 	woocommerce_form_field( 'es_access_notes', array(
 		'type'        => 'textarea',
 		'class'       => array( 'form-row-wide' ),
-		'label'       => 'Instructions d\'accès (facultatif)',
+		'label'       => 'Instructions d\'accès',
 		'placeholder' => 'Quai de livraison, badges / accréditations, horaires de montage, restrictions véhicules...',
 	), $checkout->get_value( 'es_access_notes' ) );
 
 	woocommerce_form_field( 'es_extra_notes', array(
 		'type'        => 'textarea',
 		'class'       => array( 'form-row-wide' ),
-		'label'       => 'Notes complémentaires (facultatif)',
+		'label'       => 'Notes complémentaires',
 		'placeholder' => 'Toute autre précision utile pour votre commande.',
 	), $checkout->get_value( 'es_extra_notes' ) );
 
@@ -1275,5 +1275,110 @@ function eauservice_boutique_boutons_bas() {
 			</a>
 		</div>
 	</div>
+	<?php
+}
+
+
+/* ===========================================================================
+ * 18) SIMULATEUR DE FRAIS DE LIVRAISON (bas de la page Panier)
+ *     ------------------------------------------------------------------
+ *     Remplace l ancien simulateur construit dans Elementor, qui affichait
+ *     120 € pour Monaco alors que le tarif reel est 100 €, et qui pointait
+ *     vers un mauvais numero WhatsApp.
+ *
+ *     Ce simulateur lit ses tarifs dans eauservice_delivery_zones()
+ *     (section 6) : il ne peut donc plus jamais afficher un montant
+ *     different de celui facture au moment de la commande.
+ *
+ *     >>> IMPORTANT : supprimez le bloc simulateur dans Elementor sur la
+ *         page Panier, sinon les deux simulateurs s afficheront.
+ * =========================================================================== */
+
+// Coordonnees utilisees par le simulateur (un seul endroit a modifier).
+function eauservice_contact_infos() {
+	return array(
+		'tel_affiche'  => '06 63 24 08 43',
+		'tel_lien'     => 'tel:0663240843',
+		'whatsapp'     => 'https://wa.me/33663240843',
+		'devis'        => home_url( '/#es-devis' ),
+	);
+}
+
+add_action( 'woocommerce_after_cart', 'eauservice_simulateur_livraison', 20 );
+function eauservice_simulateur_livraison() {
+	if ( ! ( function_exists( 'is_cart' ) && is_cart() ) ) {
+		return;
+	}
+
+	$contact = eauservice_contact_infos();
+
+	// Tarifs transmis au JavaScript : meme source que le checkout.
+	$tarifs = array();
+	foreach ( eauservice_delivery_zones() as $key => $zone ) {
+		$tarifs[ $key ] = array(
+			'montant' => (float) $zone['montant'],
+			'label'   => $zone['label'],
+		);
+	}
+	?>
+	<section class="es-simul" id="es-simul">
+		<h2>Estimez vos frais de livraison</h2>
+		<p class="es-simul-intro">
+			Choisissez votre zone : le montant affiché est exactement celui qui sera
+			ajouté à votre commande lors de la validation.
+		</p>
+
+		<label for="es-simul-zone">Zone de livraison</label>
+		<select id="es-simul-zone">
+			<?php foreach ( eauservice_delivery_zone_options() as $value => $texte ) : ?>
+				<option value="<?php echo esc_attr( $value ); ?>"><?php echo esc_html( $texte ); ?></option>
+			<?php endforeach; ?>
+		</select>
+
+		<p class="es-simul-result" id="es-simul-result" role="status" aria-live="polite">
+			Choisissez une zone pour afficher le montant.
+		</p>
+
+		<div class="es-simul-actions">
+			<a class="es-simul-tel" href="<?php echo esc_url( $contact['tel_lien'] ); ?>">
+				&#128222; <?php echo esc_html( $contact['tel_affiche'] ); ?>
+			</a>
+			<a class="es-simul-wa" href="<?php echo esc_url( $contact['whatsapp'] ); ?>" target="_blank" rel="noopener">
+				&#128172; WhatsApp
+			</a>
+			<a class="es-simul-devis" href="<?php echo esc_url( $contact['devis'] ); ?>">
+				&#128203; Demander un devis
+			</a>
+		</div>
+	</section>
+
+	<script type="text/javascript">
+	(function () {
+		var tarifs = <?php echo wp_json_encode( $tarifs ); ?>;
+		var select = document.getElementById( 'es-simul-zone' );
+		var sortie = document.getElementById( 'es-simul-result' );
+		if ( ! select || ! sortie ) { return; }
+
+		function afficher() {
+			var cle = select.value;
+			if ( ! cle || ! tarifs[ cle ] ) {
+				sortie.innerHTML = 'Choisissez une zone pour afficher le montant.';
+				return;
+			}
+			var zone = tarifs[ cle ];
+			if ( zone.montant === 0 ) {
+				sortie.innerHTML = '<strong>' + zone.label + '</strong> : '
+					+ '<span class="es-simul-amount">livraison offerte</span>';
+			} else {
+				sortie.innerHTML = '<strong>' + zone.label + '</strong> : '
+					+ '<span class="es-simul-amount">' + zone.montant + ' €</span>'
+					+ ' de frais de livraison et installation.';
+			}
+		}
+
+		select.addEventListener( 'change', afficher );
+		afficher();
+	})();
+	</script>
 	<?php
 }
