@@ -1235,7 +1235,7 @@ function eauservice_debug_shipping_info() {
 				Ville=<code><?php echo esc_html( $ville_billing ? $ville_billing : '(vide)' ); ?></code><br>
 				<strong>Livraison:</strong> CP=<code><?php echo esc_html( $cp_shipping ? $cp_shipping : '(vide)' ); ?></code> 
 				Ville=<code><?php echo esc_html( $ville_shipping ? $ville_shipping : '(vide)' ); ?></code><br>
-				<strong style="color:#388e3c;">→ UTILISÉ:</strong> CP=<strong><?php echo esc_html( $cp ? $cp : '❌ AUCUN' ); ?></strong> 
+				<strong style="color:#388e3c;">→ UTILISÉ (FACTURATION prioritaire):</strong> CP=<strong><?php echo esc_html( $cp ? $cp : '❌ AUCUN' ); ?></strong> 
 				Ville=<strong><?php echo esc_html( $ville ? $ville : '❌ AUCUNE' ); ?></strong>
 				<?php if ( ! empty( $cp ) && strlen( $cp ) >= 5 ) : 
 					$tarif = eauservice_get_tarif_livraison( $cp, $ville );
