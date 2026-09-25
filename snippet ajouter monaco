@@ -20,64 +20,211 @@ function eauservice_validate_mc_postcode( $valid, $postcode, $country ) {
 	return $valid;
 }
 
-/* 3) CORRECTIF CLÉ : remplir auto "Adresse du lieu de livraison" si vide,
- *    à partir de l'adresse saisie (s'exécute AVANT votre validation). */
-add_action( 'woocommerce_checkout_process', 'eauservice_fill_venue_address', 1 );
-function eauservice_fill_venue_address() {
-	if ( ! empty( $_POST['es_venue_address'] ) ) { return; }
-	$pick = function( $keys ) {
-		foreach ( $keys as $k ) {
-			if ( ! empty( $_POST[ $k ] ) ) { return sanitize_text_field( wp_unslash( $_POST[ $k ] ) ); }
+/* 3) AIDE A LA SAISIE : bouton « Reprendre mon adresse de facturation »
+ *    ---------------------------------------------------------------------
+ *    CE QUI SE PASSAIT AVANT (et pourquoi c etait dangereux) :
+ *    ce snippet recopiait EN SILENCE l adresse de facturation dans le champ
+ *    « Adresse exacte de livraison » quand celui-ci etait vide, et il le
+ *    faisait en priorite 1 sur woocommerce_checkout_process, donc AVANT la
+ *    validation de la section 6b du snippet « eauservice-function ».
+ *    Deux consequences :
+ *      1. le champ, pourtant declare obligatoire, ne pouvait JAMAIS afficher
+ *         son message d erreur : il etait de fait facultatif ;
+ *      2. un client qui sautait le champ se retrouvait avec son adresse de
+ *         FACTURATION comme lieu de livraison. Pour une societe, c est
+ *         souvent le siege social. Concretement : un camion envoye a Paris
+ *         au lieu du Palais des Festivals, sans que personne ne voie rien.
+ *
+ *    CE QUI SE PASSE MAINTENANT :
+ *    on ne remplit plus rien dans le dos du client. On lui propose un petit
+ *    bouton qui recopie son adresse de facturation dans le champ, qu il VOIT
+ *    et peut corriger (hall, stand, quai de livraison...). La validation
+ *    obligatoire retrouve son role de garde-fou.
+ */
+add_action( 'wp_footer', 'eauservice_bouton_copier_adresse', 998 );
+function eauservice_bouton_copier_adresse() {
+	if ( ! ( function_exists( 'is_checkout' ) && is_checkout() ) ) { return; }
+	?>
+	<style>
+	.es-copy-addr{display:inline-flex;align-items:center;gap:6px;margin:-6px 0 10px;padding:7px 12px;
+		background:#eaf6fd;border:1px solid #bfe6f6;border-radius:9px;color:#1b86bc;
+		font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.3;}
+	.es-copy-addr:hover{background:#dcf0fb;}
+	.es-copy-addr:focus-visible{outline:2px solid #1b9fd1;outline-offset:2px;}
+	.es-copy-addr[hidden]{display:none;}
+	</style>
+	<script>
+	(function(){
+		function valeur(id){
+			var el = document.getElementById(id);
+			return el && el.value ? el.value.trim() : '';
 		}
-		return '';
-	};
-	$rue   = $pick( array( 'billing_address_1', 'shipping_address_1' ) );
-	$cp    = $pick( array( 'billing_postcode', 'shipping_postcode' ) );
-	$ville = $pick( array( 'billing_city', 'shipping_city' ) );
-	$adresse = trim( $rue . ' ' . $cp . ' ' . $ville );
-	if ( '' !== $adresse ) { $_POST['es_venue_address'] = $adresse; }
+		function adresseFacturation(){
+			var morceaux = [
+				valeur('billing_address_1'),
+				valeur('billing_address_2'),
+				valeur('billing_postcode'),
+				valeur('billing_city')
+			].filter(function(v){ return v !== ''; });
+			return morceaux.join(' ');
+		}
+		function poser(){
+			var champ = document.getElementById('es_venue_address');
+			if ( ! champ ) { return; }
+			/* Le champ est reconstruit a chaque rafraichissement du checkout :
+			   on verifie donc la presence du bouton, pas celle d un drapeau. */
+			var ligne = champ.parentNode;
+			if ( ! ligne || ligne.querySelector('.es-copy-addr') ) { return; }
+
+			var btn = document.createElement('button');
+			btn.type = 'button';
+			btn.className = 'es-copy-addr';
+			btn.textContent = '\u21B3 Reprendre mon adresse de facturation';
+			btn.addEventListener('click', function(){
+				/* On relit le champ au moment du clic : s il a ete remplace
+				   entre-temps, on ecrit bien dans celui qui est affiche. */
+				var cible = document.getElementById('es_venue_address');
+				if ( ! cible ) { return; }
+				var adresse = adresseFacturation();
+				if ( adresse === '' ) {
+					btn.textContent = 'Renseignez d\'abord votre adresse de facturation';
+					setTimeout(function(){ btn.textContent = '\u21B3 Reprendre mon adresse de facturation'; }, 2600);
+					return;
+				}
+				cible.value = adresse;
+				cible.focus();
+				btn.textContent = '\u2713 Adresse recopiee — completez si besoin';
+			});
+			champ.insertAdjacentElement('afterend', btn);
+		}
+		function boot(){ poser(); }
+		if ( document.readyState !== 'loading' ) { boot(); }
+		document.addEventListener('DOMContentLoaded', boot);
+		/* Le checkout se redessine a chaque changement de zone ou de pays. */
+		if ( window.jQuery ) { jQuery(document.body).on('updated_checkout', function(){ setTimeout(poser, 60); }); }
+	})();
+	</script>
+	<?php
 }
 
-/* 4) Filet de sécurité : ne pas bloquer pour un code postal Monaco */
+/* 4) Filet de sécurité : ne pas bloquer pour un code postal Monaco
+ *    ---------------------------------------------------------------------
+ *    BUG CORRIGE ICI : l ancienne version appelait $errors->remove( $code ).
+ *    WP_Error::remove() supprime TOUS les messages portant ce code, pas
+ *    seulement celui qu on visait. Or WooCommerce range beaucoup d erreurs
+ *    differentes sous le meme code « validation » : format d e-mail, format
+ *    de telephone, code postal... Des qu une adresse monegasque declenchait
+ *    une erreur de code postal, les AUTRES erreurs de la meme requete
+ *    disparaissaient avec elle, et une commande incomplete pouvait passer.
+ *
+ *    Nouvelle logique : on reconstruit la liste. On retire uniquement les
+ *    messages qui parlent de code postal et on remet les autres en place.
+ */
 add_action( 'woocommerce_after_checkout_validation', 'eauservice_unblock_monaco', 20, 2 );
 function eauservice_unblock_monaco( $data, $errors ) {
-	$pc      = isset( $data['shipping_postcode'] ) ? $data['shipping_postcode'] : ( $data['billing_postcode'] ?? '' );
-	$pc      = preg_replace( '/\s+/', '', (string) $pc );
-	$country = isset( $data['shipping_country'] ) ? $data['shipping_country'] : ( $data['billing_country'] ?? '' );
+	if ( ! is_wp_error( $errors ) ) { return; }
+
+	// L adresse de livraison native etant desactivee, shipping_postcode est
+	// souvent absent : on retombe alors sur le code postal de facturation.
+	$pc = '';
+	if ( ! empty( $data['shipping_postcode'] ) ) {
+		$pc = $data['shipping_postcode'];
+	} elseif ( ! empty( $data['billing_postcode'] ) ) {
+		$pc = $data['billing_postcode'];
+	}
+	$pc = preg_replace( '/\s+/', '', (string) $pc );
+
+	$country = '';
+	if ( ! empty( $data['shipping_country'] ) ) {
+		$country = $data['shipping_country'];
+	} elseif ( ! empty( $data['billing_country'] ) ) {
+		$country = $data['billing_country'];
+	}
+
 	$is_monaco = ( 'MC' === $country ) || preg_match( '/^98\d{3}$/', $pc );
-	if ( ! $is_monaco || ! is_wp_error( $errors ) ) { return; }
+	if ( ! $is_monaco ) { return; }
+
 	foreach ( $errors->get_error_codes() as $code ) {
+		$a_garder   = array();
+		$a_retirer  = false;
+
 		foreach ( $errors->get_error_messages( $code ) as $msg ) {
-			if ( stripos( $msg, 'postal' ) !== false || stripos( $msg, 'postcode' ) !== false || stripos( $msg, 'code postal' ) !== false ) {
-				$errors->remove( $code ); break;
+			$parle_de_cp = ( stripos( $msg, 'postal' ) !== false
+				|| stripos( $msg, 'postcode' ) !== false
+				|| stripos( $msg, 'code postal' ) !== false );
+
+			if ( $parle_de_cp ) {
+				$a_retirer = true;   // celui-la, on l abandonne
+				continue;
+			}
+			$a_garder[] = $msg;      // tous les autres sont preserves
+		}
+
+		if ( ! $a_retirer ) { continue; }
+
+		$donnees = $errors->get_error_data( $code );
+		$errors->remove( $code );
+		foreach ( $a_garder as $msg ) {
+			if ( null === $donnees ) {
+				$errors->add( $code, $msg );
+			} else {
+				$errors->add( $code, $msg, $donnees );
 			}
 		}
 	}
 }
 
-/* 5) Débrancher l'autocomplétion Google sur le champ adresse (taper Monaco à la main) */
+/* 5) Débrancher l'autocomplétion Google sur le champ adresse (taper Monaco à la main)
+ *    ---------------------------------------------------------------------
+ *    CE QUI A CHANGE : l ancienne version REMPLACAIT chaque champ par un
+ *    clone (cloneNode + replaceChild). Le clone n herite d aucun ecouteur
+ *    d evenement : c est bien ce qui debranchait l autocompletion Google,
+ *    mais cela debranchait aussi, sans distinction, tout ce que WooCommerce,
+ *    le theme ou une autre extension avait attache au champ — et cela
+ *    detruisait le bouton « reprendre mon adresse » de la section 3.
+ *    De plus l operation reposait sur des minuteries (300 ms, 1000 ms,
+ *    600 ms) : sur une connexion lente, elle passait a cote.
+ *
+ *    Nouvelle approche, non destructive : on deverrouille le champ, on
+ *    demande au navigateur de ne pas proposer d autocompletion, et on empeche
+ *    la liste de suggestions Google (.pac-container) de s afficher. Le client
+ *    peut donc saisir « 98000 Monaco » a la main, et plus rien n est casse.
+ */
 add_action( 'wp_footer', 'eauservice_unlock_address_field', 999 );
 function eauservice_unlock_address_field() {
 	if ( ! ( function_exists( 'is_checkout' ) && is_checkout() ) ) { return; }
 	?>
+	<style>
+	/* La liste de suggestions Google Places ne doit jamais s afficher. */
+	.pac-container{display:none !important;}
+	</style>
 	<script>
 	(function(){
+		var CHAMPS = ['es_venue_address','billing_address_1','shipping_address_1'];
 		function unlock(){
-			['#es_venue_address','#billing_address_1','#shipping_address_1'].forEach(function(sel){
-				var inp = document.querySelector(sel);
-				if(!inp || inp._esUnlocked) return;
-				inp.readOnly = false; inp.disabled = false;
-				var clone = inp.cloneNode(true); clone.value = inp.value; clone._esUnlocked = true;
-				inp.parentNode.replaceChild(clone, inp);
+			CHAMPS.forEach(function(id){
+				var inp = document.getElementById(id);
+				if ( ! inp ) { return; }
+				if ( inp.readOnly ) { inp.readOnly = false; }
+				if ( inp.disabled ) { inp.disabled = false; }
+				/* « new-password » est la valeur que les navigateurs respectent
+				   le mieux pour ne rien proposer sur un champ texte. */
+				if ( inp.getAttribute('autocomplete') !== 'new-password' ) {
+					inp.setAttribute('autocomplete', 'new-password');
+				}
 			});
-			document.querySelectorAll('.pac-container, .pac-item').forEach(function(el){ el.remove(); });
+			document.querySelectorAll('.pac-container').forEach(function(el){ el.remove(); });
 		}
-		function boot(){ setTimeout(unlock,300); setTimeout(unlock,1000); }
-		if(document.readyState !== 'loading'){ boot(); }
-		document.addEventListener('DOMContentLoaded', boot);
-		window.addEventListener('load', function(){ setTimeout(unlock,600); });
-		var obs = new MutationObserver(function(){ document.querySelectorAll('.pac-container').forEach(function(el){ el.style.display='none'; }); });
-		try{ obs.observe(document.body, {childList:true, subtree:true}); }catch(e){}
+		if ( document.readyState !== 'loading' ) { unlock(); }
+		document.addEventListener('DOMContentLoaded', unlock);
+		/* Le checkout se redessine a chaque mise a jour des totaux. */
+		if ( window.jQuery ) { jQuery(document.body).on('updated_checkout', function(){ setTimeout(unlock, 60); }); }
+		/* Filet : si Google injecte sa liste plus tard, on la retire. */
+		try {
+			new MutationObserver(function(){
+				document.querySelectorAll('.pac-container').forEach(function(el){ el.remove(); });
+			}).observe(document.body, { childList: true, subtree: true });
+		} catch(e){}
 	})();
 	</script>
 	<?php

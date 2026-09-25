@@ -53,6 +53,53 @@ function eauservice_journaliser_echec_mail( $erreur ) {
 	}
 }
 
+/**
+ * Limite le nombre de demandes envoyees depuis une meme adresse IP.
+ * ---------------------------------------------------------------------------
+ * POURQUOI : admin-post.php est une porte d entree publique. Sans limite, un
+ * robot peut la solliciter en boucle et noyer la boite contact@ sous des
+ * centaines de faux devis — et, au passage, faire blacklister votre domaine
+ * d envoi pour volume anormal. Le piege a robots (champ cache) arrete les
+ * robots les plus simples, pas ceux qui reproduisent une vraie soumission.
+ *
+ * REGLAGE : 4 demandes par tranche de 30 minutes. C est large pour un humain
+ * (meme quelqu un qui se trompe et recommence), et court pour un robot.
+ *
+ * @return bool true si la limite est atteinte.
+ */
+function eauservice_devis_limite_atteinte() {
+	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+	if ( '' === $ip ) { return false; } // IP indisponible : on ne bloque personne.
+
+	// On ne stocke pas l IP en clair, seulement une empreinte : rien
+	// d identifiant ne traine dans la base au-dela de la duree utile.
+	$cle    = 'es_devis_' . md5( $ip . wp_salt() );
+	$nombre = (int) get_transient( $cle );
+
+	if ( $nombre >= 4 ) {
+		return true;
+	}
+
+	// Le transient expire tout seul au bout de 30 minutes.
+	set_transient( $cle, $nombre + 1, 30 * MINUTE_IN_SECONDS );
+	return false;
+}
+
+/*
+ * NOTE SUR L ABSENCE DE NONCE (jeton anti-CSRF).
+ * ---------------------------------------------------------------------------
+ * Un nonce WordPress se genere en PHP. Or le formulaire vit dans un bloc
+ * « HTML personnalise » de la page d accueil, qui n execute pas de PHP : il
+ * est donc impossible d y inserer un wp_nonce_field(). Ce n est pas grave ici :
+ * le pire qu un CSRF permette sur ce formulaire, c est de vous envoyer une
+ * demande de devis, ce que n importe qui peut deja faire legitimement. Aucune
+ * donnee n est modifiee, aucun compte n est concerne.
+ * Les vraies protections utiles sont donc celles mises en place : piege a
+ * robots, verification de provenance, et limitation de debit.
+ * Si le spam devenait un probleme malgre tout, la bonne reponse serait de
+ * passer le formulaire sur une extension dediee (Fluent Forms, WPForms), qui
+ * gere nonce, captcha et journal des envois.
+ */
 add_action( 'admin_post_eauservice_devis', 'eauservice_devis_handle' );
 add_action( 'admin_post_nopriv_eauservice_devis', 'eauservice_devis_handle' );
 function eauservice_devis_handle() {
@@ -62,9 +109,25 @@ function eauservice_devis_handle() {
 	// Piege a robots : le champ cache doit rester vide.
 	if ( ! empty( $_POST['es_website'] ) ) { wp_safe_redirect( add_query_arg( 'es_devis', 'spam', $back ) . '#es-devis' ); exit; }
 
-	// Le formulaire doit venir de ce site.
-	$ref = wp_get_referer();
-	if ( $ref && wp_parse_url( $ref, PHP_URL_HOST ) !== wp_parse_url( $home, PHP_URL_HOST ) ) { wp_safe_redirect( add_query_arg( 'es_devis', 'spam', $home ) . '#es-devis' ); exit; }
+	/*
+	 * Le formulaire doit venir de ce site.
+	 * CORRECTION : avant, l absence d en-tete Referer laissait passer la
+	 * requete (« if ( $ref && ... ) »). Or un robot n envoie justement pas cet
+	 * en-tete : la verification etait contournable en ne fournissant rien.
+	 * Desormais le referer est obligatoire ET doit correspondre au domaine.
+	 */
+	$ref      = wp_get_referer();
+	$hote_ref = $ref ? wp_parse_url( $ref, PHP_URL_HOST ) : '';
+	if ( ! $hote_ref || $hote_ref !== wp_parse_url( $home, PHP_URL_HOST ) ) {
+		wp_safe_redirect( add_query_arg( 'es_devis', 'spam', $home ) . '#es-devis' );
+		exit;
+	}
+
+	// Limitation de debit par adresse IP.
+	if ( eauservice_devis_limite_atteinte() ) {
+		wp_safe_redirect( add_query_arg( 'es_devis', 'trop', $back ) . '#es-devis' );
+		exit;
+	}
 
 	$nom     = isset( $_POST['es_nom'] )     ? sanitize_text_field( wp_unslash( $_POST['es_nom'] ) )     : '';
 	$email   = isset( $_POST['es_email'] )   ? sanitize_email( wp_unslash( $_POST['es_email'] ) )         : '';
@@ -72,7 +135,18 @@ function eauservice_devis_handle() {
 	$date    = isset( $_POST['es_date'] )    ? sanitize_text_field( wp_unslash( $_POST['es_date'] ) )    : '';
 	$event   = isset( $_POST['es_event'] )   ? sanitize_text_field( wp_unslash( $_POST['es_event'] ) )   : '';
 	$message = isset( $_POST['es_message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['es_message'] ) ) : '';
-	if ( '' === $nom || ! is_email( $email ) || '' === $tel || '' === $message ) { wp_safe_redirect( add_query_arg( 'es_devis', 'err', $back ) . '#es-devis' ); exit; }
+	// Controles de fond : on veut un nom plausible, un e-mail valide, un
+	// telephone contenant de vrais chiffres et un besoin un minimum decrit.
+	// Cela ecarte les soumissions automatiques remplies de caracteres au hasard
+	// sans jamais gener quelqu un qui ecrit normalement.
+	$chiffres_tel = preg_replace( '/\D/', '', $tel );
+	$invalide     = ( '' === $nom )
+		|| ( mb_strlen( $nom ) < 2 )
+		|| ! is_email( $email )
+		|| ( strlen( $chiffres_tel ) < 9 )
+		|| ( mb_strlen( trim( $message ) ) < 10 );
+
+	if ( $invalide ) { wp_safe_redirect( add_query_arg( 'es_devis', 'err', $back ) . '#es-devis' ); exit; }
 
 	$site   = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
 	$sujet  = 'Nouvelle demande de DEVIS — ' . $nom;

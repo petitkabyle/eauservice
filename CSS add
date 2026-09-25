@@ -11,7 +11,18 @@
 /*   • Panier : images alignées                                           */
 /* ===================================================================== */
 
-@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap");
+/* ---------------------------------------------------------------------------
+   POLICES : l @import qui se trouvait ici a ete RETIRE.
+   Un @import en tete de feuille de style est ce qu il y a de plus lent : le
+   navigateur doit d abord telecharger CETTE feuille, y decouvrir l @import,
+   puis lancer un second telechargement — pendant lequel l affichage est
+   bloque. Les memes polices etaient en plus demandees deux fois sur la page
+   d accueil (un <link> y faisait la meme chose).
+   Les polices Sora et Manrope sont desormais chargees une seule fois, pour
+   tout le site, par le snippet « eauservice-function » (section 14d), avec un
+   preconnect qui prepare la connexion en avance.
+   >>> NE PAS REMETTRE D @import ICI. <<<
+   --------------------------------------------------------------------------- */
 
 :root{
   --es-blue:#1b9fd1; --es-blue2:#2eb6e6; --es-azure:#35c6f0;
@@ -517,10 +528,38 @@ body.tax-product_cat .ast-archive-description-meta{ color:#c3d4e6 !important; po
 .es-cart-badge,.ast-cart-menu-wrap .count,.ast-site-header-cart .count{ background:linear-gradient(135deg,#1b9fd1,#2eb6e6) !important; color:#fff !important; border:none !important; border-radius:10px !important; font-size:10px !important; font-weight:800 !important; min-width:18px; height:18px; line-height:18px; text-align:center; padding:0 6px !important; box-shadow:0 4px 12px rgba(46,182,230,.4); }
 
 /* ====================  ACCESSIBILITÉ  ============================ */
+
+/* Navigation au clavier : il faut TOUJOURS voir où l'on se trouve.
+   Les champs de formulaire de ce fichier neutralisent leur contour (outline)
+   mais le remplacent par un halo (box-shadow) : le repère reste visible, c'est
+   correct. En revanche les liens, boutons et cartes produit n'avaient aucun
+   repère de focus. On le rétablit ici.
+   :focus-visible ne se déclenche qu'au clavier : aucun contour ne s'affiche
+   donc à la souris, l'aspect du site ne change pas pour la majorité des
+   visiteurs. */
+.woocommerce a:focus-visible,
+.woocommerce button:focus-visible,
+.woocommerce ul.products li.product a:focus-visible,
+.woocommerce .button:focus-visible,
+.woocommerce nav.woocommerce-pagination ul li a:focus-visible,
+.es-faq summary:focus-visible,
+.es-cta-btn:focus-visible,
+.es-simul-tel:focus-visible,
+.es-simul-wa:focus-visible,
+.es-simul-devis:focus-visible{
+  outline:2px solid #1b9fd1 !important;
+  outline-offset:2px !important;
+  border-radius:8px;
+}
+
+/* Mouvement réduit : on coupe les animations décoratives de la boutique.
+   Le rideau d'entrée « vague d'eau » est déjà traité plus bas (l'élément est
+   masqué), et les cartes produit cessent d'apparaître en fondu. */
 @media(prefers-reduced-motion:reduce){
   .woocommerce ul.products li.product{ animation:none; }
   .woocommerce ul.products li.product:hover a img{ transform:none; }
   .woocommerce ul.products li.product::before{ animation:none; }
+  .woocommerce ul.products li.product::after{ animation:none; }
 }
 
 
@@ -1258,9 +1297,16 @@ html::before{
   content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-index:2147483646;pointer-events:none;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 1180' preserveAspectRatio='none'%3E%3Cpath d='M0,0 H1440 V1030 C1200,1095 960,975 720,1035 C480,1095 240,975 0,1035 Z' fill='%230a2942'/%3E%3Cpath d='M0,1035 C240,975 480,1095 720,1035 C960,975 1200,1095 1440,1030' fill='none' stroke='%236fe0ff' stroke-width='5' opacity='0.85'/%3E%3C/svg%3E");
   background-size:100% 100%;background-repeat:no-repeat;
-  animation:esWaterReveal .95s cubic-bezier(.76,0,.24,1) .05s forwards;
+  animation:esWaterReveal .5s cubic-bezier(.76,0,.24,1) 0s forwards;
 }
 @media(prefers-reduced-motion:reduce){html::before{display:none !important}}
+/* Ne se joue qu a la PREMIERE page de la visite.
+   Avant, ce rideau durait 0,95 s et se rejouait a CHAQUE page : parcourir
+   boutique -> fiche produit -> panier, c etait presque trois secondes passees
+   a regarder un calque bleu se retirer, en plus du temps de chargement reel.
+   La duree passe a 0,5 s et la classe « es-rideau-vu », posee par le snippet
+   (section 14i) avant le premier affichage, le neutralise ensuite. */
+html.es-rideau-vu::before{display:none !important;animation:none !important}
 
 
 

@@ -3,9 +3,12 @@
 <!--  Coller dans un bloc "HTML personnalise". Tout est inclus.     -->
 <!--  CSS scope sous #esroot => aucun conflit avec le theme.        -->
 <!-- ============================================================= -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<!-- Les 3 lignes de chargement des polices Sora + Manrope qui se trouvaient   -->
+<!-- ici ont ete retirees. Les memes polices etaient demandees a trois        -->
+<!-- endroits differents (ici, dans « CSS additionnel » via un @import, et un  -->
+<!-- preconnect dans le snippet). Elles sont desormais chargees une seule fois -->
+<!-- pour tout le site par le snippet « eauservice-function », section 14d.    -->
+<!-- Ne rien remettre ici : la police s applique deja a cette page.            -->
 <style>
 /* ===== Overrides WordPress / Astra (ciblent le THEME, non scopes) ===== */
 html,body{background:#f4f7fb !important;overflow-x:hidden !important;margin:0 !important;padding:0 !important;}
@@ -20,7 +23,22 @@ body.ast-separate-container,body{background:#f4f7fb !important;}
 #esroot,.es-fullbleed{width:100% !important;background:#f4f7fb;}
 #esroot a{text-decoration:none !important;}
 #esroot,#esroot *{-webkit-tap-highlight-color:transparent !important;}
-#esroot a:focus,#esroot button:focus,#esroot input:focus,#esroot textarea:focus,#esroot select:focus{outline:none !important;}
+/* ===== Focus clavier =====
+   La regle precedente etait « outline:none !important » sur TOUS les liens,
+   boutons et champs : plus aucun repere visuel en navigation au clavier, sur
+   toute la page, formulaire de devis compris. C est un echec direct au critere
+   WCAG 2.4.7 (et RGAA 10.7), et un obstacle concret pour une partie des
+   visiteurs — sachant que le site s adresse aussi a des acheteurs publics.
+   On la remplace par un focus VISIBLE, mais uniquement au clavier :
+   « :focus-visible » ne se declenche pas au clic de souris, donc l aspect du
+   site ne change pas pour la majorite des visiteurs. */
+#esroot a:focus-visible,#esroot button:focus-visible,#esroot input:focus-visible,
+#esroot textarea:focus-visible,#esroot select:focus-visible,#esroot [tabindex]:focus-visible{
+  outline:2px solid var(--a1) !important;outline-offset:3px !important;border-radius:6px;}
+/* Sur fond clair, le bleu clair manquerait de contraste : on fonce le trait. */
+#esroot .sec-light a:focus-visible,#esroot .sec-light button:focus-visible,
+#esroot .es-pcard a:focus-visible,#esroot .cat:focus-visible{
+  outline-color:var(--deep) !important;}
 /* Police : Manrope (corps) + Sora (titres) */
 #esroot,#esroot *{font-family:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif !important;word-spacing:normal;}
 #esroot .logo,#esroot h1,#esroot h2,#esroot h3,#esroot .sec-h,#esroot .pack-name,#esroot .kpi-n,#esroot .cta-main-h,#esroot .contact-info h2,#esroot .foot-logo,#esroot .ld-logo{font-family:'Sora',system-ui,sans-serif !important;}
@@ -45,15 +63,9 @@ html{scroll-behavior:smooth}#esroot{scroll-behavior:smooth}
 @keyframes esWaveX{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
 @keyframes shopPulse{0%,100%{box-shadow:0 8px 22px -8px rgba(46,182,230,.55)}50%{box-shadow:0 10px 30px -6px rgba(111,224,255,.8)}}
 
-/* LOADER */
-#esroot #loader{position:fixed;inset:0;background:radial-gradient(120% 90% at 82% 0%,#11436b,#0a2942 46%,#061726);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .7s ease}
-#esroot #loader.out{opacity:0;pointer-events:none}
-#esroot .ld-logo{font-size:34px;font-weight:700;letter-spacing:-.5px;opacity:0;transform:translateY(14px);transition:all .6s cubic-bezier(.4,0,.2,1);text-align:center;line-height:1.1;color:#f3f9ff}
-#esroot .ld-logo.in{opacity:1;transform:none}
-#esroot .ld-logo .eau{color:var(--a1)}
-#esroot .ld-logo .by{display:block;font-size:12px;color:var(--txt-lg);font-weight:600;letter-spacing:3px;margin-top:10px;text-transform:uppercase}
-#esroot .ld-bar{width:0;height:2px;background:linear-gradient(90deg,var(--a1),var(--a2));margin-top:24px;border-radius:2px;transition:width 1.5s cubic-bezier(.4,0,.2,1) .3s}
-#esroot .ld-bar.go{width:180px}
+/* Les 9 regles de l ecran de chargement (#loader, .ld-logo, .ld-bar) ont ete
+   retirees en meme temps que le bloc HTML correspondant : il etait masque par
+   « display:none » et son JavaScript n existait plus. */
 
 /* HEADER */
 #esroot header{position:sticky;top:0;z-index:500;background:rgba(7,23,40,.97);border-bottom:1px solid rgba(255,255,255,.08)}
@@ -109,7 +121,13 @@ html{scroll-behavior:smooth}#esroot{scroll-behavior:smooth}
 #esroot .hmini-ico{width:38px;height:38px;border-radius:11px;background:rgba(111,224,255,.14);display:flex;align-items:center;justify-content:center;color:var(--a1)}#esroot .hmini-ico svg{width:18px;height:18px}
 #esroot .hmini-t{font-size:13px;font-weight:700;color:#fff}
 #esroot .hmini-s{font-size:11px;color:var(--txt-lg)}
-#esroot .hero-visual{position:relative;display:flex;align-items:center;justify-content:center}
+/* min-height : reserve la place du visuel AVANT que l image soit telechargee.
+   Sans cela, le bloc fait 0 px de haut puis saute a 460 px quand l image
+   arrive, ce qui decale le titre et les boutons sous les yeux du visiteur
+   (et degrade la note « CLS » de Google). C est le seul endroit de la page ou
+   ce decalage existait : les vignettes des packs et des categories ont, elles,
+   deja une hauteur fixe (172 px et 220 px). */
+#esroot .hero-visual{position:relative;display:flex;align-items:center;justify-content:center;min-height:460px}
 #esroot .hero-visual::before{content:'';position:absolute;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(var(--rgb),.4),transparent 62%);animation:esGlow 5s ease-in-out infinite}
 #esroot .hero-visual img{position:relative;max-width:100%;max-height:460px;object-fit:contain;filter:drop-shadow(0 40px 50px rgba(0,0,0,.55));animation:floaty 7s ease-in-out infinite;will-change:transform;transform:translateZ(0)}
 
@@ -184,15 +202,9 @@ html{scroll-behavior:smooth}#esroot{scroll-behavior:smooth}
 #esroot .contact-pt-l{font-size:11px;color:var(--txt-lg);font-weight:600}
 #esroot .contact-pt-v{font-size:15px;font-weight:700;color:#fff}
 #esroot .contact-form{background:#fff;border:1px solid var(--border-d);border-radius:24px;padding:34px;box-shadow:0 40px 90px -40px rgba(0,0,0,.5)}
-#esroot .cf-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-#esroot .cf-field{margin-bottom:16px}
-#esroot .cf-field label{font-size:13px;font-weight:600;color:#4a6076;margin-bottom:7px;display:block;letter-spacing:.2px}
-#esroot .cf-field input,#esroot .cf-field textarea{width:100%;padding:13px 15px;border:1px solid #dde5ec;border-radius:11px;background:#f8fafc;color:var(--txt-d);font-size:14px;font-family:'Manrope',sans-serif !important;transition:border-color .2s,background .2s}
-#esroot .cf-field input:focus,#esroot .cf-field textarea:focus{outline:none;border-color:var(--a2);background:#fff}
-#esroot .cf-field textarea{resize:vertical;min-height:100px}
-#esroot .cf-submit{width:100%;padding:16px;background:linear-gradient(135deg,var(--a1),var(--a2));color:#051726;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif !important;transition:all .2s;box-shadow:0 16px 34px -14px rgba(46,182,230,.8)}
-#esroot .cf-submit:hover{filter:brightness(1.06);transform:translateY(-1px)}
-#esroot .cf-note{font-size:12px;color:var(--txt-lg);text-align:center;margin-top:14px}
+/* Les 9 regles .cf-* (ancien formulaire de contact intégré a cette page) ont
+   ete retirees : plus aucune classe « cf- » n existe dans le HTML depuis que le
+   formulaire de devis #es-devis les a remplacees. C etait du CSS mort. */
 
 /* FOOTER */
 #esroot footer{background:#061726;padding:64px 40px 30px}
@@ -217,7 +229,7 @@ html{scroll-behavior:smooth}#esroot{scroll-behavior:smooth}
 @media(max-width:900px){
   #esroot .hero-inner{grid-template-columns:1fr}#esroot .hero-visual{display:none}
   #esroot .forces,#esroot .packs,#esroot .cats{grid-template-columns:1fr}#esroot .kpis{grid-template-columns:1fr 1fr}
-  #esroot .contact{grid-template-columns:1fr}#esroot .cf-row{grid-template-columns:1fr}
+  #esroot .contact{grid-template-columns:1fr}
   #esroot .foot-grid{grid-template-columns:1fr 1fr}#esroot .nav{display:none}#esroot .hdr,#esroot .hdr-top{padding:0 18px}#esroot .hdr-top{padding:8px 18px}
 }
 
@@ -421,9 +433,49 @@ html{scroll-behavior:smooth}#esroot{scroll-behavior:smooth}
 
 /* ===== Transition d'entrée façon vague d'eau ===== */
 @keyframes esWaterReveal{0%{transform:translateY(0)}100%{transform:translateY(-112%)}}
-html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-index:2147483646;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 1180' preserveAspectRatio='none'%3E%3Cpath d='M0,0 H1440 V1030 C1200,1095 960,975 720,1035 C480,1095 240,975 0,1035 Z' fill='%230a2942'/%3E%3Cpath d='M0,1035 C240,975 480,1095 720,1035 C960,975 1200,1095 1440,1030' fill='none' stroke='%236fe0ff' stroke-width='5' opacity='0.85'/%3E%3C/svg%3E");background-size:100% 100%;background-repeat:no-repeat;animation:esWaterReveal .6s cubic-bezier(.76,0,.24,1) .05s forwards;will-change:transform}
-#esroot #loader{display:none !important}
+html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-index:2147483646;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 1180' preserveAspectRatio='none'%3E%3Cpath d='M0,0 H1440 V1030 C1200,1095 960,975 720,1035 C480,1095 240,975 0,1035 Z' fill='%230a2942'/%3E%3Cpath d='M0,1035 C240,975 480,1095 720,1035 C960,975 1200,1095 1440,1030' fill='none' stroke='%236fe0ff' stroke-width='5' opacity='0.85'/%3E%3C/svg%3E");background-size:100% 100%;background-repeat:no-repeat;animation:esWaterReveal .45s cubic-bezier(.76,0,.24,1) 0s forwards;will-change:transform}
 @media(prefers-reduced-motion:reduce){html::before{display:none !important}}
+/* Le rideau ne se joue qu a la PREMIERE page de la visite. La classe
+   « es-rideau-vu » est posee par le snippet (section 14i) tout en haut du
+   <head>, avant l affichage : pas de clignotement. Naviguer dans le site ne
+   coute donc plus 0,45 s de rideau a chaque clic. */
+html.es-rideau-vu::before{display:none !important;animation:none !important}
+
+/* ===== ANIMATIONS : mises en pause quand elles sortent de l ecran =====
+   La page comptait 16 animations en boucle infinie (bandeau defilant,
+   carrousel d avis, halos, bulles, visuel flottant...). Elles tournaient
+   TOUTES en permanence, y compris tres loin au-dessus de l ecran : le
+   navigateur recalculait en continu des images que personne ne regardait,
+   ce qui rendait le defilement moins fluide sur telephone et vidait la
+   batterie. Un observateur (voir le script en bas de page) ajoute cette
+   classe aux blocs sortis du champ de vision.
+   Aucun changement visible : une animation en pause reprend exactement ou
+   elle s etait arretee. */
+#esroot .es-anim-pause,#esroot .es-anim-pause *{animation-play-state:paused !important}
+
+/* ===== MOUVEMENT REDUIT : on respecte le reglage du visiteur =====
+   Cette page anime beaucoup de choses en permanence : le bandeau defilant
+   (32 s en boucle infinie), le carrousel d avis, la machine a cafe qui flotte,
+   les halos qui pulsent, les bulles, le degrade anime du titre. Pour une
+   personne sensible au mouvement — vertiges, migraines, troubles vestibulaires
+   — une page qui bouge sans arret est difficilement utilisable.
+   Quand le systeme d exploitation demande a reduire les animations, on les
+   arrete toutes d un coup. Rien ne disparait : le contenu reste identique,
+   il est simplement immobile. Le bandeau defilant, lui, redevient un bloc
+   statique dont on masque le duplicata (il n existait que pour la boucle). */
+@media(prefers-reduced-motion:reduce){
+  #esroot *,#esroot *::before,#esroot *::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important;}
+  #esroot .marquee-track{animation:none !important;transform:none !important;}
+  #esroot .marquee-group:nth-child(2){display:none !important;}
+  #esroot .marquee{white-space:normal;}
+  #esroot .es-testi-track{animation:none !important;flex-wrap:wrap;}
+  #esroot .hero-visual img{animation:none !important;}
+  html{scroll-behavior:auto !important;}
+}
 </style>
 
 <div id="esroot" class="es-fullbleed">
@@ -451,10 +503,11 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
   </div>
 </div>
 
-<div id="loader">
-  <div class="ld-logo" id="ldlogo"><span class="eau">Eau</span>Service<small class="by">BY EVENTS CAFÉ</small></div>
-  <div class="ld-bar" id="ldbar"></div>
-</div>
+<!-- L ecran de chargement (#loader) qui se trouvait ici a ete SUPPRIME.        -->
+<!-- C etait du code mort : une regle « #loader{display:none !important} » le    -->
+<!-- masquait completement, et le JavaScript qui l animait (#ldlogo, #ldbar)     -->
+<!-- n existait plus. Il ne restait donc qu un bloc invisible, telecharge a      -->
+<!-- chaque visite. Les regles CSS correspondantes ont ete retirees aussi.      -->
 
 <header>
   <div class="hdr-top">
@@ -518,7 +571,7 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
         <div class="hmini"><div class="hmini-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:middle"><path d="M12 3l8 4.5v9l-8 4.5l-8 -4.5v-9z"></path><path d="M12 12l8 -4.5"></path><path d="M12 12v9"></path><path d="M12 12l-8 -4.5"></path></svg></div><div><div class="hmini-t" data-fr="Boutique en ligne" data-en="Online shop">Boutique en ligne</div><div class="hmini-s" data-fr="Commande 24h/24" data-en="Order 24/7">Commande 24h/24</div></div></div>
       </div>
     </div>
-    <div class="hero-visual"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/Zenius-1.png" alt="Machine à café professionnelle pour location de matériel événementiel"></div>
+    <div class="hero-visual"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/Zenius-1.png" alt="Machine à café professionnelle pour location de matériel événementiel" fetchpriority="high" decoding="async"></div>
   </div>
   <div class="hero-wave-back" aria-hidden="true"></div>
   <span class="es-bub" style="left:58%;bottom:120px;width:10px;height:10px;animation:esBubble 7s ease-in infinite .4s"></span>
@@ -571,7 +624,7 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
 
     <!-- Pack Essentiel Café & Eau (brandable) -->
     <div class="es-pcard tl" data-brandable="" data-base="140" data-nes="180" data-img-std="https://eau-service-events.fr/wp-content/uploads/2026/06/pack-de-base-covim.png" data-img-nes="https://eau-service-events.fr/wp-content/uploads/2026/06/pack-de-base-nespresso.png">
-      <div class="es-pcard-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/pack-de-base-covim.png" alt="Pack Essentiel Café &amp; Eau"></div>
+      <div class="es-pcard-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/pack-de-base-covim.png" alt="Pack Essentiel Café &amp; Eau" loading="lazy" decoding="async"></div>
       <div class="es-pbrand">☕ <span class="es-brandlbl">Covim / Lavazza</span></div>
       <div class="es-pcard-name" data-fr="Pack Essentiel Café &amp; Eau" data-en="Essential Coffee &amp; Water Pack">Pack Essentiel Café &amp; Eau</div>
       <div class="es-pcard-price"><span class="amt">140</span><span class="cur">€ HT</span></div>
@@ -589,7 +642,7 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
     <!-- Pack Complet Événement (brandable, populaire) -->
     <div class="es-pcard popular" data-brandable="" data-base="320" data-nes="360" data-img-std="https://eau-service-events.fr/wp-content/uploads/2026/06/Pack-complet-covim.png" data-img-nes="https://eau-service-events.fr/wp-content/uploads/2026/06/pack-complet-nespresso.png">
       <div class="es-pcard-badge"><svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M12 2l2.9 6.3 6.9.6-5.2 4.6 1.6 6.8L12 17.8 5.8 20.9l1.6-6.8L2.2 8.9l6.9-.6z"></path></svg><span data-fr="Populaire" data-en="Popular">Populaire</span></div>
-      <div class="es-pcard-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/Pack-complet-covim.png" alt="Pack Complet Événement"></div>
+      <div class="es-pcard-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/Pack-complet-covim.png" alt="Pack Complet Événement" loading="lazy" decoding="async"></div>
       <div class="es-pbrand">☕ <span class="es-brandlbl">Covim / Lavazza</span></div>
       <div class="es-pcard-name" data-fr="Pack Complet Événement" data-en="Complete Event Pack">Pack Complet Événement</div>
       <div class="es-pcard-price"><span class="amt">320</span><span class="cur">€ HT</span></div>
@@ -607,7 +660,7 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
 
     <!-- Pack Eau Essentiel (sans café) -->
     <div class="es-pcard tr" data-base="125">
-      <div class="es-pcard-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/pack-eau.png" alt="Pack Eau Essentiel"></div>
+      <div class="es-pcard-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/pack-eau.png" alt="Pack Eau Essentiel" loading="lazy" decoding="async"></div>
       <div class="es-pbrand" style="background:#eef3f8;border-color:#e0e8f0;color:#5b6b7d">💧 <span data-fr="Sans café" data-en="No coffee">Sans café</span></div>
       <div class="es-pcard-name" data-fr="Pack Eau Essentiel" data-en="Essential Water Pack">Pack Eau Essentiel</div>
       <div class="es-pcard-price"><span class="amt">125</span><span class="cur">€ HT</span></div>
@@ -722,14 +775,47 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
     <p class="sec-sub" data-fr="Café, eau et réfrigération — à la location ou en pack." data-en="Coffee, water and refrigeration — for rent or in packs.">Café, eau et réfrigération — à la location ou en pack.</p>
   </div>
   <div class="cats">
-    <a href="/boutique/" class="cat sr"><div class="cat-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/covim_blanche-removebg-preview.png" alt="Machines à café - location de matériel événementiel"></div><div class="cat-body"><div class="cat-name" data-fr="Machines à café" data-en="Coffee machines">Machines à café</div><div class="cat-desc" data-fr="Nespresso, Lavazza, Covim — professionnelles et domestiques." data-en="Nespresso, Lavazza, Covim — professional and domestic.">Nespresso, Lavazza, Covim — professionnelles et domestiques.</div><div class="cat-link" data-fr="Voir les machines →" data-en="View machines →">Voir les machines →</div></div></a>
-    <a href="/boutique/" class="cat sr"><div class="cat-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/fontaine_a_eau_grise_everest-removebg-preview-1.png" alt="Fontaines à eau - location de matériel événementiel"></div><div class="cat-body"><div class="cat-name" data-fr="Fontaines à eau" data-en="Water fountains">Fontaines à eau</div><div class="cat-desc" data-fr="À bonbonne ou réseau, eau fraîche et chaude. Zéro plastique." data-en="Bottle or mains-fed, cold and hot water. Zero plastic.">À bonbonne ou réseau, eau fraîche et chaude. Zéro plastique.</div><div class="cat-link" data-fr="Voir les fontaines →" data-en="View fountains →">Voir les fontaines →</div></div></a>
-    <a href="/boutique/" class="cat sr"><div class="cat-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/table-top.png" alt="Réfrigération - location de matériel événementiel"></div><div class="cat-body"><div class="cat-name" data-fr="Réfrigération" data-en="Refrigeration">Réfrigération</div><div class="cat-desc" data-fr="Frigo table top et réfrigérateurs pour vos boissons fraîches." data-en="Table-top fridge and refrigerators to keep your drinks cool.">Frigo table top et réfrigérateurs pour vos boissons fraîches.</div><div class="cat-link" data-fr="Voir la réfrigération →" data-en="View refrigeration →">Voir la réfrigération →</div></div></a>
-    <a href="/boutique/" class="cat sr"><div class="cat-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/bouilloire-1.png" alt="Suppléments"></div><div class="cat-body"><div class="cat-name" data-fr="Suppléments" data-en="Add-ons">Suppléments</div><div class="cat-desc" data-fr="Bouilloire, mousseur à lait, chaises, tables, ventilateurs, gobelets… et bien plus, en location." data-en="Kettle, milk frother, chairs, tables, fans, cups… and much more, for rent.">Bouilloire, mousseur à lait, chaises, tables, ventilateurs, gobelets… et bien plus, en location.</div><div class="cat-link" data-fr="Voir les suppléments →" data-en="View add-ons →">Voir les suppléments →</div></div></a>
+    <a href="/boutique/" class="cat sr"><div class="cat-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/covim_blanche-removebg-preview.png" alt="Machines à café - location de matériel événementiel" loading="lazy" decoding="async"></div><div class="cat-body"><div class="cat-name" data-fr="Machines à café" data-en="Coffee machines">Machines à café</div><div class="cat-desc" data-fr="Nespresso, Lavazza, Covim — professionnelles et domestiques." data-en="Nespresso, Lavazza, Covim — professional and domestic.">Nespresso, Lavazza, Covim — professionnelles et domestiques.</div><div class="cat-link" data-fr="Voir les machines →" data-en="View machines →">Voir les machines →</div></div></a>
+    <a href="/boutique/" class="cat sr"><div class="cat-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/fontaine_a_eau_grise_everest-removebg-preview-1.png" alt="Fontaines à eau - location de matériel événementiel" loading="lazy" decoding="async"></div><div class="cat-body"><div class="cat-name" data-fr="Fontaines à eau" data-en="Water fountains">Fontaines à eau</div><div class="cat-desc" data-fr="À bonbonne ou réseau, eau fraîche et chaude. Zéro plastique." data-en="Bottle or mains-fed, cold and hot water. Zero plastic.">À bonbonne ou réseau, eau fraîche et chaude. Zéro plastique.</div><div class="cat-link" data-fr="Voir les fontaines →" data-en="View fountains →">Voir les fontaines →</div></div></a>
+    <a href="/boutique/" class="cat sr"><div class="cat-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/table-top.png" alt="Réfrigération - location de matériel événementiel" loading="lazy" decoding="async"></div><div class="cat-body"><div class="cat-name" data-fr="Réfrigération" data-en="Refrigeration">Réfrigération</div><div class="cat-desc" data-fr="Frigo table top et réfrigérateurs pour vos boissons fraîches." data-en="Table-top fridge and refrigerators to keep your drinks cool.">Frigo table top et réfrigérateurs pour vos boissons fraîches.</div><div class="cat-link" data-fr="Voir la réfrigération →" data-en="View refrigeration →">Voir la réfrigération →</div></div></a>
+    <a href="/boutique/" class="cat sr"><div class="cat-img"><img src="https://eau-service-events.fr/wp-content/uploads/2026/06/bouilloire-1.png" alt="Suppléments" loading="lazy" decoding="async"></div><div class="cat-body"><div class="cat-name" data-fr="Suppléments" data-en="Add-ons">Suppléments</div><div class="cat-desc" data-fr="Bouilloire, mousseur à lait, chaises, tables, ventilateurs, gobelets… et bien plus, en location." data-en="Kettle, milk frother, chairs, tables, fans, cups… and much more, for rent.">Bouilloire, mousseur à lait, chaises, tables, ventilateurs, gobelets… et bien plus, en location.</div><div class="cat-link" data-fr="Voir les suppléments →" data-en="View add-ons →">Voir les suppléments →</div></div></a>
   </div>
   </section></div>
 
-<!-- AVIS CLIENTS -->
+<!-- ========================================================================= -->
+<!--  AVIS CLIENTS — SECTION A TRAITER AVANT LA MISE EN LIGNE                  -->
+<!--  ----------------------------------------------------------------------   -->
+<!--  Je n ai pas modifie ces 9 temoignages : je n ai aucun moyen de savoir    -->
+<!--  s ils correspondent a de vrais clients ou s ils ont ete ecrits pour      -->
+<!--  remplir la maquette. Vous etes le seul a pouvoir le dire, et c est une   -->
+<!--  question juridique, pas technique.                                       -->
+<!--                                                                          -->
+<!--  CE QUE DIT LA LOI : depuis la directive Omnibus (transposee a l article  -->
+<!--  L121-2 du code de la consommation), un professionnel qui affiche des     -->
+<!--  avis doit pouvoir demontrer qu ils emanent de clients reels, et doit     -->
+<!--  indiquer s il verifie ces avis et comment. Des temoignages inventes,     -->
+<!--  meme flatteurs et de bonne foi, constituent une pratique commerciale     -->
+<!--  trompeuse. Le risque n est pas theorique : c est le type de controle     -->
+<!--  que la DGCCRF mene sur les sites de prestation de services.             -->
+<!--                                                                          -->
+<!--  TROIS OPTIONS, par ordre de preference :                                 -->
+<!--  1. REMPLACER par vos vrais avis Google. Vous avez deja une fiche Google  -->
+<!--     Business (elle est liee dans les donnees structurees du site). Une    -->
+<!--     extension gratuite d affichage d avis Google reprend les vrais avis,  -->
+<!--     avec le nom et la date : c est plus credible qu un temoignage anonyme -->
+<!--     ET conforme, puisque la source est verifiable.                        -->
+<!--  2. GARDER ces temoignages s ils sont authentiques, en ajoutant le nom    -->
+<!--     complet de l entreprise cliente et, idealement, son accord ecrit.     -->
+<!--  3. SUPPRIMER toute la section (de ce commentaire jusqu a la balise       -->
+<!--     </section></div> qui suit le carrousel). La page reste coherente      -->
+<!--     sans elle : la section « Nos forces » joue deja ce role.              -->
+<!--                                                                          -->
+<!--  Meme remarque pour les compteurs juste au-dessus (+250 clients, +40      -->
+<!--  salons, +500 evenements, +20 ans) et pour la liste des 31 evenements     -->
+<!--  nommes (Festival de Cannes, Grand Prix F1, Cannes Lions...) : n affichez -->
+<!--  que ce que vous pouvez justifier, et formulez-le comme une intervention  -->
+<!--  sur le site de l evenement plutot que comme un partenariat officiel.     -->
+<!-- ========================================================================= -->
 <div class="sec-light-wrap"><section class="sec sec-light" id="avis">
   <div class="center-head sr">
     <div class="eyebrow center" data-fr="Avis clients" data-en="Client reviews">Avis clients</div>
@@ -818,7 +904,11 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
       <p data-fr="Quelques infos rapides et on vous envoie un devis personnalisé sous 24h. Sans engagement." data-en="A few quick details and we'll send you a custom quote within 24h. No commitment.">Quelques infos rapides et on vous envoie un devis personnalisé sous 24h. Sans engagement.</p>
     </div>
     <div class="esd-alert esd-ok" id="esd-ok" style="display:none" data-fr="✅ Merci ! Votre demande de devis a bien été envoyée. Réponse sous 24h." data-en="✅ Thank you! Your quote request has been sent. We reply within 24h.">✅ Merci ! Votre demande de devis a bien été envoyée. Réponse sous 24h.</div>
-    <div class="esd-alert esd-err" id="esd-err" style="display:none">⚠️ Une erreur est survenue. Réessayez, ou écrivez-nous à <a href="mailto:contact@eau-service-events.fr">contact@eau-service-events.fr</a>.</div>
+    <div class="esd-alert esd-err" id="esd-err" style="display:none">⚠️ Une erreur est survenue, ou un champ obligatoire est incomplet. Vérifiez votre e-mail et votre téléphone, puis réessayez — ou écrivez-nous à <a href="mailto:contact@eau-service-events.fr">contact@eau-service-events.fr</a>.</div>
+    <!-- Message affiche quand la protection anti-spam a compte trop d envois
+         depuis la meme connexion (4 en 30 minutes). Voir le snippet
+         « devis acceuil », fonction eauservice_devis_limite_atteinte(). -->
+    <div class="esd-alert esd-trop" id="esd-trop" style="display:none">⏳ Vous avez déjà envoyé plusieurs demandes. Patientez quelques minutes, ou appelez-nous directement au <a href="tel:+33663240843">06 63 24 08 43</a> — c'est plus rapide.</div>
     <form class="esd-form" action="/wp-admin/admin-post.php" method="post">
       <input type="hidden" name="action" value="eauservice_devis">
       <div class="esd-hp" aria-hidden="true"><label>Ne pas remplir<input type="text" name="es_website" tabindex="-1" autocomplete="off"></label></div>
@@ -831,7 +921,9 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
         <div class="esd-field esd-full"><label data-fr="Votre besoin *" data-en="Your needs *">Votre besoin *</label><textarea name="es_message" rows="4" required="" placeholder="Matériel souhaité (café, eau, réfrigération…), nombre de personnes, durée…"></textarea></div>
       </div>
       <button type="submit" class="esd-btn" data-fr="Recevoir mon devis gratuit" data-en="Get my free quote">Recevoir mon devis gratuit</button>
-      <p class="esd-legal" data-fr="En envoyant ce formulaire, vous acceptez d'être recontacté par EauService." data-en="By submitting this form, you agree to be contacted by EauService.">En envoyant ce formulaire, vous acceptez d'être recontacté par EauService.</p>
+      <!-- Mention RGPD : le visiteur doit savoir a quoi servent ses donnees et
+           pouvoir consulter la politique de confidentialite avant d envoyer. -->
+      <p class="esd-legal" data-fr="Vos coordonnées servent uniquement à établir et vous transmettre votre devis. Elles ne sont ni revendues ni utilisées à d'autres fins. Pour en savoir plus, consultez notre {a}politique de confidentialité{/a}." data-en="Your details are used solely to prepare and send you your quote. They are never sold or used for any other purpose. For more information, see our {a}privacy policy{/a}.">Vos coordonnées servent uniquement à établir et vous transmettre votre devis. Elles ne sont ni revendues ni utilisées à d'autres fins. Pour en savoir plus, consultez notre <a href="/politique-de-confidentialite/">politique de confidentialité</a>.</p>
     </form>
   </div>
 </section></div>
@@ -848,6 +940,8 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
 #es-devis .esd-ok{background:rgba(46,200,120,.15);border:1px solid rgba(46,200,120,.5);color:#bff5d6;}
 #es-devis .esd-err{background:rgba(255,90,90,.13);border:1px solid rgba(255,90,90,.5);color:#ffd0d0;}
 #es-devis .esd-err a{color:#fff;}
+#es-devis .esd-trop{background:rgba(255,190,80,.14);border:1px solid rgba(255,190,80,.55);color:#ffe4b8;}
+#es-devis .esd-trop a{color:#fff;}
 #es-devis .esd-form{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:26px;}
 #es-devis .esd-hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;}
 #es-devis .esd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
@@ -865,8 +959,11 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
 <script>
 (function(){
   var p = new URLSearchParams(location.search).get('es_devis');
-  if(p==='ok'){ var e=document.getElementById('esd-ok'); if(e){ e.style.display='block'; } }
-  else if(p==='err'||p==='spam'){ var e2=document.getElementById('esd-err'); if(e2){ e2.style.display='block'; } }
+  var cible = null;
+  if(p==='ok'){ cible=document.getElementById('esd-ok'); }
+  else if(p==='trop'){ cible=document.getElementById('esd-trop'); }
+  else if(p==='err'||p==='spam'){ cible=document.getElementById('esd-err'); }
+  if(cible){ cible.style.display='block'; }
   if(p){ var s=document.getElementById('es-devis'); if(s){ setTimeout(function(){ s.scrollIntoView({behavior:'smooth'}); },300); } }
 })();
 </script>
@@ -880,6 +977,22 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
     </div>
     <div><div class="foot-ct" data-fr="Nos équipements" data-en="Our equipment">Nos équipements</div><ul class="foot-links"><li><a href="#packs" data-fr="Packs" data-en="Packs">Packs</a></li><li><a href="#produits" data-fr="Machines à café" data-en="Coffee machines">Machines à café</a></li><li><a href="#produits" data-fr="Fontaines à eau" data-en="Water fountains">Fontaines à eau</a></li><li><a href="#produits" data-fr="Réfrigération" data-en="Refrigeration">Réfrigération</a></li></ul></div>
     <div><div class="foot-ct" data-fr="Société" data-en="Company">Société</div><ul class="foot-links"><li><a href="#forces" data-fr="Nos forces" data-en="Our strengths">Nos forces</a></li><li><a href="#contact">Contact</a></li><li><a href="/boutique/" data-fr="Boutique" data-en="Shop">Boutique</a></li></ul></div>
+    <!-- ===================================================================== -->
+    <!--  INFORMATIONS LEGALES                                                 -->
+    <!--  Ces trois liens sont OBLIGATOIRES pour une boutique en ligne         -->
+    <!--  francaise : information precontractuelle du code de la consommation  -->
+    <!--  et articles 12 a 14 du RGPD. Ils etaient absents du site.            -->
+    <!--                                                                       -->
+    <!--  >>> A FAIRE DE VOTRE COTE : creer les trois pages correspondantes    -->
+    <!--      dans WordPress avec exactement ces adresses, sinon les liens     -->
+    <!--      renverront une erreur 404 :                                      -->
+    <!--        /mentions-legales/            (editeur, SIREN, hebergeur)      -->
+    <!--        /conditions-generales-de-vente/  (CGV, retractation, litiges)  -->
+    <!--        /politique-de-confidentialite/   (donnees, cookies, droits)    -->
+    <!--      Si vous preferez d autres adresses, modifiez-les ici ET dans le  -->
+    <!--      lien situe sous le formulaire de devis, plus bas.                -->
+    <!-- ===================================================================== -->
+    <div><div class="foot-ct" data-fr="Informations légales" data-en="Legal">Informations légales</div><ul class="foot-links"><li><a href="/mentions-legales/" data-fr="Mentions légales" data-en="Legal notice">Mentions légales</a></li><li><a href="/conditions-generales-de-vente/" data-fr="Conditions générales de vente" data-en="Terms of sale">Conditions générales de vente</a></li><li><a href="/politique-de-confidentialite/" data-fr="Politique de confidentialité" data-en="Privacy policy">Politique de confidentialité</a></li></ul></div>
     <div><div class="foot-ct" data-fr="Contact" data-en="Contact">Contact</div><ul class="foot-links"><li><a href="tel:+33663240843">06 63 24 08 43</a></li><li><a href="mailto:contact@eau-service-events.fr">contact@eau-service-events.fr</a></li><li><span data-fr="Monaco · Nice · Cannes · Marseille" data-en="Monaco · Nice · Cannes · Marseille">Monaco · Nice · Cannes · Marseille</span></li></ul></div>
   </div>
   <div class="foot-bottom" data-fr="© 2025 EauService by Events Café — Tous droits réservés" data-en="© 2025 EauService by Events Café — All rights reserved">© 2025 EauService by Events Café — Tous droits réservés</div>
@@ -894,6 +1007,35 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
     });
   },{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
   document.querySelectorAll('#esroot .sr').forEach(function(el){obs.observe(el);});
+})();
+
+/* === Animations en pause hors ecran ===
+   Pourquoi : la page contient 16 animations en boucle infinie. Elles
+   tournaient toutes en meme temps, en permanence, meme celles situees a
+   plusieurs ecrans de distance. Chaque animation visible ou non oblige le
+   navigateur a produire 60 images par seconde : c est ce qui rendait le
+   defilement saccade sur les telephones d entree et milieu de gamme.
+
+   Ce qu on fait : on surveille les blocs animes et on met leur animation en
+   pause des qu ils quittent l ecran. Rien ne change a l oeil — une animation
+   en pause reprend exactement la ou elle s etait arretee — mais le
+   processeur ne travaille plus que pour ce qui est reellement regarde.
+
+   La marge de 200 px fait reprendre l animation juste AVANT que le bloc
+   entre dans le champ de vision, pour qu il ne soit jamais fige a l ecran. */
+(function(){
+  if(!('IntersectionObserver' in window)) return;
+  var blocs=document.querySelectorAll(
+    '#esroot .marquee,#esroot .es-testi-marquee,#esroot .hero-visual,'+
+    '#esroot .hero,#esroot .es-map,#esroot .kpis-wrap'
+  );
+  if(!blocs.length) return;
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      e.target.classList.toggle('es-anim-pause',!e.isIntersecting);
+    });
+  },{rootMargin:'200px 0px 200px 0px'});
+  blocs.forEach(function(el){obs.observe(el);});
 })();
 
 function toggleMenu(){
@@ -915,8 +1057,19 @@ function closeMenu(){
   document.body.style.overflow='';
 }
 
+/* ===== Langue =====
+   La langue choisie est MEMORISEE, sur la meme cle « es_lang » que le bouton
+   de traduction de la boutique et du panier (snippet « traduction »).
+   Avant, les deux systemes s ignoraient : un visiteur qui passait en anglais
+   sur l accueil puis cliquait « Boutique » retombait en francais, et
+   inversement. Une seule cle partagee suffit a rendre le choix coherent d une
+   page a l autre.
+   A savoir : cette traduction reste cote navigateur, donc invisible pour
+   Google. Si l anglais compte commercialement, il faudra de vraies URL
+   (/en/...) via Polylang ou TranslatePress — voir AUDIT.md, point 2.5. */
 function setLang(lang){
   document.documentElement.lang=lang;
+  try{ localStorage.setItem('es_lang',lang); }catch(e){}
   var lfr=document.getElementById('lfr'), len=document.getElementById('len');
   if(lfr) lfr.classList.toggle('on',lang==='fr');
   if(len) len.classList.toggle('on',lang==='en');
@@ -925,8 +1078,11 @@ function setLang(lang){
     if(el.querySelector('[data-fr]')) return;
     var val=el.getAttribute('data-'+lang);
     if(val===null) return;
-    /* Placeholders {span}{/span} pour eviter que WordPress encode les balises */
-    val=val.replace(/\{span\}/g,'<span>').replace(/\{\/span\}/g,'</span>');
+    /* Placeholders pour eviter que WordPress encode les balises HTML.
+       {span} pour la mise en valeur du titre, {a} pour le lien vers la
+       politique de confidentialite sous le formulaire de devis. */
+    val=val.replace(/\{span\}/g,'<span>').replace(/\{\/span\}/g,'</span>')
+           .replace(/\{a\}/g,'<a href="/politique-de-confidentialite/">').replace(/\{\/a\}/g,'</a>');
     el.innerHTML=val;
   });
   if(window.esRenderPacks) esRenderPacks();
@@ -996,7 +1152,14 @@ function esToggleBrand(){ esSetBrand(esBrand==='std'?'nes':'std'); }
 <script>
 /* Rendu initial du toggle apres chargement complet du DOM */
 (function(){
-  function go(){ if(window.esRenderPacks) esRenderPacks(); }
+  function go(){
+    /* Restaure la langue choisie lors d une visite precedente, ou sur une
+       autre page du site (meme cle « es_lang » que le snippet traduction). */
+    var lang='fr';
+    try{ lang=localStorage.getItem('es_lang')||'fr'; }catch(e){}
+    if(lang==='en'){ setLang('en'); }
+    else if(window.esRenderPacks){ esRenderPacks(); }
+  }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',go);}else{go();}
 })();
 </script>
