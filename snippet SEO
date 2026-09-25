@@ -35,8 +35,29 @@ function eauservice_product_schema() {
 		if ( ! $product ) { return; }
 	}
 
-	// Évite un doublon si Yoast WooCommerce SEO / Rank Math e-commerce est actif.
+	/*
+	 * ANTI-DOUBLON — corrige un ecart entre ce qui etait annonce et ce qui
+	 * etait reellement teste.
+	 * -------------------------------------------------------------------
+	 * L en-tete de ce fichier annonce depuis le debut que le snippet se met
+	 * en pause si « Yoast SEO OU Rank Math » publie deja un schema Product.
+	 * Or seule la constante de Yoast etait testee. Rank Math etant l outil
+	 * reellement installe, chaque fiche produit publiait DEUX blocs Product
+	 * concurrents. Quand les deux n annoncent pas exactement le meme prix
+	 * (l un peut etre HT, l autre TTC selon les reglages), Google peut
+	 * supprimer l affichage du prix dans les resultats.
+	 *
+	 * La detection de Rank Math vit dans le snippet « eauservice-function »
+	 * (section 21). On l utilise si elle est disponible, sinon on refait le
+	 * test ici : ainsi ce snippet reste correct meme utilise tout seul, et
+	 * ne depend pas de l ordre de chargement des snippets.
+	 */
 	if ( defined( 'YOAST_WOOCOMMERCE_SEO_VERSION' ) ) { return; }
+	if ( function_exists( 'eauservice_rank_math_actif' ) ) {
+		if ( eauservice_rank_math_actif() ) { return; }
+	} elseif ( defined( 'RANK_MATH_VERSION' ) || class_exists( 'RankMath\Helper' ) || function_exists( 'rank_math' ) ) {
+		return;
+	}
 
 	$image_id  = $product->get_image_id();
 	$image_url = $image_id ? wp_get_attachment_image_url( $image_id, 'full' ) : wc_placeholder_img_src( 'full' );

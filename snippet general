@@ -31,6 +31,18 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  *      7. Autres packs
  *      8. Le reste des produits
  *    Le tri se fait à l'affichage, sans rien modifier en base de données.
+ *
+ *    >>> LIMITE À CONNAÎTRE <<<
+ *    Ce tri intervient APRÈS la requête, donc il ne réordonne que les produits
+ *    de la page affichée. Si un pack se retrouve en page 2, il sera en tête de
+ *    la page 2, pas ramené en page 1. Tant que tous les produits tiennent sur
+ *    une seule page, cela ne se voit pas.
+ *
+ *    La solution durable, qui fonctionne avec la pagination, ne passe pas par
+ *    du code : c est WooCommerce > Produits > onglet « Tri », ou l on fait
+ *    glisser les produits dans l ordre voulu. WooCommerce enregistre alors cet
+ *    ordre en base (champ menu_order) et le respecte page après page. Le jour
+ *    où vous faites cela, ce bloc de code peut simplement être supprimé.
  * =========================================================================== */
 function eauservice_pack_rank( $title ) {
 	$t            = function_exists( 'mb_strtolower' ) ? mb_strtolower( $title ) : strtolower( $title );
@@ -69,6 +81,23 @@ function eauservice_order_shop_products( $posts, $query ) {
 		return $posts;
 	}
 	if ( ! ( function_exists( 'is_shop' ) && ( is_shop() || is_product_category() || is_product_taxonomy() ) ) ) {
+		return $posts;
+	}
+
+	/*
+	 * RESPECT DU CHOIX DU VISITEUR.
+	 * ----------------------------------------------------------------------
+	 * Avant, ce tri s appliquait tout le temps. Quand un visiteur choisissait
+	 * « Trier par : prix croissant » dans le menu de la boutique, son choix
+	 * etait execute par la base de donnees... puis annule par ce filtre, qui
+	 * remontait les packs en tete. Le menu de tri semblait donc casse.
+	 *
+	 * Desormais : des que le visiteur demande explicitement un tri, on
+	 * s efface. Notre ordre « packs d abord » ne s applique plus qu au tri par
+	 * defaut, c est-a-dire a l arrivee sur la boutique.
+	 */
+	$tri_demande = isset( $_GET['orderby'] ) ? sanitize_text_field( wp_unslash( $_GET['orderby'] ) ) : '';
+	if ( '' !== $tri_demande && 'menu_order' !== $tri_demande ) {
 		return $posts;
 	}
 
@@ -173,10 +202,19 @@ function eauservice_products_per_page( $cols ) {
  *    -> Aucune regeneration de miniatures necessaire.
  * =========================================================================== */
 add_filter( 'single_product_archive_thumbnail_size', 'eauservice_loop_image_full' );
-add_filter( 'woocommerce_gallery_thumbnail_size', 'eauservice_loop_image_full' );
 function eauservice_loop_image_full( $size ) {
 	return 'woocommerce_single'; // taille non rognee (largeur fixe, hauteur libre)
 }
+
+/* Le filtre « woocommerce_gallery_thumbnail_size » a ete RETIRE d ici.
+ * Il s appliquait aux petites vignettes situees SOUS la photo principale d une
+ * fiche produit. En leur imposant la taille « woocommerce_single », chaque
+ * vignette de 100 px telechargeait une image de 600 px : plusieurs centaines de
+ * kilo-octets inutiles a chaque ouverture de fiche produit, sans aucun gain
+ * visuel puisque la vignette est affichee en petit de toute facon.
+ * Le rognage des vignettes de la galerie ne posait pas le probleme decrit en
+ * tete de section : celui-ci concerne la GRILLE de la boutique, traitee par le
+ * filtre ci-dessus et par le object-fit:contain de la feuille de style. */
 
 // Au cas ou le theme imposerait un rognage : on force le format "non rogne".
 add_filter( 'woocommerce_get_image_size_thumbnail', 'eauservice_uncrop_thumbnail' );
@@ -239,6 +277,89 @@ function eauservice_delivery_zones() {
 			'libelle' => 'Frais de livraison & installation (Var)',
 		),
 	);
+}
+
+/**
+ * Codes postaux rattachés à chaque zone de livraison.
+ * ---------------------------------------------------------------------------
+ * POURQUOI CETTE TABLE EXISTE :
+ * les frais de livraison dependaient UNIQUEMENT du menu deroulant, sans aucun
+ * recoupement avec l adresse reellement saisie. Un client pouvait donc choisir
+ * « Antibes — livraison offerte » et faire livrer a Saint-Tropez : 150 € de
+ * perte seche, invisible en back-office. Le cas le plus courant n est meme pas
+ * la mauvaise foi, c est l hesitation : quelqu un qui livre a Vallauris ne sait
+ * pas si cela releve d « Antibes » ou de « Cannes », et coche au hasard.
+ *
+ * COMMENT C EST UTILISE (voir la validation en section 6b) :
+ * on ne bloque la commande que dans UN seul cas, celui ou la zone choisie
+ * coute MOINS CHER que celle du code postal saisi. Si le client a choisi une
+ * zone plus chere, on le laisse passer : c est son choix, et ce n est pas a un
+ * bout de code de lui refuser de payer davantage. Si le code postal est
+ * inconnu de cette table, on ne bloque pas non plus — on se contente de
+ * signaler la commande (section 6h) pour que vous puissiez appeler le client.
+ *
+ * POUR AJOUTER UNE COMMUNE : ajoutez son code postal dans la bonne zone.
+ */
+function eauservice_zone_codes_postaux() {
+	return array(
+		'antibes'      => array( '06600', '06160' ), // Antibes, Juan-les-Pins
+		'cannes'       => array(
+			'06400', // Cannes
+			'06150', // Cannes-la-Bocca
+			'06110', // Le Cannet
+			'06250', // Mougins
+			'06210', // Mandelieu-la-Napoule
+			'06220', // Vallauris / Golfe-Juan
+		),
+		'nice'         => array(
+			'06000', '06100', '06200', '06300', // Nice
+			'06700', // Saint-Laurent-du-Var
+			'06800', // Cagnes-sur-Mer
+			'06270', // Villeneuve-Loubet
+			'06230', // Villefranche-sur-Mer / Saint-Jean-Cap-Ferrat
+			'06560', // Valbonne / Sophia Antipolis
+			'06410', // Biot
+		),
+		'monaco'       => array( '98000' ), // Monaco (les 980xx sont gérés à part)
+		'saint_tropez' => array( '83990' ), // Saint-Tropez
+	);
+}
+
+/**
+ * Déduit la zone de livraison à partir d un code postal.
+ *
+ * @param string $code_postal Code postal à 5 chiffres.
+ * @return string Clé de zone, ou chaîne vide si le code postal est inconnu.
+ */
+function eauservice_zone_depuis_code_postal( $code_postal ) {
+	$cp = preg_replace( '/\D/', '', (string) $code_postal );
+	if ( 5 !== strlen( $cp ) ) { return ''; }
+
+	// Monaco : toute la plage 980xx.
+	if ( 0 === strpos( $cp, '980' ) ) { return 'monaco'; }
+
+	foreach ( eauservice_zone_codes_postaux() as $zone => $codes ) {
+		if ( in_array( $cp, $codes, true ) ) { return $zone; }
+	}
+
+	// Reste du Var : tarif « autre ville du Var ».
+	if ( 0 === strpos( $cp, '83' ) ) { return 'var'; }
+
+	// Autre commune des Alpes-Maritimes non listée : on ne devine pas.
+	return '';
+}
+
+/**
+ * Extrait le premier code postal à 5 chiffres d une adresse saisie librement.
+ *
+ * @param string $adresse Adresse libre (« 1 bd de la Croisette, 06400 Cannes »).
+ * @return string Code postal trouvé, ou chaîne vide.
+ */
+function eauservice_extraire_code_postal( $adresse ) {
+	if ( preg_match( '/\b(\d{5})\b/', (string) $adresse, $trouve ) ) {
+		return $trouve[1];
+	}
+	return '';
 }
 
 /** Construit les options du menu déroulant à partir des zones ci-dessus. */
@@ -373,6 +494,80 @@ function eauservice_validate_event_fields() {
 			wc_add_notice( sprintf( 'Merci de renseigner : %s.', $label ), 'error' );
 		}
 	}
+
+	// La date de reprise ne peut pas precéder la date de livraison.
+	$d_livraison = isset( $_POST['es_delivery_date'] ) ? sanitize_text_field( wp_unslash( $_POST['es_delivery_date'] ) ) : '';
+	$d_reprise   = isset( $_POST['es_pickup_date'] ) ? sanitize_text_field( wp_unslash( $_POST['es_pickup_date'] ) ) : '';
+	if ( '' !== $d_livraison && '' !== $d_reprise && $d_reprise < $d_livraison ) {
+		wc_add_notice( 'La date de reprise ne peut pas être antérieure à la date de livraison.', 'error' );
+	}
+
+	// Recoupement zone choisie / code postal saisi (voir la table en section 6).
+	// On ne bloque que si la zone retenue coute MOINS que celle de l adresse :
+	// c est le seul cas ou le site perdrait de l argent.
+	if ( '' !== $zone && isset( $zones[ $zone ] ) ) {
+		$adresse   = isset( $_POST['es_venue_address'] ) ? sanitize_text_field( wp_unslash( $_POST['es_venue_address'] ) ) : '';
+		$cp        = eauservice_extraire_code_postal( $adresse );
+		$zone_reel = eauservice_zone_depuis_code_postal( $cp );
+
+		if ( '' !== $zone_reel && $zone_reel !== $zone && isset( $zones[ $zone_reel ] ) ) {
+			$montant_choisi = (float) $zones[ $zone ]['montant'];
+			$montant_reel   = (float) $zones[ $zone_reel ]['montant'];
+
+			if ( $montant_reel > $montant_choisi ) {
+				wc_add_notice(
+					sprintf(
+						'Le code postal %1$s de votre adresse de livraison correspond à la zone « %2$s », '
+						. 'et non à « %3$s » que vous avez sélectionnée. Merci de choisir « %2$s » dans le menu '
+						. '« Zone de livraison », ou appelez-nous au 06 63 24 08 43 si votre cas est particulier.',
+						esc_html( $cp ),
+						esc_html( $zones[ $zone_reel ]['label'] ),
+						esc_html( $zones[ $zone ]['label'] )
+					),
+					'error'
+				);
+			}
+		}
+	}
+}
+
+/* 6h. TRAÇABILITÉ : on note sur la commande si la zone choisie n a pas pu être
+ *     confirmée par le code postal saisi. Rien n est bloqué ici — c est juste
+ *     un signal visible en back-office pour les cas que la table de codes
+ *     postaux ne couvre pas (commune non listée, adresse sans code postal,
+ *     lieu décrit en texte libre du type « Palais des Festivals, hall A »).
+ * =========================================================================== */
+add_action( 'woocommerce_checkout_create_order', 'eauservice_marquer_zone_a_verifier', 25, 2 );
+function eauservice_marquer_zone_a_verifier( $order, $data ) {
+	$zone = isset( $_POST['es_delivery_zone'] ) ? sanitize_text_field( wp_unslash( $_POST['es_delivery_zone'] ) ) : '';
+	if ( '' === $zone ) { return; }
+
+	$adresse   = isset( $_POST['es_venue_address'] ) ? sanitize_text_field( wp_unslash( $_POST['es_venue_address'] ) ) : '';
+	$cp        = eauservice_extraire_code_postal( $adresse );
+	$zone_reel = eauservice_zone_depuis_code_postal( $cp );
+
+	if ( '' === $zone_reel ) {
+		$order->update_meta_data(
+			'_es_zone_a_verifier',
+			'' === $cp
+				? 'Aucun code postal détecté dans l\'adresse de livraison : zone non vérifiable.'
+				: sprintf( 'Code postal %s inconnu de la table des zones : zone non vérifiable.', $cp )
+		);
+		return;
+	}
+
+	if ( $zone_reel !== $zone ) {
+		$zones = eauservice_delivery_zones();
+		$order->update_meta_data(
+			'_es_zone_a_verifier',
+			sprintf(
+				'Zone choisie « %s » alors que le code postal %s correspond à « %s ».',
+				isset( $zones[ $zone ] ) ? $zones[ $zone ]['label'] : $zone,
+				$cp,
+				isset( $zones[ $zone_reel ] ) ? $zones[ $zone_reel ]['label'] : $zone_reel
+			)
+		);
+	}
 }
 
 // 6c. Enregistrement dans la commande (compatible stockage classique + HPOS).
@@ -407,6 +602,15 @@ function eauservice_format_event_field_value( $key, $value ) {
 add_action( 'woocommerce_admin_order_data_after_shipping_address', 'eauservice_show_event_fields_admin' );
 function eauservice_show_event_fields_admin( $order ) {
 	echo '<div class="es-admin-event"><h3 style="margin-top:14px;">Livraison événementielle</h3>';
+
+	// Avertissement de zone en premier : c est ce qu il faut voir tout de suite.
+	$alerte = $order->get_meta( '_es_zone_a_verifier' );
+	if ( $alerte ) {
+		echo '<p style="margin:6px 0;padding:9px 12px;background:#fff4e5;border-left:4px solid #d97706;'
+			. 'border-radius:6px;color:#7c4a03;font-weight:600;">&#9888; Zone de livraison à vérifier : '
+			. esc_html( $alerte ) . '</p>';
+	}
+
 	foreach ( eauservice_event_fields_list() as $key => $label ) {
 		$val = $order->get_meta( '_' . $key );
 		if ( $val ) {
@@ -431,6 +635,17 @@ function eauservice_show_event_fields_email( $order, $sent_to_admin, $plain_text
 	if ( $rows ) {
 		echo '<h2 style="color:#1E6FD9;">Livraison événementielle</h2>';
 		echo '<table cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;margin-bottom:20px;">' . $rows . '</table>';
+	}
+
+	// Avertissement de zone : UNIQUEMENT dans l e-mail qui vous est adressé.
+	// Le client n a pas a lire une note de controle interne.
+	if ( $sent_to_admin ) {
+		$alerte = $order->get_meta( '_es_zone_a_verifier' );
+		if ( $alerte ) {
+			echo '<p style="margin:0 0 20px;padding:12px 16px;background:#fff4e5;border-left:4px solid #d97706;'
+				. 'border-radius:8px;color:#7c4a03;font-weight:bold;font-size:14px;">&#9888; Zone de livraison à vérifier : '
+				. esc_html( $alerte ) . '</p>';
+		}
 	}
 }
 
@@ -714,18 +929,21 @@ function eauservice_organization_schema() {
 			'Location pour salons et congrès'
 		),
 		'priceRange' => '€€',
+		/*
+		 * knowsAbout : on s en tient aux domaines de competence reels.
+		 * Les noms de lieux (Palais des Festivals, Grimaldi Forum, Acropolis)
+		 * ont ete retires : accumuler des noms propres dans ce champ
+		 * s apparente a du bourrage de mots-cles, et laisse entendre un lien
+		 * officiel avec ces etablissements. Les villes desservies sont deja
+		 * declarees proprement dans areaServed juste au-dessus.
+		 */
 		'knowsAbout' => array(
-			'location matériel événementiel',
-			'machines à café Nespresso',
-			'machines à café Lavazza',
-			'machines à café Covim',
+			'location de matériel événementiel',
+			'machines à café professionnelles',
 			'fontaines à eau professionnelles',
-			'événementiel Côte d\'Azur',
-			'salons professionnels',
-			'congrès Monaco',
-			'Palais des Festivals Cannes',
-			'Grimaldi Forum Monaco',
-			'Acropolis Nice'
+			'réfrigération pour événements',
+			'livraison et installation sur site',
+			'salons et congrès professionnels'
 		),
 		'sameAs' => array(
 			'https://maps.app.goo.gl/FqH9hm9FLBDLpN6F6',
@@ -740,7 +958,10 @@ function eauservice_organization_schema() {
 			'contactType' => 'customer service',
 			'areaServed' => 'FR',
 			'availableLanguage' => array('French', 'English'),
-			'contactOption' => 'TollFree',
+			// « contactOption => TollFree » a ete retire : il declarait un
+			// numero gratuit alors qu il s agit d un mobile classique, facture
+			// au tarif de l operateur. Une information fausse dans un schema
+			// n apporte rien et peut etre relevee comme telle.
 			'hoursAvailable' => array(
 				'@type' => 'OpeningHoursSpecification',
 				'dayOfWeek' => array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'),
@@ -781,37 +1002,24 @@ function eauservice_services_schema() {
 				),
 				'geoRadius' => '100000'
 			),
-			'offers' => array(
-				'@type' => 'AggregateOffer',
-				'priceCurrency' => 'EUR',
-				'lowPrice' => '140',
-				'highPrice' => '180',
-				'offerCount' => '3',
-				'availability' => 'https://schema.org/InStock',
-				'offers' => array(
-					array(
-						'@type' => 'Offer',
-						'name' => 'Location machine Nespresso Zenius',
-						'price' => '180',
-						'priceCurrency' => 'EUR',
-						'availability' => 'https://schema.org/InStock'
-					),
-					array(
-						'@type' => 'Offer',
-						'name' => 'Location machine Lavazza professionnelle',
-						'price' => '140',
-						'priceCurrency' => 'EUR',
-						'availability' => 'https://schema.org/InStock'
-					),
-					array(
-						'@type' => 'Offer',
-						'name' => 'Location machine Covim professionnelle',
-						'price' => '140',
-						'priceCurrency' => 'EUR',
-						'availability' => 'https://schema.org/InStock'
-					)
-				)
-			),
+			/*
+			 * PRIX RETIRÉS VOLONTAIREMENT — NE PAS LES REMETTRE ICI.
+			 * ------------------------------------------------------------
+			 * Ce bloc annonçait des tarifs écrits en dur (140 €, 180 €, et un
+			 * AggregateOffer 140-180 €). Le jour où un prix change en
+			 * boutique, Google reçoit deux montants contradictoires pour la
+			 * même offre : celui de la fiche produit et celui-ci. Deux
+			 * conséquences, toutes deux désagréables :
+			 *   - Search Console signale l incohérence et peut retirer
+			 *     l affichage du prix dans les résultats ;
+			 *   - un visiteur arrive en ayant lu « 140 € » dans Google et
+			 *     découvre un autre tarif sur le site.
+			 *
+			 * Les prix n ont leur place QUE sur les fiches produit, où ils
+			 * sont lus directement dans WooCommerce (voir le snippet
+			 * « eauservice-seo-produits »). Ce schema-ci décrit le service,
+			 * pas son tarif.
+			 */
 			'termsOfService' => 'Livraison et installation incluses. Reprise après l\'événement.',
 			'availableChannel' => array(
 				'@type' => 'ServiceChannel',
@@ -820,7 +1028,7 @@ function eauservice_services_schema() {
 					'@type' => 'ContactPoint',
 					'telephone' => '+33-6-63-24-08-43'
 				)
-			)
+			),
 		),
 		array(
 			'@context' => 'https://schema.org',
@@ -840,11 +1048,7 @@ function eauservice_services_schema() {
 				),
 				'geoRadius' => '100000'
 			),
-			'offers' => array(
-				'@type' => 'Offer',
-				'priceCurrency' => 'EUR',
-				'price' => '125'
-			),
+			// Prix retiré ici aussi, pour la raison expliquée plus haut.
 			'termsOfService' => 'Bonbonnes d\'eau incluses. Livraison et installation sur site.',
 			'availableChannel' => array(
 				'@type' => 'ServiceChannel',
@@ -1124,11 +1328,52 @@ function eauservice_dequeue_woo_assets() {
 			wp_dequeue_style( 'woocommerce-general' );
 			wp_dequeue_style( 'woocommerce-layout' );
 			wp_dequeue_style( 'woocommerce-smallscreen' );
-			wp_dequeue_script( 'wc-cart-fragments' );
 			wp_dequeue_script( 'woocommerce' );
 			wp_dequeue_script( 'wc-add-to-cart' );
+
+			/*
+			 * « wc-cart-fragments » N EST PLUS RETIRE.
+			 * --------------------------------------------------------------
+			 * C est ce script, et lui seul, qui met a jour les compteurs de
+			 * panier sans recharger la page. En le retirant des pages non
+			 * WooCommerce, on gagnait quelques kilo-octets sur l accueil et on
+			 * perdait le compteur du panier : un visiteur ajoutait trois
+			 * articles puis revenait a l accueil, ou il lisait « Panier 0 ».
+			 * Il sert aussi a corriger le compteur quand la page est servie
+			 * depuis un cache. On le garde donc partout.
+			 */
 		}
 	}
+}
+
+/* ===========================================================================
+ * 14g) COMPTEUR DU PANIER DE LA PAGE D ACCUEIL
+ *      ------------------------------------------------------------------
+ *      L en-tete sur mesure de la page d accueil contient une pastille dont
+ *      la valeur est ecrite en dur dans le HTML :
+ *          <a href="/panier/" class="cart"> … <span class="badge">0</span></a>
+ *      Comme ce HTML est colle dans un bloc, il ne peut pas executer de PHP :
+ *      la pastille affichait donc toujours zero. Le snippet « pastille panier »
+ *      ne pouvait pas l aider non plus, puisqu il agit sur les menus
+ *      WordPress, precisement ceux que l accueil masque.
+ *
+ *      On declare donc cette pastille comme un « fragment » WooCommerce.
+ *      WooCommerce sait alors la remplacer tout seul, en AJAX, a chaque ajout
+ *      au panier et a chaque chargement de page — cache inclus.
+ * =========================================================================== */
+add_filter( 'woocommerce_add_to_cart_fragments', 'eauservice_fragment_badge_accueil' );
+function eauservice_fragment_badge_accueil( $fragments ) {
+	if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+		return $fragments;
+	}
+	$nombre = WC()->cart->get_cart_contents_count();
+
+	// La cle est le selecteur CSS de l element a remplacer, tel qu il apparait
+	// dans « code accueil ». Si vous renommez cette classe dans le HTML,
+	// pensez a la renommer ici aussi.
+	$fragments['#esroot .cart .badge'] = '<span class="badge">' . esc_html( $nombre ) . '</span>';
+
+	return $fragments;
 }
 
 // 14b. Retirer les emojis WordPress (script inutile chargé partout = + léger).
@@ -1141,20 +1386,52 @@ remove_action( 'admin_print_styles', 'print_emoji_styles' );
 //      on s'assure juste que c'est actif pour le score vitesse mobile).
 add_filter( 'wp_lazy_loading_enabled', '__return_true' );
 
-// 14d. DNS-prefetch / preconnect vers Google Fonts (charge la police + vite).
+// 14d. POLICES : un seul chargement, propre, pour tout le site.
+//      ------------------------------------------------------------------
+//      AVANT, les memes deux polices etaient demandees a TROIS endroits :
+//        1. un <link> dans le bloc HTML de la page d accueil ;
+//        2. un @import en haut de « CSS additionnel » ;
+//        3. ici, un preconnect (qui prepare la connexion mais ne charge rien).
+//      Le @import etait le plus couteux : il BLOQUE l affichage et ne demarre
+//      qu une fois la feuille de style telechargee, donc tard.
+//      Desormais : un seul enqueue ici, le @import et le <link> ont ete retires
+//      de leurs fichiers respectifs. Les polices restent disponibles partout,
+//      y compris sur la boutique et le panier.
 add_action( 'wp_head', 'eauservice_resource_hints', 1 );
 function eauservice_resource_hints() {
 	echo '<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>' . "\n";
 	echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
 }
 
+add_action( 'wp_enqueue_scripts', 'eauservice_charger_polices', 5 );
+function eauservice_charger_polices() {
+	wp_enqueue_style(
+		'eauservice-polices',
+		'https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap',
+		array(),
+		null // pas de ?ver= : l URL Google est deja versionnee
+	);
+}
+
 // 14e. SEO : title de l'onglet boutique optimisé si aucun plugin SEO ne gère.
-//      (Yoast prend le dessus s'il est actif : aucun conflit.)
+//      CORRECTION : seul Yoast etait teste. Rank Math, qui est l extension
+//      reellement installee, pilote lui aussi la balise title depuis ses
+//      reglages. Deux codes qui ecrivent le meme titre, c est un titre qui
+//      change selon l ordre des filtres — et une modification faite dans
+//      Rank Math qui semble « ne pas prendre ». On laisse donc la main a
+//      l extension SEO des qu il y en a une.
 add_filter( 'document_title_parts', 'eauservice_shop_title', 5 );
 function eauservice_shop_title( $parts ) {
-	if ( function_exists( 'is_shop' ) && is_shop() && ! defined( 'WPSEO_VERSION' ) ) {
-		$parts['title'] = 'Location de matériel événementiel Côte d\'Azur';
+	if ( ! function_exists( 'is_shop' ) || ! is_shop() ) {
+		return $parts;
 	}
+	if ( defined( 'WPSEO_VERSION' ) ) {
+		return $parts; // Yoast gere le titre.
+	}
+	if ( eauservice_rank_math_actif() ) {
+		return $parts; // Rank Math gere le titre (voir section 21).
+	}
+	$parts['title'] = 'Location de matériel événementiel Côte d\'Azur';
 	return $parts;
 }
 
@@ -1247,7 +1524,45 @@ function eauservice_appliquer_frais_livraison( $cart ) {
 	}
 
 	// WooCommerce vide les frais avant chaque appel de ce hook : pas de doublon.
-	$cart->add_fee( $zone['libelle'], (float) $zone['montant'], false );
+	$cart->add_fee(
+		$zone['libelle'],
+		(float) $zone['montant'],
+		eauservice_frais_livraison_taxables(),
+		eauservice_frais_livraison_taxables() ? 'standard' : ''
+	);
+}
+
+/* ===========================================================================
+ * 15c) TVA SUR LES FRAIS DE LIVRAISON — INTERRUPTEUR À VALIDER
+ *      ------------------------------------------------------------------
+ *      >>> C EST LE SEUL POINT DE CE FICHIER QUE JE N AI PAS TRANCHÉ POUR
+ *          VOUS, PARCE QUE SEUL VOTRE COMPTABLE PEUT LE FAIRE. <<<
+ *
+ *      Les frais de livraison etaient ajoutes en NON TAXABLE. En France, une
+ *      prestation de livraison suit en principe le taux de TVA du bien loue,
+ *      soit 20 %. Si vos prix catalogue sont saisis HORS TAXES — et la page
+ *      d accueil affiche bien « Tarifs indicatifs HT » — alors les frais de
+ *      livraison devraient eux aussi porter la TVA sur la facture.
+ *
+ *      POURQUOI JE LAISSE « false » PAR DEFAUT :
+ *      passer a true modifie le TOTAL PAYE par vos clients (100 € de frais
+ *      deviennent 120 € TTC) et change vos factures PDF deja emises.
+ *      Basculer cela sans votre accord serait une modification comptable
+ *      decidee a votre place. Le comportement actuel est donc conserve tel
+ *      quel : rien ne change sur le site tant que vous n avez pas tranche.
+ *
+ *      COMMENT BASCULER, LE MOMENT VENU :
+ *      remplacez « return false; » par « return true; » ci-dessous, puis
+ *      passez une commande de test et ouvrez la facture PDF pour verifier
+ *      que la ligne de frais porte bien la TVA attendue.
+ * =========================================================================== */
+function eauservice_frais_livraison_taxables() {
+	// Permet aussi de piloter le reglage depuis wp-config.php si besoin.
+	if ( defined( 'EAUSERVICE_FRAIS_TAXABLES' ) ) {
+		return (bool) EAUSERVICE_FRAIS_TAXABLES;
+	}
+
+	return false; // <-- mettez true après validation par votre comptable.
 }
 
 // 15b. Rappel au checkout : zone retenue + contact pour les cas particuliers.

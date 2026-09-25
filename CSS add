@@ -11,7 +11,18 @@
 /*   • Panier : images alignées                                           */
 /* ===================================================================== */
 
-@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap");
+/* ---------------------------------------------------------------------------
+   POLICES : l @import qui se trouvait ici a ete RETIRE.
+   Un @import en tete de feuille de style est ce qu il y a de plus lent : le
+   navigateur doit d abord telecharger CETTE feuille, y decouvrir l @import,
+   puis lancer un second telechargement — pendant lequel l affichage est
+   bloque. Les memes polices etaient en plus demandees deux fois sur la page
+   d accueil (un <link> y faisait la meme chose).
+   Les polices Sora et Manrope sont desormais chargees une seule fois, pour
+   tout le site, par le snippet « eauservice-function » (section 14d), avec un
+   preconnect qui prepare la connexion en avance.
+   >>> NE PAS REMETTRE D @import ICI. <<<
+   --------------------------------------------------------------------------- */
 
 :root{
   --es-blue:#1b9fd1; --es-blue2:#2eb6e6; --es-azure:#35c6f0;
@@ -517,10 +528,38 @@ body.tax-product_cat .ast-archive-description-meta{ color:#c3d4e6 !important; po
 .es-cart-badge,.ast-cart-menu-wrap .count,.ast-site-header-cart .count{ background:linear-gradient(135deg,#1b9fd1,#2eb6e6) !important; color:#fff !important; border:none !important; border-radius:10px !important; font-size:10px !important; font-weight:800 !important; min-width:18px; height:18px; line-height:18px; text-align:center; padding:0 6px !important; box-shadow:0 4px 12px rgba(46,182,230,.4); }
 
 /* ====================  ACCESSIBILITÉ  ============================ */
+
+/* Navigation au clavier : il faut TOUJOURS voir où l'on se trouve.
+   Les champs de formulaire de ce fichier neutralisent leur contour (outline)
+   mais le remplacent par un halo (box-shadow) : le repère reste visible, c'est
+   correct. En revanche les liens, boutons et cartes produit n'avaient aucun
+   repère de focus. On le rétablit ici.
+   :focus-visible ne se déclenche qu'au clavier : aucun contour ne s'affiche
+   donc à la souris, l'aspect du site ne change pas pour la majorité des
+   visiteurs. */
+.woocommerce a:focus-visible,
+.woocommerce button:focus-visible,
+.woocommerce ul.products li.product a:focus-visible,
+.woocommerce .button:focus-visible,
+.woocommerce nav.woocommerce-pagination ul li a:focus-visible,
+.es-faq summary:focus-visible,
+.es-cta-btn:focus-visible,
+.es-simul-tel:focus-visible,
+.es-simul-wa:focus-visible,
+.es-simul-devis:focus-visible{
+  outline:2px solid #1b9fd1 !important;
+  outline-offset:2px !important;
+  border-radius:8px;
+}
+
+/* Mouvement réduit : on coupe les animations décoratives de la boutique.
+   Le rideau d'entrée « vague d'eau » est déjà traité plus bas (l'élément est
+   masqué), et les cartes produit cessent d'apparaître en fondu. */
 @media(prefers-reduced-motion:reduce){
   .woocommerce ul.products li.product{ animation:none; }
   .woocommerce ul.products li.product:hover a img{ transform:none; }
   .woocommerce ul.products li.product::before{ animation:none; }
+  .woocommerce ul.products li.product::after{ animation:none; }
 }
 
 
