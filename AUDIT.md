@@ -337,3 +337,191 @@ vérifications à faire après le collage est dans `README.md`.
 - Bandeau cookies : présence et conformité si des traceurs sont chargés avant
   consentement.
 - HTTPS forcé, en-têtes de sécurité, pare-feu applicatif.
+
+
+---
+
+# Optimisation du temps de chargement
+
+Ajouté après l'audit initial, sur demande. **Limite à connaître :** sans accès
+réseau, je n'ai pas pu mesurer le site en ligne — pas de Lighthouse, pas de
+PageSpeed, pas de relevé de temps réel. J'ai travaillé sur les **causes
+identifiables dans le code**. Les gains en octets et en nombre de requêtes sont
+calculés et exacts ; les gains en secondes dépendent de votre hébergement et
+restent à mesurer.
+
+Aucune concession sur l'apparence : pas une couleur, pas une police, pas une
+animation supprimée. Tous les effets sont conservés.
+
+## Le vrai coupable : le rideau d'entrée
+
+C'est le constat le plus frappant de cette passe. Le site se **cachait lui-même**
+à chaque page.
+
+Un calque bleu nuit couvrait tout l'écran puis se retirait par le haut :
+**0,6 s sur l'accueil, 0,95 s sur la boutique**. Ce délai n'avait rien à voir avec
+le serveur — il s'ajoutait à tout le reste, et il se rejouait **à chaque
+navigation**. Un visiteur qui faisait accueil → boutique → fiche produit → panier
+passait près de **3,5 secondes** à regarder un calque, en plus du temps de
+chargement réel.
+
+L'effet fait partie de l'identité visuelle du site, je ne l'ai donc pas supprimé.
+Il ne se joue plus qu'**une seule fois par visite**, à l'arrivée, et sa durée est
+raccourcie.
+
+| Parcours | Avant | Après |
+|---|---|---|
+| Arrivée sur l'accueil | 0,60 s | 0,45 s |
+| Arrivée sur la boutique | 0,95 s | 0,50 s |
+| Accueil → boutique → produit → panier | **3,45 s** | **0,45 s** |
+
+Technique : un script de 150 octets, placé tout en haut du `<head>` (avant les
+feuilles de style, donc sans clignotement), pose une classe si le rideau a déjà
+été vu dans la session. Sans JavaScript, le rideau se joue comme avant.
+
+## Polices : 10 fichiers → 2
+
+L'URL demandait `wght@400;500;600;700;800` pour chacune des deux familles. Écrite
+ainsi, l'API de Google renvoie **un fichier par graisse** : 5 × 2 = **10 fichiers
+de police**. Sur mobile, ce n'est pas le poids qui coûte, c'est le nombre
+d'allers-retours.
+
+La syntaxe `wght@400..800` demande une **plage** : Google renvoie alors une police
+**variable**, un seul fichier par famille contenant toutes les graisses.
+
+Le rendu est identique — même fonte, mêmes graisses. Un fichier variable est
+individuellement un peu plus gros qu'une graisse isolée, mais il remplace cinq
+fichiers et surtout cinq requêtes.
+
+*(Au passage : la feuille de style de la boutique utilise `font-weight:900` à 27
+endroits alors que 900 n'était pas chargé. Le navigateur retombait sur 800. Avec
+la plage 400..800, le comportement est le même — aucun changement visuel — mais
+c'est à savoir si vous voulez un jour du vrai 900.)*
+
+## 95 ko de CSS qui ne servaient à rien sur l'accueil
+
+« CSS additionnel » est injecté par WordPress dans le `<head>` de **toutes** les
+pages. Or ce fichier ne contient que des règles de boutique : `.woocommerce`,
+panier, commande, fiche produit. Sur la page d'accueil — qui masque l'en-tête du
+thème et embarque son propre style — ces **95 702 octets** (20 ko compressés)
+étaient téléchargés et analysés pour ne styler **absolument rien**.
+
+Vérification faite avant d'écrire le filtre : aucun sélecteur de « CSS
+additionnel » ne cible une classe de l'accueil (ni `#esroot`, ni `.es-pcard`, ni
+`.esd-`, ni `.marquee`, ni `.testi`). Le retirer est sans effet visuel.
+
+Il n'est retiré **que sur l'accueil**. Les autres pages hors boutique — mentions
+légales, CGV, contact — ont besoin de ses règles d'en-tête et de pied de page.
+L'administration et l'aperçu du personnalisateur ne sont pas touchés, pour que
+vous ne croyiez pas votre CSS disparu.
+
+## Une requête AJAX supprimée pour la majorité des visiteurs
+
+En corrigeant le compteur du panier (B3), j'avais réactivé `wc-cart-fragments`
+partout. Ce script a un coût réel : au chargement, il déclenche une requête
+`get_refreshed_fragments` qui réveille PHP et la session WooCommerce — une des
+causes de lenteur les plus classiques sur WooCommerce.
+
+Le raisonnement : si le panier est **vide**, le compteur affiche zéro et le HTML
+affiche déjà zéro. Il n'y a rien à rafraîchir. Le script n'est donc chargé que
+lorsque le panier contient quelque chose. Pour la majorité des visiteurs — ceux
+qui arrivent sur l'accueil le panier vide — la requête disparaît. Dès qu'il y a un
+article, le script revient et le compteur fonctionne.
+
+## Le défilement devient fluide
+
+La page d'accueil comptait **16 animations en boucle infinie** : bandeau défilant
+(32 s), carrousel d'avis (75 s), 5 halos, 2 vagues, 3 bulles, dégradé animé du
+titre, tracé de carte, visuel flottant. Elles tournaient **toutes en permanence**,
+y compris celles situées à plusieurs écrans de distance. Chaque animation, visible
+ou non, oblige le navigateur à produire 60 images par seconde : c'est ce qui rendait
+le défilement saccadé sur les téléphones d'entrée et de milieu de gamme.
+
+Un observateur met désormais l'animation en pause dès que le bloc quitte l'écran,
+et la relance 200 px avant qu'il ne revienne. **Rien ne change à l'œil** — une
+animation en pause reprend exactement où elle s'était arrêtée — mais le processeur
+ne travaille plus que pour ce qui est réellement regardé.
+
+## Image principale : téléchargement anticipé
+
+Sur ordinateur, la photo de machine à café est l'élément que Google mesure sous le
+nom de LCP. Sans indication, le navigateur ne la découvre qu'après avoir analysé
+le HTML puis le CSS. Un `preload` la fait partir immédiatement, en parallèle.
+
+L'attribut `media="(min-width:901px)"` est la partie importante : sous 900 px, la
+page masque ce visuel. Sans cette condition, on aurait fait télécharger une grande
+image à tous les visiteurs mobiles pour ne jamais l'afficher — l'inverse du
+résultat cherché. Sur mobile, l'élément le plus visible est le titre : c'est donc
+l'optimisation des polices qui y compte le plus.
+
+## Navigation instantanée entre les pages
+
+Le parcours type est « accueil → boutique → fiche produit ». Les **règles de
+speculation** demandent au navigateur de charger la page à l'avance, discrètement,
+quand le visiteur **survole** un lien. Au clic, la page est déjà là.
+
+C'est une fonctionnalité standard des navigateurs récents ; ceux qui ne la
+connaissent pas ignorent le bloc. Aucun script à charger.
+
+**Les exclusions sont la partie importante** — précharger une adresse, c'est
+l'appeler pour de vrai :
+
+- toute adresse contenant des paramètres — sans cela, survoler un lien
+  `?add-to-cart=123` aurait ajouté le produit au panier ;
+- le panier, la commande et le compte client, lus depuis les adresses réelles
+  configurées dans WooCommerce plutôt que devinées ;
+- l'administration et la page de connexion.
+
+Les six exclusions sont vérifiées par test automatisé.
+
+## Nettoyage
+
+`wp-embed.js` ne sert qu'à afficher un aperçu quand on colle le lien d'un autre
+site WordPress dans un article : aucun contenu du site ne l'utilise. Retiré. Ainsi
+que quatre balises d'en-tête héritées d'une époque révolue : Really Simple
+Discovery, Windows Live Writer (service fermé depuis des années), le lien
+« shortlink », et le numéro de version de WordPress — qu'il vaut mieux ne pas
+annoncer publiquement.
+
+## Récapitulatif
+
+| Optimisation | Gain | Risque visuel |
+|---|---|---|
+| Rideau une seule fois par visite | jusqu'à 3 s sur un parcours de 4 pages | aucun (effet conservé) |
+| Polices variables | 10 requêtes → 2 | aucun (rendu identique) |
+| CSS boutique retiré de l'accueil | −95 702 o (−20 ko compressés) | aucun (vérifié sélecteur par sélecteur) |
+| `wc-cart-fragments` conditionnel | 1 requête AJAX + PHP supprimée si panier vide | aucun |
+| Animations en pause hors écran | défilement fluide, batterie préservée | aucun |
+| Préchargement du visuel (desktop) | LCP anticipé | aucun |
+| Navigation par speculation rules | affichage immédiat au clic | aucun |
+| `wp-embed` + balises d'en-tête | 1 requête + quelques centaines d'octets | aucun |
+
+## Ce qui reste à gagner, et qui ne passe pas par le code
+
+**Les images — c'est désormais le principal poste.** Les 8 images de l'accueil
+sont des PNG, dont des `-removebg-preview.png`, format très lourd pour des visuels
+détourés. Un PNG de produit détouré fait couramment 300 à 800 ko là où un WebP
+équivalent en fait 40 à 80. C'est probablement le plus gros gain restant, mais la
+conversion se fait dans la médiathèque, pas dans le code : une extension comme
+Converter for Media ou ShortPixel convertit tout le catalogue et sert
+automatiquement le WebP aux navigateurs compatibles. Le lazy-loading et la
+priorisation sont déjà en place côté code.
+
+**Auto-héberger les polices.** Même réduites à 2 fichiers, elles viennent de
+Google : cela reste deux connexions externes (DNS + TLS vers
+`fonts.googleapis.com`, puis `fonts.gstatic.com`). Héberger les deux fichiers sur
+votre domaine supprime ces connexions **et** règle la question RGPD. Demande de
+téléverser deux fichiers, donc une action manuelle.
+
+**Un cache de pages.** WordPress régénère chaque page à chaque visite. Une
+extension de cache (WP Rocket, ou LiteSpeed Cache si votre hébergeur le propose)
+est le levier le plus puissant qui reste, et le plus simple. À configurer avec
+précaution sur WooCommerce : le panier, la commande et le compte client ne doivent
+jamais être mis en cache.
+
+**`content-visibility:auto`** sur les sections basses de l'accueil permettrait au
+navigateur de ne pas calculer ce qui n'est pas encore à l'écran. Je ne l'ai
+**pas** appliqué : cette propriété interagit avec l'observateur qui déclenche les
+apparitions au défilement (`.sr`), et un mauvais réglage laisse du contenu
+invisible. Je ne voulais pas livrer un risque d'affichage que je ne peux pas
+vérifier dans un navigateur. À tester sur un site de préproduction.

@@ -433,8 +433,25 @@ html{scroll-behavior:smooth}#esroot{scroll-behavior:smooth}
 
 /* ===== Transition d'entrée façon vague d'eau ===== */
 @keyframes esWaterReveal{0%{transform:translateY(0)}100%{transform:translateY(-112%)}}
-html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-index:2147483646;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 1180' preserveAspectRatio='none'%3E%3Cpath d='M0,0 H1440 V1030 C1200,1095 960,975 720,1035 C480,1095 240,975 0,1035 Z' fill='%230a2942'/%3E%3Cpath d='M0,1035 C240,975 480,1095 720,1035 C960,975 1200,1095 1440,1030' fill='none' stroke='%236fe0ff' stroke-width='5' opacity='0.85'/%3E%3C/svg%3E");background-size:100% 100%;background-repeat:no-repeat;animation:esWaterReveal .6s cubic-bezier(.76,0,.24,1) .05s forwards;will-change:transform}
+html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-index:2147483646;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 1180' preserveAspectRatio='none'%3E%3Cpath d='M0,0 H1440 V1030 C1200,1095 960,975 720,1035 C480,1095 240,975 0,1035 Z' fill='%230a2942'/%3E%3Cpath d='M0,1035 C240,975 480,1095 720,1035 C960,975 1200,1095 1440,1030' fill='none' stroke='%236fe0ff' stroke-width='5' opacity='0.85'/%3E%3C/svg%3E");background-size:100% 100%;background-repeat:no-repeat;animation:esWaterReveal .45s cubic-bezier(.76,0,.24,1) 0s forwards;will-change:transform}
 @media(prefers-reduced-motion:reduce){html::before{display:none !important}}
+/* Le rideau ne se joue qu a la PREMIERE page de la visite. La classe
+   « es-rideau-vu » est posee par le snippet (section 14i) tout en haut du
+   <head>, avant l affichage : pas de clignotement. Naviguer dans le site ne
+   coute donc plus 0,45 s de rideau a chaque clic. */
+html.es-rideau-vu::before{display:none !important;animation:none !important}
+
+/* ===== ANIMATIONS : mises en pause quand elles sortent de l ecran =====
+   La page comptait 16 animations en boucle infinie (bandeau defilant,
+   carrousel d avis, halos, bulles, visuel flottant...). Elles tournaient
+   TOUTES en permanence, y compris tres loin au-dessus de l ecran : le
+   navigateur recalculait en continu des images que personne ne regardait,
+   ce qui rendait le defilement moins fluide sur telephone et vidait la
+   batterie. Un observateur (voir le script en bas de page) ajoute cette
+   classe aux blocs sortis du champ de vision.
+   Aucun changement visible : une animation en pause reprend exactement ou
+   elle s etait arretee. */
+#esroot .es-anim-pause,#esroot .es-anim-pause *{animation-play-state:paused !important}
 
 /* ===== MOUVEMENT REDUIT : on respecte le reglage du visiteur =====
    Cette page anime beaucoup de choses en permanence : le bandeau defilant
@@ -990,6 +1007,35 @@ html::before{content:"";position:fixed;left:0;top:0;width:100%;height:116vh;z-in
     });
   },{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
   document.querySelectorAll('#esroot .sr').forEach(function(el){obs.observe(el);});
+})();
+
+/* === Animations en pause hors ecran ===
+   Pourquoi : la page contient 16 animations en boucle infinie. Elles
+   tournaient toutes en meme temps, en permanence, meme celles situees a
+   plusieurs ecrans de distance. Chaque animation visible ou non oblige le
+   navigateur a produire 60 images par seconde : c est ce qui rendait le
+   defilement saccade sur les telephones d entree et milieu de gamme.
+
+   Ce qu on fait : on surveille les blocs animes et on met leur animation en
+   pause des qu ils quittent l ecran. Rien ne change a l oeil — une animation
+   en pause reprend exactement la ou elle s etait arretee — mais le
+   processeur ne travaille plus que pour ce qui est reellement regarde.
+
+   La marge de 200 px fait reprendre l animation juste AVANT que le bloc
+   entre dans le champ de vision, pour qu il ne soit jamais fige a l ecran. */
+(function(){
+  if(!('IntersectionObserver' in window)) return;
+  var blocs=document.querySelectorAll(
+    '#esroot .marquee,#esroot .es-testi-marquee,#esroot .hero-visual,'+
+    '#esroot .hero,#esroot .es-map,#esroot .kpis-wrap'
+  );
+  if(!blocs.length) return;
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      e.target.classList.toggle('es-anim-pause',!e.isIntersecting);
+    });
+  },{rootMargin:'200px 0px 200px 0px'});
+  blocs.forEach(function(el){obs.observe(el);});
 })();
 
 function toggleMenu(){

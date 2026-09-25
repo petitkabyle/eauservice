@@ -67,6 +67,26 @@ lui-même), mais autant coller `snippet general` en premier.
 6. **Une fiche produit sur** `search.google.com/test/rich-results` : il doit y
    avoir **un seul** bloc `Product`.
 
+## Vérifications propres aux optimisations de vitesse
+
+7. **Le rideau d'entrée** (le calque bleu qui se retire) doit se jouer **une seule
+   fois** : à l'arrivée sur le site. Naviguez ensuite vers la boutique puis le
+   panier — plus de rideau. Fermez l'onglet, revenez : il se rejoue.
+8. **Les polices** s'affichent bien partout (c'est la même URL Google, mais en
+   version variable). Si un texte apparaît dans une police système, `snippet
+   general` n'est pas actif.
+9. **La page d'accueil** doit être visuellement inchangée, alors que la feuille de
+   style de la boutique n'y est plus envoyée. Comparez avec une capture d'avant si
+   vous en avez une.
+10. **Les mentions légales / CGV** (pages hors boutique) doivent conserver
+    l'en-tête et le pied de page stylés : elles reçoivent toujours le CSS.
+11. **Le survol d'un lien** vers la boutique doit rendre le clic quasi instantané.
+    Vérifiez surtout qu'un survol n'ajoute **jamais** de produit au panier — les
+    adresses avec paramètres sont exclues du préchargement.
+
+Si un doute subsiste sur l'apparence, le plus simple est de désactiver
+temporairement `snippet general` : le site revient à son comportement d'avant.
+
 ## Ce qui reste à faire de votre côté
 
 Trois choses que le code ne peut pas faire à votre place :
