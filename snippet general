@@ -694,55 +694,77 @@ add_filter( 'woocommerce_ship_to_different_address_checked', '__return_false' );
  *    Le style est dans boutique-woocommerce.css (section v22).
  * =========================================================================== */
 
-// --- 8a. HAUT de la boutique : hero + réassurance -------------------------
+// --- 8a. HAUT de la boutique : bandeau de bienvenue compact ----------------
+//     v28 : un bandeau court aux couleurs du site (titre, une phrase, deux
+//     boutons utiles, trois atouts). Les catégories (8c) viennent juste
+//     dessous : le client accède au catalogue sans défiler.
+//     Référencement : un seul H1 avec les mots-clés (location, matériel
+//     événementiel, Côte d'Azur), une phrase d'intro avec les villes, et un
+//     texte de présentation + les zones desservies SOUS le catalogue (8b).
 add_action( 'woocommerce_before_main_content', 'eauservice_shop_intro', 30 );
 function eauservice_shop_intro() {
 	if ( ! ( function_exists( 'is_shop' ) && is_shop() ) ) { return; }
 	if ( function_exists( 'is_paged' ) && is_paged() ) { return; } // page 2, 3… : on n'affiche pas
+
+	$devis_url = home_url( '/#es-devis' );
+	$cart_url  = function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : home_url( '/panier/' );
 	?>
-	<section class="es-hero">
-		<span class="es-eyebrow">Location événementielle · Côte d'Azur</span>
-		<h1>Location de machines à café, fontaines à eau &amp; matériel pour vos événements</h1>
-		<p>EauService équipe vos salons, congrès, séminaires et événements professionnels à <strong>Cannes, Nice, Monaco, Antibes</strong> et sur toute la Côte d'Azur. Machines à café professionnelles (Nespresso, Lavazza, Covim), fontaines à eau, réfrigération et mobilier — avec <strong>livraison, installation et reprise sur site</strong>.</p>
-		<p>Du stand de 10&nbsp;m² au congrès de plusieurs milliers de visiteurs, nous proposons des packs clé en main adaptés à chaque format d'événement.</p>
-		<div class="es-hero-tags">
-			<span>Livraison sur stand</span>
-			<span>Installation incluse</span>
-			<span>Devis sous 24h</span>
-			<span>Matériel professionnel</span>
-			<span>Reprise après l'événement</span>
-			<span>Paiement après livraison possible</span>
+	<section class="es-shop-head">
+		<div class="es-shop-head-main">
+			<span class="es-eyebrow">Bienvenue dans la boutique en ligne</span>
+			<h1>Location de matériel événementiel sur la Côte d'Azur</h1>
+			<p class="es-shop-lead">Machines à café professionnelles, fontaines à eau, réfrigération et mobilier&nbsp;: commandez en ligne, nous livrons, installons et reprenons le matériel à Cannes, Nice, Monaco, Antibes et partout sur la Côte d'Azur.</p>
+			<div class="es-shop-actions">
+				<a class="es-btn es-btn--primary" href="<?php echo esc_url( $devis_url ); ?>">Demander un devis gratuit</a>
+				<a class="es-btn es-btn--ghost" href="<?php echo esc_url( $cart_url . '#es-simul' ); ?>">Calculer mes frais de livraison</a>
+			</div>
 		</div>
+		<ul class="es-shop-feats">
+			<li>
+				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+				<div><strong>Paiement flexible</strong><span>En ligne par carte ou après la livraison</span></div>
+			</li>
+			<li>
+				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+				<div><strong>Devis sous 24h</strong><span>Réponse rapide et sur mesure</span></div>
+			</li>
+			<li>
+				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+				<div><strong>Livraison et reprise</strong><span>Installation incluse, partout sur la Côte d'Azur</span></div>
+			</li>
+		</ul>
 	</section>
+	<?php
+}
 
-	<div class="es-assur">
-		<div class="es-assur-item">
-			<div class="es-assur-ico">&#128666;</div>
-			<div class="es-assur-t">Livraison &amp; installation</div>
-			<div class="es-assur-d">Sur votre stand ou lieu d'événement, partout sur la Côte d'Azur.</div>
-		</div>
-		<div class="es-assur-item">
-			<div class="es-assur-ico">&#9201;</div>
-			<div class="es-assur-t">Devis en 24h</div>
-			<div class="es-assur-d">Une réponse rapide et un accompagnement personnalisé.</div>
-		</div>
-		<div class="es-assur-item">
-			<div class="es-assur-ico">&#9733;</div>
-			<div class="es-assur-t">Matériel premium</div>
-			<div class="es-assur-d">Équipements professionnels fiables et entretenus.</div>
-		</div>
-		<div class="es-assur-item">
-			<div class="es-assur-ico">&#9851;</div>
-			<div class="es-assur-t">Service clé en main</div>
-			<div class="es-assur-d">Livraison, montage et reprise gérés de A à Z.</div>
-		</div>
-	</div>
+// --- 8c. Onglets de catégories : accès direct au catalogue ------------------
+//     Automatique (lit vos catégories de produits). S'affiche sur la boutique
+//     et sur les pages de catégorie, avec l'onglet actif mis en évidence.
+//     Ce sont de vrais liens : ils renforcent aussi le maillage interne.
+add_action( 'woocommerce_before_shop_loop', 'eauservice_shop_tabs', 5 );
+function eauservice_shop_tabs() {
+	if ( ! function_exists( 'is_shop' ) ) { return; }
+	if ( ! ( is_shop() || ( function_exists( 'is_product_category' ) && is_product_category() ) ) ) { return; }
+	if ( ! taxonomy_exists( 'product_cat' ) ) { return; }
 
-	<div class="es-section-head">
-		<span class="es-eyebrow">Notre catalogue</span>
-		<h2>Nos produits à la location</h2>
-		<p>Sélectionnez vos équipements ci-dessous. Besoin d'un ensemble complet&nbsp;? Découvrez nos packs événementiels en tête de liste.</p>
-	</div>
+	$terms = get_terms( array(
+		'taxonomy'   => 'product_cat',
+		'hide_empty' => true,
+		'parent'     => 0,
+		'exclude'    => array( (int) get_option( 'default_product_cat' ) ),
+		'orderby'    => 'menu_order',
+	) );
+	if ( is_wp_error( $terms ) || count( $terms ) < 2 ) { return; }
+
+	$courant = ( function_exists( 'is_product_category' ) && is_product_category() ) ? get_queried_object_id() : 0;
+	$shop    = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/boutique/' );
+	?>
+	<nav class="es-shop-tabs" id="es-catalogue" aria-label="Catégories de la boutique">
+		<a href="<?php echo esc_url( $shop ); ?>"<?php echo $courant ? '' : ' class="is-active" aria-current="page"'; ?>>Tout le catalogue</a>
+		<?php foreach ( $terms as $t ) : ?>
+			<a href="<?php echo esc_url( get_term_link( $t ) ); ?>"<?php echo ( (int) $t->term_id === (int) $courant ) ? ' class="is-active" aria-current="page"' : ''; ?>><?php echo esc_html( $t->name ); ?></a>
+		<?php endforeach; ?>
+	</nav>
 	<?php
 }
 
@@ -752,6 +774,21 @@ function eauservice_shop_outro() {
 	if ( ! ( function_exists( 'is_shop' ) && is_shop() ) ) { return; }
 	if ( function_exists( 'is_paged' ) && is_paged() ) { return; }
 	?>
+	<?php
+	// Zones desservies : lues dans la liste unique eauservice_villes_desservies()
+	// (section 21). Modifier la liste là-bas met à jour cette ligne aussi.
+	$villes = function_exists( 'eauservice_villes_desservies' )
+		? array_diff( eauservice_villes_desservies(), array( "Côte d'Azur" ) )
+		: array();
+	?>
+	<section class="es-seo-text">
+		<h2>Votre partenaire location événementielle à Cannes, Nice, Monaco et Antibes</h2>
+		<p>EauService accompagne les salons, congrès, séminaires et événements professionnels de la Côte d'Azur&nbsp;: machines à café professionnelles (Nespresso, Lavazza, Covim), fontaines à eau, réfrigération et mobilier, avec livraison, installation et reprise sur site. Du stand de 10&nbsp;m² au congrès de plusieurs milliers de visiteurs, nos packs clé en main s'adaptent à chaque format d'événement.</p>
+		<?php if ( $villes ) : ?>
+		<p class="es-seo-zones"><strong>Zones desservies&nbsp;:</strong> <?php echo esc_html( implode( ', ', $villes ) ); ?>.</p>
+		<?php endif; ?>
+	</section>
+
 	<div class="es-section-head" style="margin-top:30px;">
 		<span class="es-eyebrow">Questions fréquentes</span>
 		<h2>Tout savoir sur la location événementielle</h2>
@@ -791,7 +828,7 @@ function eauservice_shop_outro() {
 	<section class="es-cta-band">
 		<h2>Un événement à équiper sur la Côte d'Azur&nbsp;?</h2>
 		<p>Recevez un devis personnalisé sous 24h pour votre salon, congrès ou événement professionnel.</p>
-		<a class="es-cta-btn" href="#es-devis">Demander un devis gratuit</a>
+		<a class="es-cta-btn" href="<?php echo esc_url( home_url( '/#es-devis' ) ); ?>">Demander un devis gratuit</a>
 	</section>
 	<?php
 }
@@ -1839,10 +1876,10 @@ function eauservice_boutique_boutons_bas() {
 		</p>
 		<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
 			<a href="<?php echo esc_url( $cart_url . '#es-simul' ); ?>" style="display:inline-block;padding:11px 20px;background:linear-gradient(135deg,#1b9fd1,#2eb6e6);color:#fff;text-decoration:none;border-radius:10px;font-size:14px;font-weight:700;box-shadow:0 4px 12px rgba(46,182,230,.3);transition:all .2s;">
-				🚚 Calculer les frais de livraison
+				Calculer les frais de livraison
 			</a>
 			<a href="<?php echo esc_url( $devis_url ); ?>" style="display:inline-block;padding:11px 20px;background:#fff;color:#1b9fd1;text-decoration:none;border:1.5px solid #1b9fd1;border-radius:10px;font-size:14px;font-weight:700;transition:all .2s;">
-				📋 Demander un devis gratuit
+				Demander un devis gratuit
 			</a>
 		</div>
 	</div>
@@ -2048,9 +2085,9 @@ function eauservice_bandeau_paiement() {
 // 20a. Sur la boutique, juste sous les blocs de reassurance.
 add_action( 'woocommerce_before_shop_loop', 'eauservice_pay_boutique', 8 );
 function eauservice_pay_boutique() {
-	if ( ! ( function_exists( 'is_shop' ) && is_shop() ) ) { return; }
-	if ( function_exists( 'is_paged' ) && is_paged() ) { return; }
-	echo eauservice_bandeau_paiement();
+	// v28 : sur la boutique, le paiement est annoncé dans l'en-tête (8a).
+	// Le bandeau complet reste sur la fiche produit, le panier et la commande.
+	return;
 }
 
 // 20b. Sur la fiche produit, sous le bouton d ajout au panier.
